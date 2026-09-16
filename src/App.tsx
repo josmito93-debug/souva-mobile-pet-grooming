@@ -26,6 +26,7 @@ import { StepCard } from "@/components/StepCard";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { StoreSection } from "@/components/StoreSection";
 import { CartDrawer } from "@/components/CartDrawer";
+import { AdminDashboard } from "@/components/AdminDashboard";
 import { CartProvider, useCart } from "@/lib/cartContext";
 import { SOUVA_PACKAGES } from "@/data/services";
 import { cn } from "@/lib/utils";
@@ -39,10 +40,49 @@ export default function App() {
 }
 
 function AppContent() {
+  const [currentView, setCurrentView] = useState<"site" | "admin">(() => {
+    if (typeof window !== "undefined") {
+      if (
+        window.location.pathname.startsWith("/admin") ||
+        window.location.search.includes("admin")
+      ) {
+        return "admin";
+      }
+    }
+    return "site";
+  });
+
   const [loading, setLoading] = useState(true);
   const [flowStatus, setFlowStatus] = useState({ armed: false, dispatched: false });
   const [burst, setBurst] = useState(0);
   const prevDispatched = useRef(false);
+
+  useEffect(() => {
+    const onLocationChange = () => {
+      if (
+        window.location.pathname.startsWith("/admin") ||
+        window.location.search.includes("admin")
+      ) {
+        setCurrentView("admin");
+      } else {
+        setCurrentView("site");
+      }
+    };
+    window.addEventListener("popstate", onLocationChange);
+    return () => window.removeEventListener("popstate", onLocationChange);
+  }, []);
+
+  const navigateToAdmin = () => {
+    window.history.pushState({}, "", "/admin");
+    setCurrentView("admin");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const navigateToSite = () => {
+    window.history.pushState({}, "", "/");
+    setCurrentView("site");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   useEffect(() => {
     if (flowStatus.dispatched && !prevDispatched.current) {
@@ -56,6 +96,11 @@ function AppContent() {
     : flowStatus.armed
     ? "240, 215, 175"
     : "170, 139, 99";
+
+  // If in admin view, render the AdminDashboard
+  if (currentView === "admin") {
+    return <AdminDashboard onBackToSite={navigateToSite} />;
+  }
 
   // High-end GSAP entrance animations
   useEffect(() => {
@@ -556,7 +601,7 @@ function AppContent() {
       </main>
 
       {/* Footer */}
-      <Footer />
+      <Footer onOpenAdmin={navigateToAdmin} />
     </div>
   );
 }
@@ -607,11 +652,11 @@ function Header({ onBookClick }: { onBookClick: () => void }) {
         </button>
 
         <a
-          href="tel:+15551234567"
+          href="tel:+18509600034"
           className="hidden sm:inline-flex items-center gap-2 rounded-full border border-[#FAF0E2]/15 bg-[#25281D] px-3.5 py-1.5 text-xs font-mono font-bold text-[#FAF0E2] hover:border-[#AA8B63]/60 transition-colors"
         >
           <Phone className="h-3.5 w-3.5 text-[#AA8B63]" />
-          <span>+1 (555) 123-4567</span>
+          <span>+1 (850) 960-0034</span>
         </a>
 
         <button
@@ -627,7 +672,7 @@ function Header({ onBookClick }: { onBookClick: () => void }) {
 }
 
 /* -------------------- FOOTER COMPONENT -------------------- */
-function Footer() {
+function Footer({ onOpenAdmin }: { onOpenAdmin: () => void }) {
   return (
     <footer className="px-5 py-8 md:px-8 border-t border-[#FAF0E2]/10 text-[11px] font-mono text-[#A4AA93] bg-[#14160F]">
       <div className="mx-auto max-w-6xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -644,9 +689,26 @@ function Footer() {
           <span className="text-[10px] text-[#A4AA93]/60">
             © {new Date().getFullYear()} SOUVA Pet Grooming LLC. Todos los derechos reservados.
           </span>
+          <button
+            type="button"
+            onClick={onOpenAdmin}
+            className="text-[10px] text-[#A4AA93]/50 hover:text-[#AA8B63] transition-colors flex items-center gap-1.5 mt-2 cursor-pointer text-left w-fit"
+          >
+            <Shield className="h-3 w-3" />
+            <span>Portal Dueños / Despacho & Mapa (/admin)</span>
+          </button>
         </div>
 
         <div className="flex flex-wrap items-center gap-6 md:gap-10">
+          <div className="flex flex-col gap-1">
+            <span className="text-[9.5px] uppercase tracking-wider text-[#AA8B63] font-bold">
+              CONTACTO / WHATSAPP
+            </span>
+            <a href="tel:+18509600034" className="text-[#FAF0E2] hover:text-[#AA8B63] transition-colors">
+              +1 (850) 960-0034
+            </a>
+          </div>
+
           <div className="flex flex-col gap-1">
             <span className="text-[9.5px] uppercase tracking-wider text-[#AA8B63] font-bold">
               HORARIO DE ATENCIÓN

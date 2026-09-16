@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { PetBlueprint, type GroomingZone, type PetSize } from "@/components/PetBlueprint";
 import breedsList from "@/data/breeds.json";
 import { SOUVA_PACKAGES, SPA_ADDONS } from "@/data/services";
+import { addDispatchRequest } from "@/lib/dispatchStore";
 
 export type CoatState = "smooth" | "tangles" | "matted";
 export type Temperament = "calm" | "playful" | "nervous" | "senior";
@@ -223,7 +224,7 @@ export function GroomingFlow({
       setStep(step + 1);
     } else {
       // Dispatch & open WhatsApp
-      const waNumber = "15551234567"; // SOUVA booking concierge line
+      const waNumber = "18509600034"; // SOUVA booking concierge line
       const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.name || "Full Grooming";
       const addonsText = data.addons.length > 0 ? data.addons.join(", ") : "Ninguno";
       const coatText =
@@ -259,6 +260,30 @@ ${data.petPhoto ? "• Foto del peludo: Adjunta en la web para evaluación del e
 • Google Maps: ${mapsLink}
 
 ¡Por favor confirmar disponibilidad de la van móvil para consentir a mi peludo! 🚐❤️`;
+
+      // Save to Dispatch Admin Store
+      addDispatchRequest({
+        customerName: data.ownerName,
+        phone: data.phone,
+        address: data.address,
+        lat: data.latitude || 30.2672 + (Math.random() - 0.5) * 0.08,
+        lng: data.longitude || -97.7431 + (Math.random() - 0.5) * 0.08,
+        petName: data.petName,
+        breed: data.breed,
+        size: data.size,
+        temperament: data.temperament,
+        petPhoto: data.petPhoto,
+        packageId: data.packageId,
+        packageName: selectedPkg,
+        addons: data.addons,
+        coatCondition: coatText,
+        preferredTime: data.preferredTime,
+        etaMinutes: 25,
+        vanId: "VAN-01",
+        vanName: "Van 01 (Estilista Asignado)",
+        status: "assigned",
+        notes: "Solicitud registrada desde el portal web.",
+      });
 
       const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
       window.open(waUrl, "_blank");
