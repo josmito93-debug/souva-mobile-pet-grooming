@@ -21,7 +21,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PetBlueprint, type GroomingZone, type PetSize } from "@/components/PetBlueprint";
+import { PetBlueprint, type PetSize } from "@/components/PetBlueprint";
 import breedsList from "@/data/breeds.json";
 import { SOUVA_PACKAGES, SPA_ADDONS } from "@/data/services";
 import { addDispatchRequest } from "@/lib/dispatchStore";
@@ -31,7 +31,7 @@ export type Temperament = "calm" | "playful" | "nervous" | "senior";
 
 export interface GroomingFlowState {
   size: PetSize;
-  zones: GroomingZone[];
+  zones?: string[];
   petName: string;
   breed: string;
   petPhoto: string | null;
@@ -191,7 +191,7 @@ export function GroomingFlow({
   };
 
   const canNext = Boolean(
-    (step === 0 && data.zones.length > 0) ||
+    (step === 0 && Boolean(data.size)) ||
       (step === 1 && data.petName.trim().length >= 1 && data.breed.trim().length >= 2) ||
       (step === 2 && data.packageId) ||
       (step === 3 && data.coatCondition) ||
@@ -406,7 +406,7 @@ ${data.petPhoto ? "• Foto del peludo: Adjunta en la web para evaluación del e
   );
 }
 
-/* -------------------- STEP 1: PET SIZE & BLUEPRINT -------------------- */
+/* -------------------- STEP 1: PET SIZE & ANIMATION -------------------- */
 function StepPetSize({
   data,
   setData,
@@ -414,29 +414,15 @@ function StepPetSize({
   data: GroomingFlowState;
   setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
 }) {
-  const toggleZone = (z: GroomingZone) => {
-    let next = [...data.zones];
-    if (next.includes(z)) {
-      if (next.length > 1) {
-        next = next.filter((item) => item !== z);
-      }
-    } else {
-      next.push(z);
-    }
-    setData({ ...data, zones: next });
-  };
-
   return (
     <div>
       <StepHeader
         eyebrow="Paso 1"
-        title="Talla & Zonas de Cuidado"
-        subtitle="Selecciona la talla de tu peludo y las áreas que requieren mayor atención."
+        title="Talla de tu Mascota"
+        subtitle="Visualiza la animación de cada tamaño para elegir el servicio adecuado para tu perro."
       />
       <div className="mt-4">
         <PetBlueprint
-          selectedZones={data.zones}
-          onToggleZone={toggleZone}
           selectedSize={data.size}
           onSelectSize={(size) => setData({ ...data, size })}
         />
