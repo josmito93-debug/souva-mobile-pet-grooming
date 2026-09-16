@@ -9,10 +9,9 @@ interface PetBlueprintProps {
 
 const DOG_ANIMATIONS: Record<
   PetSize,
-  { mp4: string; mov: string; webm: string; label: string; weight: string; breedExample: string }
+  { mov: string; webm: string; label: string; weight: string; breedExample: string }
 > = {
   toy: {
-    mp4: "/assets/dog-sizes/toy.mp4",
     mov: "/assets/dog-sizes/toy.mov",
     webm: "/assets/dog-sizes/toy.webm",
     label: "Talla Toy",
@@ -20,7 +19,6 @@ const DOG_ANIMATIONS: Record<
     breedExample: "Pomeranian, Yorkie, Chihuahua",
   },
   small: {
-    mp4: "/assets/dog-sizes/small.mp4",
     mov: "/assets/dog-sizes/small.mov",
     webm: "/assets/dog-sizes/small.webm",
     label: "Talla Small",
@@ -28,7 +26,6 @@ const DOG_ANIMATIONS: Record<
     breedExample: "French Bulldog, Pug, Shih Tzu",
   },
   medium: {
-    mp4: "/assets/dog-sizes/medium.mp4",
     mov: "/assets/dog-sizes/medium.mov",
     webm: "/assets/dog-sizes/medium.webm",
     label: "Talla Medium",
@@ -36,7 +33,6 @@ const DOG_ANIMATIONS: Record<
     breedExample: "Corgi, Beagle, Cocker Spaniel",
   },
   large: {
-    mp4: "/assets/dog-sizes/large.mp4",
     mov: "/assets/dog-sizes/large.mov",
     webm: "/assets/dog-sizes/large.webm",
     label: "Talla Large",
@@ -44,7 +40,6 @@ const DOG_ANIMATIONS: Record<
     breedExample: "Golden Retriever, Doodle, Pastor",
   },
   giant: {
-    mp4: "/assets/dog-sizes/giant.mp4",
     mov: "/assets/dog-sizes/giant.mov",
     webm: "/assets/dog-sizes/giant.webm",
     label: "Talla Giant",
@@ -107,19 +102,19 @@ export function PetBlueprint({
         </div>
       </div>
 
-      {/* Floating Dog Alpha Video - NO BOX, NO DIV BLOCK, NO BACKGROUND */}
-      <div className="relative w-full flex flex-col items-center justify-center my-1 select-none pointer-events-none">
+      {/* Floating Dog Alpha Video - SIN FONDO, SIN DIV BLOCK, FLOTANDO LIBRE */}
+      <div className="relative w-full flex flex-col items-center justify-center my-2 select-none pointer-events-none">
         <video
           key={selectedSize}
           autoPlay
           loop
           muted
           playsInline
-          className="w-full max-w-[280px] sm:max-w-[320px] h-[240px] sm:h-[270px] object-contain bg-transparent"
+          className="w-full max-w-[280px] sm:max-w-[320px] h-[240px] sm:h-[280px] object-contain bg-transparent [mix-blend-mode:screen]"
         >
-          <source src={activeDog.webm} type="video/webm" />
+          <source src={activeDog.mov} type='video/mp4; codecs="hvc1"' />
           <source src={activeDog.mov} type="video/quicktime" />
-          <source src={activeDog.mp4} type="video/mp4" />
+          <source src={activeDog.webm} type="video/webm" />
         </video>
 
         <div className="mt-1 text-center">
