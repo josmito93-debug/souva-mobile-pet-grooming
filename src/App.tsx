@@ -17,16 +17,28 @@ import {
   ChevronRight,
   Droplets,
   Award,
+  ShoppingBag,
 } from "lucide-react";
-import { SouvaLogo, SouvaIconBadge } from "@/components/SouvaLogo";
+import { SouvaLogo } from "@/components/SouvaLogo";
 import { InteractiveTile } from "@/components/InteractiveTile";
 import { GroomingFlow } from "@/components/GroomingFlow";
 import { StepCard } from "@/components/StepCard";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
+import { StoreSection } from "@/components/StoreSection";
+import { CartDrawer } from "@/components/CartDrawer";
+import { CartProvider, useCart } from "@/lib/cartContext";
 import { SOUVA_PACKAGES } from "@/data/services";
 import { cn } from "@/lib/utils";
 
 export default function App() {
+  return (
+    <CartProvider>
+      <AppContent />
+    </CartProvider>
+  );
+}
+
+function AppContent() {
   const [loading, setLoading] = useState(true);
   const [flowStatus, setFlowStatus] = useState({ armed: false, dispatched: false });
   const [burst, setBurst] = useState(0);
@@ -39,10 +51,6 @@ export default function App() {
     prevDispatched.current = flowStatus.dispatched;
   }, [flowStatus.dispatched]);
 
-  // Dynamic beam color based on flow state:
-  // idle: warm gold (170, 139, 99)
-  // armed: radiant champagne gold (230, 205, 160)
-  // dispatched: radiant champagne with olive glow (200, 175, 120)
   const beamColor = flowStatus.dispatched
     ? "214, 185, 142"
     : flowStatus.armed
@@ -139,6 +147,9 @@ export default function App() {
         </div>
       )}
 
+      {/* Cart Drawer */}
+      <CartDrawer />
+
       {/* Header */}
       <Header onBookClick={scrollToHero} />
 
@@ -146,7 +157,6 @@ export default function App() {
       <main className="flex-1 flex flex-col">
         {/* HERO SECTION WITH THE COCKPIT MODAL */}
         <section className="relative isolate px-4 py-8 md:py-12 md:px-8 flex-1 flex flex-col justify-center w-full overflow-hidden">
-          {/* Atmosphere glows & bubbles */}
           <div className="hero-spa-ambient" aria-hidden="true" />
           <div className="hero-gold-glow" aria-hidden="true" />
 
@@ -235,7 +245,6 @@ export default function App() {
               {/* Right Side: The Interactive Cockpit Card */}
               <div className="hero-right-content lg:col-span-7 flex flex-col justify-center">
                 <div className="relative w-full max-w-xl mx-auto lg:mr-0">
-                  {/* Outer breathing aura */}
                   <div
                     className={cn(
                       "absolute -inset-3 blur-3xl rounded-[3rem] transition-colors duration-700",
@@ -257,7 +266,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Premium Step-by-Step Bento Cards below the modal */}
+            {/* Premium Step-by-Step Bento Cards */}
             <div className="mt-16 sm:mt-20 border-t border-[#FAF0E2]/10 pt-10">
               <div className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase mb-6 text-center">
                 {"// CÓMO FUNCIONA // TRES PASOS HACIA EL SPA EN TU PUERTA"}
@@ -269,7 +278,7 @@ export default function App() {
                     n: "01",
                     icon: <Scissors className="h-5 w-5" />,
                     t: "Personaliza en el Blueprint",
-                    d: "Selecciona el tamaño de tu perro y toca las zonas que deseas cuidar (manto, carita, patitas o cola).",
+                    d: "Selecciona el tamaño de tu perro, toca las zonas a cuidar y adjunta su foto opcional para evaluación.",
                     delay: "0s",
                   },
                   {
@@ -294,15 +303,18 @@ export default function App() {
           </div>
         </section>
 
+        {/* E-COMMERCE BOUTIQUE & COSMETICS LINE */}
+        <StoreSection />
+
         {/* SERVICES SECTION */}
         <section id="services" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 bg-[#191C13]/60 relative">
           <div className="max-w-6xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <span className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase block mb-2">
-                {"// SERVICIOS EXCLUSIVOS //"}
+                {"// SERVICIOS EXCLUSIVOS DE SPA MÓVIL //"}
               </span>
               <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#FAF0E2]">
-                Tratamientos de Spa a Domicilio
+                Tratamientos de Grooming en tu Puerta
               </h2>
               <p className="mt-3 text-[#A4AA93] text-sm md:text-base leading-relaxed">
                 Diseñados para brindar el máximo confort y brillo sedoso a tu mascota,
@@ -551,6 +563,8 @@ export default function App() {
 
 /* -------------------- HEADER COMPONENT -------------------- */
 function Header({ onBookClick }: { onBookClick: () => void }) {
+  const { totalItems, setIsOpen } = useCart();
+
   return (
     <header className="app-header sticky top-0 z-40 flex items-center justify-between px-4 py-3 md:px-8">
       <div className="flex items-center gap-3">
@@ -558,14 +572,18 @@ function Header({ onBookClick }: { onBookClick: () => void }) {
       </div>
 
       <nav className="hidden lg:flex items-center gap-6 text-xs font-medium text-[#FAF0E2]/80">
+        <a href="#store" className="hover:text-[#AA8B63] transition-colors flex items-center gap-1">
+          <Sparkles className="h-3 w-3 text-[#AA8B63]" />
+          <span>Boutique & Cosmética</span>
+        </a>
         <a href="#services" className="hover:text-[#AA8B63] transition-colors">
-          Servicios
+          Servicios Móviles
         </a>
         <a href="#before-after" className="hover:text-[#AA8B63] transition-colors">
           Antes & Después
         </a>
         <a href="#gallery" className="hover:text-[#AA8B63] transition-colors">
-          La Van & Productos
+          La Van & Spa
         </a>
         <a href="#reviews" className="hover:text-[#AA8B63] transition-colors">
           Testimonios
@@ -573,6 +591,21 @@ function Header({ onBookClick }: { onBookClick: () => void }) {
       </nav>
 
       <div className="flex items-center gap-3">
+        {/* Shopping Cart Button */}
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="relative p-2 rounded-full bg-[#25281D] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:border-[#AA8B63] transition-colors cursor-pointer shadow-sm"
+          aria-label="Abrir Carrito"
+        >
+          <ShoppingBag className="h-4 w-4 text-[#AA8B63]" />
+          {totalItems > 0 && (
+            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-[#AA8B63] text-[#161811] text-[9.5px] font-bold flex items-center justify-center shadow-md">
+              {totalItems}
+            </span>
+          )}
+        </button>
+
         <a
           href="tel:+15551234567"
           className="hidden sm:inline-flex items-center gap-2 rounded-full border border-[#FAF0E2]/15 bg-[#25281D] px-3.5 py-1.5 text-xs font-mono font-bold text-[#FAF0E2] hover:border-[#AA8B63]/60 transition-colors"

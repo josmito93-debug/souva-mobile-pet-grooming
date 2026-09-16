@@ -15,6 +15,10 @@ import {
   Calendar,
   Smile,
   AlertCircle,
+  Camera,
+  Upload,
+  Trash2,
+  Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PetBlueprint, type GroomingZone, type PetSize } from "@/components/PetBlueprint";
@@ -29,6 +33,7 @@ export interface GroomingFlowState {
   zones: GroomingZone[];
   petName: string;
   breed: string;
+  petPhoto: string | null;
   temperament: Temperament;
   packageId: string;
   addons: string[];
@@ -138,6 +143,7 @@ export function GroomingFlow({
     zones: ["face", "body", "paws"],
     petName: "",
     breed: "",
+    petPhoto: null,
     temperament: "calm",
     packageId: "full-grooming",
     addons: ["blueberry-facial"],
@@ -169,6 +175,7 @@ export function GroomingFlow({
       zones: ["face", "body", "paws"],
       petName: "",
       breed: "",
+      petPhoto: null,
       temperament: "calm",
       packageId: "full-grooming",
       addons: ["blueberry-facial"],
@@ -238,7 +245,7 @@ export function GroomingFlow({
 • Raza: ${data.breed}
 • Talla: ${data.size.toUpperCase()}
 • Temperamento: ${data.temperament}
-
+${data.petPhoto ? "• Foto del peludo: Adjunta en la web para evaluación del estilista\n" : ""}
 ✂️ SERVICIO SELECCIONADO:
 • Paquete: ${selectedPkg}
 • Mimos Extra (Add-ons): ${addonsText}
@@ -423,6 +430,7 @@ function StepPetProfile({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const clickOutside = (e: MouseEvent) => {
@@ -433,6 +441,16 @@ function StepPetProfile({
     document.addEventListener("mousedown", clickOutside);
     return () => document.removeEventListener("mousedown", clickOutside);
   }, []);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setData((prev) => ({ ...prev, petPhoto: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const filteredBreeds = data.breed
     ? breedsList.filter((b) => b.toLowerCase().includes(data.breed.toLowerCase())).slice(0, 6)
@@ -538,6 +556,86 @@ function StepPetProfile({
               );
             })}
           </div>
+        </div>
+
+        {/* Optional Pet Photo (Camera / Gallery Upload) */}
+        <div className="pt-2 border-t border-[#FAF0E2]/10">
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider flex items-center gap-1.5">
+              <Camera className="h-3.5 w-3.5 text-[#AA8B63]" />
+              <span>Foto de tu Perrito (Opcional)</span>
+            </label>
+            <span className="text-[9.5px] font-mono text-[#AA8B63] bg-[#AA8B63]/15 px-2 py-0.5 rounded-full">
+              Para evaluar manto
+            </span>
+          </div>
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            capture="environment"
+            onChange={handlePhotoUpload}
+            className="hidden"
+          />
+
+          {data.petPhoto ? (
+            <div className="relative p-3 rounded-2xl bg-[#14160F] border border-[#AA8B63]/60 flex items-center justify-between gap-3 shadow-md">
+              <div className="flex items-center gap-3">
+                <img
+                  src={data.petPhoto}
+                  alt="Foto del peludo"
+                  className="h-14 w-14 object-cover rounded-xl border border-[#FAF0E2]/20 shadow-sm"
+                />
+                <div>
+                  <div className="text-xs font-bold text-[#FAF0E2] flex items-center gap-1">
+                    <Check className="h-3.5 w-3.5 text-[#AA8B63]" />
+                    <span>Foto adjuntada para el estilista</span>
+                  </div>
+                  <span className="text-[10px] text-[#A4AA93]">
+                    Ayudará a preparar las tijeras y peines indicados
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-1.5 rounded-lg text-xs text-[#AA8B63] hover:bg-[#25281D] transition-colors cursor-pointer"
+                  title="Cambiar foto"
+                >
+                  <Camera className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setData({ ...data, petPhoto: null })}
+                  className="p-1.5 rounded-lg text-xs text-red-400 hover:bg-red-950/30 transition-colors cursor-pointer"
+                  title="Eliminar foto"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full p-3.5 rounded-2xl border border-dashed border-[#FAF0E2]/20 hover:border-[#AA8B63] bg-[#14160F]/60 hover:bg-[#1C1F15] transition-all flex items-center justify-between gap-3 cursor-pointer group text-left"
+            >
+              <div className="h-9 w-9 rounded-xl bg-[#22261A] group-hover:bg-[#AA8B63] group-hover:text-[#161811] text-[#AA8B63] flex items-center justify-center transition-colors shrink-0 shadow-inner">
+                <Camera className="h-4.5 w-4.5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-bold text-[#FAF0E2] group-hover:text-[#AA8B63] transition-colors block">
+                  Tomar foto o subir de galería
+                </span>
+                <span className="text-[10px] text-[#A4AA93] block truncate">
+                  Muestra su carita o cuerpo entero para conocerlo mejor
+                </span>
+              </div>
+              <Upload className="h-4 w-4 text-[#A4AA93] group-hover:text-[#AA8B63] shrink-0" />
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -1013,6 +1111,23 @@ function DispatchedSpaView({
 
       {/* Booking summary receipt */}
       <div className="mt-6 rounded-2xl border border-[#FAF0E2]/10 bg-[#1B1E15] p-4 text-left text-xs space-y-2">
+        {data.petPhoto && (
+          <div className="flex items-center gap-3 pb-2 border-b border-[#FAF0E2]/10">
+            <img
+              src={data.petPhoto}
+              alt={data.petName}
+              className="h-12 w-12 object-cover rounded-xl border border-[#AA8B63]/40 shadow-sm"
+            />
+            <div>
+              <span className="text-[10px] text-[#AA8B63] font-mono font-bold uppercase tracking-wider block">
+                Foto Adjunta
+              </span>
+              <span className="text-xs font-bold text-[#FAF0E2]">
+                {data.petName} ({data.breed})
+              </span>
+            </div>
+          </div>
+        )}
         <Row label="Mascota" value={`${data.petName} (${data.breed} · ${data.size.toUpperCase()})`} />
         <Row label="Servicio Principal" value={selectedPkg} />
         <Row label="Mimos Extra" value={data.addons.length > 0 ? data.addons.join(", ") : "Ninguno"} />
