@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
-/tallas/
-*.mov
-*.MOV
+/tallas
+/tallas/*
+/bg video
+/bg video/*

@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { Sparkles } from "lucide-react";
 
 export type PetSize = "toy" | "small" | "medium" | "large" | "giant";
 
@@ -10,42 +9,47 @@ interface PetBlueprintProps {
 
 const DOG_ANIMATIONS: Record<
   PetSize,
-  { mp4: string; webm: string; label: string; weight: string; breedExample: string }
+  { mp4: string; mov: string; webm: string; label: string; weight: string; breedExample: string }
 > = {
   toy: {
     mp4: "/assets/dog-sizes/toy.mp4",
+    mov: "/assets/dog-sizes/toy.mov",
     webm: "/assets/dog-sizes/toy.webm",
     label: "Talla Toy",
     weight: "< 12 lbs",
-    breedExample: "Pomeranian, Yorkshire, Chihuahua, Caniche Toy",
+    breedExample: "Pomeranian, Yorkie, Chihuahua",
   },
   small: {
     mp4: "/assets/dog-sizes/small.mp4",
+    mov: "/assets/dog-sizes/small.mov",
     webm: "/assets/dog-sizes/small.webm",
     label: "Talla Small",
     weight: "13 - 25 lbs",
-    breedExample: "French Bulldog, Pug, Shih Tzu, Boston Terrier",
+    breedExample: "French Bulldog, Pug, Shih Tzu",
   },
   medium: {
     mp4: "/assets/dog-sizes/medium.mp4",
+    mov: "/assets/dog-sizes/medium.mov",
     webm: "/assets/dog-sizes/medium.webm",
     label: "Talla Medium",
     weight: "26 - 50 lbs",
-    breedExample: "Corgi, Beagle, Cocker Spaniel, Schnauzer",
+    breedExample: "Corgi, Beagle, Cocker Spaniel",
   },
   large: {
     mp4: "/assets/dog-sizes/large.mp4",
+    mov: "/assets/dog-sizes/large.mov",
     webm: "/assets/dog-sizes/large.webm",
     label: "Talla Large",
     weight: "51 - 80 lbs",
-    breedExample: "Golden Retriever, Labradoodle, Pastor Alemán",
+    breedExample: "Golden Retriever, Doodle, Pastor",
   },
   giant: {
     mp4: "/assets/dog-sizes/giant.mp4",
+    mov: "/assets/dog-sizes/giant.mov",
     webm: "/assets/dog-sizes/giant.webm",
     label: "Talla Giant",
     weight: "80+ lbs",
-    breedExample: "Bernese Mountain Dog, Gran Danés, Mastín",
+    breedExample: "Bernese, Mastín, Gran Danés",
   },
 };
 
@@ -66,14 +70,13 @@ export function PetBlueprint({
   return (
     <div className="w-full">
       {/* Size Selector Tabs */}
-      <div className="mb-4">
+      <div className="mb-2">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[11px] font-mono uppercase tracking-wider text-[#A4AA93]">
-            Elige la Talla de tu Perro:
+            Talla de tu Perro:
           </span>
-          <span className="text-[10px] font-mono text-[#AA8B63] font-bold flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#AA8B63] animate-pulse" />
-            <span>{activeDog.label} ({activeDog.weight})</span>
+          <span className="text-[10px] font-mono text-[#AA8B63] font-bold">
+            {activeDog.label} ({activeDog.weight})
           </span>
         </div>
 
@@ -86,22 +89,16 @@ export function PetBlueprint({
                 type="button"
                 onClick={() => onSelectSize(opt.id)}
                 className={cn(
-                  "py-2.5 px-1 rounded-2xl text-center border transition-all duration-300 cursor-pointer select-none relative",
+                  "py-2 px-1 rounded-xl text-center border transition-all duration-300 cursor-pointer select-none relative",
                   isActive
-                    ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] shadow-[0_0_20px_rgba(170,139,99,0.45)] scale-105 font-bold"
+                    ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] shadow-[0_0_15px_rgba(170,139,99,0.45)] scale-102 font-bold"
                     : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/40"
                 )}
               >
-                {isActive && (
-                  <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FAF0E2] opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FAF0E2]" />
-                  </span>
-                )}
-                <div className={cn("text-xs font-display", isActive ? "font-extrabold" : "font-semibold")}>
+                <div className={cn("text-[11px] font-display", isActive ? "font-extrabold" : "font-semibold")}>
                   {opt.label}
                 </div>
-                <div className={cn("text-[9px] font-mono mt-0.5", isActive ? "text-[#161811]/90 font-bold" : "opacity-75")}>
+                <div className={cn("text-[8.5px] font-mono mt-0.5", isActive ? "text-[#161811]/90 font-bold" : "opacity-75")}>
                   {opt.weight}
                 </div>
               </button>
@@ -110,38 +107,26 @@ export function PetBlueprint({
         </div>
       </div>
 
-      {/* Clean Full-View Video Animation Showcase */}
-      <div className="relative mx-auto w-full max-w-[360px] aspect-[4/3.8] rounded-3xl bg-[#13150F] border border-[#FAF0E2]/15 overflow-hidden shadow-2xl flex items-center justify-center">
-        {/* Subtle breathing glow underneath */}
-        <div className="absolute inset-0 bg-radial from-[#AA8B63]/10 via-transparent to-transparent pointer-events-none" />
-
-        {/* Clean Video Element */}
+      {/* Floating Dog Alpha Video - NO BOX, NO DIV BLOCK, NO BACKGROUND */}
+      <div className="relative w-full flex flex-col items-center justify-center my-1 select-none pointer-events-none">
         <video
           key={selectedSize}
           autoPlay
           loop
           muted
           playsInline
-          className="w-full h-full object-contain relative z-10 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.8)]"
+          className="w-full max-w-[280px] sm:max-w-[320px] h-[240px] sm:h-[270px] object-contain bg-transparent"
         >
           <source src={activeDog.webm} type="video/webm" />
+          <source src={activeDog.mov} type="video/quicktime" />
           <source src={activeDog.mp4} type="video/mp4" />
         </video>
 
-        {/* Subtle Bottom Floating Info Bar */}
-        <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none bg-[#161811]/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-[#FAF0E2]/10 shadow-lg">
-          <div className="text-[9.5px] font-mono text-[#FAF0E2] truncate max-w-[210px]">
-            <span className="text-[#AA8B63] font-bold">Ej:</span> {activeDog.breedExample}
-          </div>
-          <div className="text-[9px] font-mono font-bold text-[#AA8B63] flex items-center gap-1.5 shrink-0">
-            <Sparkles className="h-3 w-3" />
-            <span>{activeDog.label.toUpperCase()}</span>
-          </div>
+        <div className="mt-1 text-center">
+          <span className="text-[11px] font-mono text-[#A4AA93]">
+            <strong className="text-[#FAF0E2]">{activeDog.label}</strong> ({activeDog.weight}) · {activeDog.breedExample}
+          </span>
         </div>
-      </div>
-
-      <div className="mt-2.5 text-center text-xs text-[#A4AA93] font-mono">
-        Animación 3D del perro según su tamaño corporal · <strong className="text-[#FAF0E2]">{activeDog.label}</strong>
       </div>
     </div>
   );

@@ -56,6 +56,14 @@ function AppContent() {
   const [flowStatus, setFlowStatus] = useState({ armed: false, dispatched: false });
   const [burst, setBurst] = useState(0);
   const prevDispatched = useRef(false);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
+
+  const skipIntro = () => {
+    if (tlRef.current) {
+      tlRef.current.seek(8.0);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     const onLocationChange = () => {
@@ -102,61 +110,87 @@ function AppContent() {
     return <AdminDashboard onBackToSite={navigateToSite} />;
   }
 
-  // High-end GSAP entrance animations
+  // High-end GSAP entrance animations with BG Video playing until second 8
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline();
+      tlRef.current = tl;
 
-      // 1. Preloader badge draw & glow
+      // 1. Initial preloader logo badge draw (0.0s - 0.7s)
       tl.from(".preloader-badge", {
         opacity: 0,
         scale: 0.85,
-        rotation: -10,
-        duration: 0.8,
+        rotation: -8,
+        duration: 0.7,
         ease: "power3.out",
       });
 
       tl.fromTo(
         ".preloader-glow",
         { opacity: 0, scale: 0.7 },
-        { opacity: 0.6, scale: 1.3, duration: 0.8, ease: "power2.out" },
+        { opacity: 0.6, scale: 1.2, duration: 0.7, ease: "power2.out" },
         "<"
       );
 
-      // 2. Slide up curtain
+      // 2. Preloader curtain fades away at 0.8s so full video plays front & center
       tl.to(".preloader", {
-        yPercent: -100,
         opacity: 0,
-        duration: 0.8,
-        ease: "power4.inOut",
-      }, "+=0.2");
+        duration: 0.7,
+        ease: "power3.inOut",
+        onComplete: () => {
+          const el = document.querySelector(".preloader") as HTMLElement | null;
+          if (el) el.style.pointerEvents = "none";
+        },
+      }, 0.8);
 
-      // 3. Reveal elements
+      // 3. Background video plays in full glory until second 8.0!
+      // At second 8.0: Video smoothly dims to ambient background
+      tl.to(".hero-bg-video", {
+        opacity: 0.20,
+        duration: 1.2,
+        ease: "power2.inOut",
+      }, 8.0);
+
+      // 4. Hero spa atmosphere & gold glow fade in at 8.0s
+      tl.fromTo(".hero-spa-ambient", { opacity: 0 }, { opacity: 1, duration: 1.0 }, 8.0);
+      tl.fromTo(".hero-gold-glow", { opacity: 0 }, { opacity: 0.85, duration: 1.0 }, 8.0);
+
+      // 5. App Header reveals at 8.1s
       tl.fromTo(
         ".app-header",
-        { opacity: 0, y: -20 },
-        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
-        "-=0.3"
+        { opacity: 0, y: -25 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+        8.1
       );
 
+      // 6. Hero left content reveals at 8.2s
       tl.fromTo(
         ".hero-left-content",
-        { opacity: 0, y: 25 },
-        { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" },
-        "-=0.4"
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" },
+        8.2
       );
 
+      // 7. Hero cockpit card reveals at 8.3s
       tl.fromTo(
         ".hero-right-content",
-        { opacity: 0, scale: 0.95 },
+        { opacity: 0, scale: 0.93 },
         {
           opacity: 1,
           scale: 1,
-          duration: 0.7,
-          ease: "power2.out",
+          duration: 0.8,
+          ease: "back.out(1.2)",
           onComplete: () => setLoading(false),
         },
-        "-=0.5"
+        8.3
+      );
+
+      // 8. Bento step cards reveal at 8.5s
+      tl.fromTo(
+        ".bento-steps-section",
+        { opacity: 0, y: 25 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+        8.5
       );
     });
 
@@ -168,7 +202,17 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#161811] text-[#FAF0E2] flex flex-col justify-between selection:bg-[#AA8B63]/40 selection:text-[#FAF0E2]">
+    <div className="min-h-screen bg-[#161811] text-[#FAF0E2] flex flex-col justify-between selection:bg-[#AA8B63]/40 selection:text-[#FAF0E2] relative">
+      {/* Background Video */}
+      <video
+        className="hero-bg-video fixed inset-0 w-full h-full object-cover z-0 pointer-events-none"
+        src="/bg-video.mp4"
+        autoPlay
+        muted
+        playsInline
+        loop
+      />
+
       {/* GSAP Preloader Overlay */}
       {loading && (
         <div className="preloader fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#13150F] overflow-hidden select-none">
@@ -186,9 +230,27 @@ function AppContent() {
               <span>SOUVA · MOBILE PET GROOMING</span>
             </div>
             <span className="text-[8.5px] text-[#A4AA93] tracking-widest opacity-80">
-              PREPARANDO EXPERIENCIA DE SPA EN TU PUERTA
+              PRESENTING THE PAMPERING PARLOR
             </span>
           </div>
+        </div>
+      )}
+
+      {/* Floating Skip Intro Pill during first 8 seconds */}
+      {loading && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#161811]/85 backdrop-blur-md border border-[#FAF0E2]/15 text-[10.5px] font-mono text-[#FAF0E2] shadow-xl">
+            <span className="h-2 w-2 rounded-full bg-[#AA8B63] animate-pulse" />
+            <span>SOUVA · PRESENTACIÓN EN VIVO</span>
+          </div>
+          <button
+            type="button"
+            onClick={skipIntro}
+            className="px-4 py-2 rounded-full bg-[#AA8B63] text-[#161811] text-xs font-mono font-bold tracking-wider uppercase hover:bg-[#C4A67E] transition-all cursor-pointer shadow-2xl flex items-center gap-1.5"
+          >
+            <span>Saltar Intro</span>
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
       )}
 
@@ -199,7 +261,7 @@ function AppContent() {
       <Header onBookClick={scrollToHero} />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col relative z-10">
         {/* HERO SECTION WITH THE COCKPIT MODAL */}
         <section className="relative isolate px-4 py-8 md:py-12 md:px-8 flex-1 flex flex-col justify-center w-full overflow-hidden">
           <div className="hero-spa-ambient" aria-hidden="true" />
@@ -312,7 +374,7 @@ function AppContent() {
             </div>
 
             {/* Premium Step-by-Step Bento Cards */}
-            <div className="mt-16 sm:mt-20 border-t border-[#FAF0E2]/10 pt-10">
+            <div className="bento-steps-section mt-16 sm:mt-20 border-t border-[#FAF0E2]/10 pt-10">
               <div className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase mb-6 text-center">
                 {"// CÓMO FUNCIONA // TRES PASOS HACIA EL SPA EN TU PUERTA"}
               </div>

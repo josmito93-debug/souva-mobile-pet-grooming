@@ -135,6 +135,23 @@
   mask-image: radial-gradient(circle at 50% 45%, black 20%, transparent 75%);
 }
 
+.hero-bg-video {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.app-header,
+.hero-left-content,
+.hero-right-content,
+.bento-steps-section {
+  opacity: 0;
+}
+
 /* App Header & Blur */
 .app-header {
   position: relative;

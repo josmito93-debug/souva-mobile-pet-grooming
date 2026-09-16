@@ -1,7 +1,7 @@
 /tallas
 /tallas/*
-*.mov
-*.MOV
+/bg video
+/bg video/*
 SOUVA BRANDING.pdf
 node_modules
 .git
