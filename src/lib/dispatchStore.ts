@@ -12,6 +12,7 @@ export type RequestStatus =
 export interface DispatchRequest {
   id: string;
   customerName: string;
+  email?: string;
   phone: string;
   address: string;
   lat: number;
@@ -19,13 +20,18 @@ export interface DispatchRequest {
   petName: string;
   breed: string;
   size: PetSize;
-  temperament: string;
+  petAge?: string;
+  vaccinated?: string;
+  medicalConditions?: string;
+  temperament?: string;
   petPhoto: string | null;
   packageId: string;
   packageName: string;
   addons: string[];
-  coatCondition: string;
+  coatCondition?: string;
   preferredTime: string;
+  scheduledDate?: string;
+  scheduledTime?: string;
   etaMinutes: number;
   vanId: string;
   vanName: string;

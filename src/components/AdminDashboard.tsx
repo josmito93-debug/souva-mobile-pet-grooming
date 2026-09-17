@@ -514,12 +514,16 @@ Our mobile stylist has prepared the warm ozonated water and organic botanical sh
 
               <div className="p-3.5 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/10 text-xs space-y-1.5">
                 <div className="flex justify-between">
-                  <span className="text-[#A4AA93]">Coat Condition:</span>
-                  <span className="text-[#FAF0E2] font-bold">{selectedRequest.coatCondition}</span>
+                  <span className="text-[#A4AA93]">Age & Vaccines:</span>
+                  <span className="text-[#FAF0E2] font-bold">
+                    {selectedRequest.petAge || "Adult"} · {selectedRequest.vaccinated === "yes" ? "Vaccinated" : "Pending"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#A4AA93]">Temperament:</span>
-                  <span className="text-[#FAF0E2]">{selectedRequest.temperament}</span>
+                  <span className="text-[#A4AA93]">Medical Conditions:</span>
+                  <span className="text-[#FAF0E2]">
+                    {selectedRequest.medicalConditions || selectedRequest.temperament || "None / Healthy"}
+                  </span>
                 </div>
                 {selectedRequest.addons.length > 0 && (
                   <div className="flex justify-between">

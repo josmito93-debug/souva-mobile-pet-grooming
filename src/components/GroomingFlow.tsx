@@ -4,8 +4,8 @@ import {
   MapPin,
   Phone,
   User,
+  Mail,
   ChevronLeft,
-  Shield,
   Clock,
   Truck,
   ArrowRight,
@@ -13,11 +13,12 @@ import {
   Scissors,
   Check,
   Calendar,
-  Smile,
   AlertCircle,
   Camera,
   Upload,
   Trash2,
+  ShieldCheck,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PetBlueprint } from "@/components/PetBlueprint";
@@ -25,37 +26,61 @@ import breedsList from "@/data/breeds.json";
 import { SOUVA_PACKAGES, SPA_UPGRADES, SIZE_GUIDE, type PetSize } from "@/data/services";
 import { addDispatchRequest } from "@/lib/dispatchStore";
 
-export type CoatState = "smooth" | "tangles" | "matted";
-export type Temperament = "calm" | "playful" | "nervous" | "senior";
-
 export interface GroomingFlowState {
   size: PetSize;
-  zones?: string[];
+  packageId: string; // Empty by default per user request
+  addons: string[];
   petName: string;
   breed: string;
+  petAge: string;
+  vaccinated: "yes" | "no";
+  medicalConditions: string;
   petPhoto: string | null;
-  temperament: Temperament;
-  packageId: string;
-  addons: string[];
-  coatCondition: CoatState;
   ownerName: string;
+  email: string;
   phone: string;
   address: string;
-  preferredTime: string;
   latitude: number | null;
   longitude: number | null;
+  scheduledDate: string;
+  scheduledTime: string;
 }
 
 const STEPS_TOTAL = 5;
+
+// Dynamic Helper for next 10 days
+function getAvailableDates() {
+  const dates = [];
+  const now = new Date();
+  for (let i = 0; i < 10; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() + i);
+    const dayLabel = i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-US", { weekday: "short" });
+    const month = d.toLocaleDateString("en-US", { month: "short" });
+    const dayNum = d.getDate();
+    const fullDate = `${dayLabel}, ${month} ${dayNum}`;
+    dates.push({ dayLabel, month, dayNum, fullDate });
+  }
+  return dates;
+}
+
+const TIME_SLOTS = [
+  { id: "8:30 AM", period: "Morning", time: "8:30 AM" },
+  { id: "10:30 AM", period: "Morning", time: "10:30 AM" },
+  { id: "12:30 PM", period: "Midday", time: "12:30 PM" },
+  { id: "2:30 PM", period: "Afternoon", time: "2:30 PM" },
+  { id: "4:30 PM", period: "Afternoon", time: "4:30 PM" },
+  { id: "6:00 PM", period: "Evening", time: "6:00 PM" },
+];
 
 /* -------------------- Status LED Grid -------------------- */
 function StatusLedGrid({ activeIndex, hot }: { activeIndex: number; hot: boolean }) {
   const steps = [
     { icon: Sparkles, label: "Size" },
     { icon: Scissors, label: "Service" },
-    { icon: Heart, label: "Pet Profile" },
-    { icon: Shield, label: "Coat Care" },
+    { icon: Heart, label: "Pet Details" },
     { icon: MapPin, label: "Location" },
+    { icon: Calendar, label: "Schedule" },
     { icon: Truck, label: "Dispatch" },
   ];
 
@@ -131,30 +156,35 @@ export function GroomingFlow({
 }: {
   onStatus: (s: { armed: boolean; dispatched: boolean }) => void;
 }) {
+  const availableDates = getAvailableDates();
+
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState<"fwd" | "back">("fwd");
   const [dispatched, setDispatched] = useState(false);
   const [etaSeconds, setEtaSeconds] = useState(25 * 60);
   const [justArmed, setJustArmed] = useState(false);
 
+  // NO service preselected by default (packageId: "") per user instruction!
   const [data, setData] = useState<GroomingFlowState>({
-    size: "medium",
+    size: "small",
+    packageId: "",
+    addons: [],
     petName: "",
     breed: "",
+    petAge: "Adult (1–7 yrs)",
+    vaccinated: "yes",
+    medicalConditions: "None / Healthy",
     petPhoto: null,
-    temperament: "calm",
-    packageId: "bath-refresh",
-    addons: ["paw-nose-balm"],
-    coatCondition: "smooth",
     ownerName: "",
+    email: "",
     phone: "",
     address: "",
-    preferredTime: "As soon as possible (Today)",
     latitude: null,
     longitude: null,
+    scheduledDate: availableDates[1]?.fullDate || "Tomorrow",
+    scheduledTime: "10:30 AM",
   });
 
-  // Countdown when dispatched
   useEffect(() => {
     if (!dispatched) return;
     const id = setInterval(() => {
@@ -169,39 +199,42 @@ export function GroomingFlow({
     setDispatched(false);
     setEtaSeconds(25 * 60);
     setData({
-      size: "medium",
+      size: "small",
+      packageId: "",
+      addons: [],
       petName: "",
       breed: "",
+      petAge: "Adult (1–7 yrs)",
+      vaccinated: "yes",
+      medicalConditions: "None / Healthy",
       petPhoto: null,
-      temperament: "calm",
-      packageId: "bath-refresh",
-      addons: ["paw-nose-balm"],
-      coatCondition: "smooth",
       ownerName: "",
+      email: "",
       phone: "",
       address: "",
-      preferredTime: "As soon as possible (Today)",
       latitude: null,
       longitude: null,
+      scheduledDate: availableDates[1]?.fullDate || "Tomorrow",
+      scheduledTime: "10:30 AM",
     });
   };
 
   const canNext = Boolean(
     (step === 0 && Boolean(data.size)) ||
-      (step === 1 && Boolean(data.packageId)) ||
-      (step === 2 && data.petName.trim().length >= 1 && data.breed.trim().length >= 2) ||
-      (step === 3 && data.coatCondition) ||
-      (step === 4 &&
+      (step === 1 && Boolean(data.packageId)) || // Must pick service explicitly in Step 2
+      (step === 2 && data.petName.trim().length >= 1 && data.breed.trim().length >= 2 && Boolean(data.vaccinated)) ||
+      (step === 3 &&
         data.ownerName.trim().length >= 2 &&
+        data.email.includes("@") &&
         data.phone.trim().length >= 6 &&
-        data.address.trim().length >= 4)
+        data.address.trim().length >= 4) ||
+      (step === 4 && Boolean(data.scheduledDate) && Boolean(data.scheduledTime))
   );
 
   useEffect(() => {
     onStatus({ armed: canNext && !dispatched, dispatched });
   }, [canNext, dispatched, onStatus]);
 
-  // One-shot arming ring
   const prevCanNext = useRef(false);
   useEffect(() => {
     if (canNext && !prevCanNext.current) {
@@ -214,21 +247,32 @@ export function GroomingFlow({
 
   const activeIndex = dispatched ? 5 : step;
 
+  // Calculate live dynamic totals
+  const baseServicePrice = data.packageId
+    ? SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.prices[data.size as PetSize] || 0
+    : 0;
+
+  const addonsCost = data.addons.reduce((sum, addId) => {
+    const item = SPA_UPGRADES.find((u) => u.id === addId);
+    if (!item) return sum;
+    const num = parseInt(item.price.replace(/[^0-9]/g, ""), 10) || 0;
+    return sum + num;
+  }, 0);
+
+  const currentEstimatedTotal = baseServicePrice + addonsCost;
+  const currentSizeObj = SIZE_GUIDE.find((s) => s.id === data.size);
+  const selectedPkgName = data.packageId
+    ? SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.name
+    : "No service selected yet";
+
   const handleNext = () => {
     if (step < STEPS_TOTAL - 1) {
       setDir("fwd");
       setStep(step + 1);
     } else {
-      // Dispatch & open WhatsApp
       const waNumber = "18509600034";
-      const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.name || "Full Grooming Spa";
+      const pkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.name || "Signature Grooming";
       const addonsText = data.addons.length > 0 ? data.addons.join(", ") : "None";
-      const coatText =
-        data.coatCondition === "smooth"
-          ? "Smooth & Tangle-Free"
-          : data.coatCondition === "tangles"
-          ? "Moderate Tangles / Dense Coat"
-          : "Heavily Matted / Sensitive Skin";
 
       const mapsLink =
         data.latitude && data.longitude
@@ -237,29 +281,36 @@ export function GroomingFlow({
 
       const message = `✨ VIP BOOKING - SOUVA MOBILE PET GROOMING ✨
 
-🐾 PET PROFILE:
+📅 SCHEDULED APPOINTMENT:
+• Date: ${data.scheduledDate}
+• Time Window: ${data.scheduledTime}
+
+🐾 PET COMPANION:
 • Name: ${data.petName}
 • Breed: ${data.breed}
-• Size: ${data.size.toUpperCase()}
-• Temperament: ${data.temperament}
+• Size: ${data.size.toUpperCase()} (${currentSizeObj?.weight})
+• Age: ${data.petAge}
+• Core Vaccines Up-to-Date: ${data.vaccinated === "yes" ? "Yes" : "In Progress"}
+• Medical / Physical Conditions: ${data.medicalConditions}
 ${data.petPhoto ? "• Photo: Attached on portal for stylist assessment\n" : ""}
-✂️ SELECTED SPA SERVICE:
-• Package: ${selectedPkg}
-• Upgrades (Add-ons): ${addonsText}
-• Coat Condition: ${coatText}
-• Preferred Arrival: ${data.preferredTime}
+✂️ SERVICE & SPA UPGRADES:
+• Package: ${pkg} ($${baseServicePrice})
+• Spa Upgrades: ${addonsText} (+$${addonsCost})
+• Estimated Total: $${currentEstimatedTotal}
 
 📍 CLIENT & DOORSTEP LOCATION:
 • Parent: ${data.ownerName}
+• Email: ${data.email}
 • Phone: ${data.phone}
-• Address: ${data.address}
+• Doorstep Address: ${data.address}
 • Google Maps: ${mapsLink}
 
-Please confirm our doorstep arrival time! 🚐❤️`;
+Please confirm our doorstep arrival! 🚐❤️`;
 
-      // Save to Dispatch Admin Store (Bay Area coordinates fallback)
+      // Save to Dispatch Admin Store
       addDispatchRequest({
         customerName: data.ownerName,
+        email: data.email,
         phone: data.phone,
         address: data.address,
         lat: data.latitude || 37.7749 + (Math.random() - 0.5) * 0.08,
@@ -267,18 +318,21 @@ Please confirm our doorstep arrival time! 🚐❤️`;
         petName: data.petName,
         breed: data.breed,
         size: data.size,
-        temperament: data.temperament,
+        petAge: data.petAge,
+        vaccinated: data.vaccinated,
+        medicalConditions: data.medicalConditions,
         petPhoto: data.petPhoto,
         packageId: data.packageId,
-        packageName: selectedPkg,
+        packageName: pkg,
         addons: data.addons,
-        coatCondition: coatText,
-        preferredTime: data.preferredTime,
+        preferredTime: `${data.scheduledDate} at ${data.scheduledTime}`,
+        scheduledDate: data.scheduledDate,
+        scheduledTime: data.scheduledTime,
         etaMinutes: 25,
         vanId: "VAN-01",
         vanName: "Van 01 (SF & East Bay Fleet)",
         status: "assigned",
-        notes: "Web doorstep dispatch request.",
+        notes: `Booked for ${data.scheduledDate} @ ${data.scheduledTime}. Medical: ${data.medicalConditions}`,
       });
 
       const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
@@ -291,7 +345,6 @@ Please confirm our doorstep arrival time! 🚐❤️`;
 
   return (
     <div className="w-full">
-      {/* Animated Status LED Tracker */}
       <StatusLedGrid activeIndex={activeIndex} hot={dispatched} />
 
       {/* Header controls */}
@@ -312,13 +365,13 @@ Please confirm our doorstep arrival time! 🚐❤️`;
         </button>
 
         <div className="text-xs font-semibold text-[#AA8B63] font-mono tracking-wider">
-          {dispatched ? "VAN EN ROUTE" : `STEP ${step + 1} OF ${STEPS_TOTAL}`}
+          {dispatched ? "DISPATCHED" : `STEP ${step + 1} OF ${STEPS_TOTAL}`}
         </div>
 
         <div className="w-9" />
       </div>
 
-      {/* Progress Energy Bar */}
+      {/* Energy Bar */}
       {!dispatched && (
         <div className="mt-2 mb-4 energy-bar-wrap">
           <div className="energy-bar-track">
@@ -363,61 +416,44 @@ Please confirm our doorstep arrival time! 🚐❤️`;
           ) : step === 2 ? (
             <StepPetProfile data={data} setData={setData} />
           ) : step === 3 ? (
-            <StepCoatCondition data={data} setData={setData} />
-          ) : (
             <StepDoorstepLocation data={data} setData={setData} />
+          ) : (
+            <StepBookingSchedule data={data} setData={setData} dates={availableDates} />
           )}
         </div>
 
-        {/* Live Selection & Price Counter Bar */}
+        {/* LIVE SELECTION SUMMARY & ESTIMATED TOTAL BAR */}
         {!dispatched && (
-          (() => {
-            const baseServicePrice =
-              SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.prices[data.size as PetSize] || 65;
-            const addonsCost = data.addons.reduce((sum, addId) => {
-              const item = SPA_UPGRADES.find((u) => u.id === addId);
-              if (!item) return sum;
-              const num = parseInt(item.price.replace(/[^0-9]/g, ""), 10) || 0;
-              return sum + num;
-            }, 0);
-            const currentTotal = baseServicePrice + addonsCost;
-            const currentSizeObj = SIZE_GUIDE.find((s) => s.id === data.size);
-            const selectedPkgName =
-              SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.name || "Bath & Refresh";
-
-            return (
-              <div className="mt-4 p-3 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-md flex items-center justify-between gap-3 text-xs select-none">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="h-8 w-8 rounded-xl bg-[#25281D] border border-[#AA8B63]/40 flex items-center justify-center shrink-0">
-                    <span className="text-sm">🐾</span>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <span className="font-bold text-[#FAF0E2] truncate">
-                        {data.petName.trim() ? data.petName : "Your Dog"}
-                      </span>
-                      <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-[#25281D] text-[#AA8B63] font-bold uppercase shrink-0">
-                        {currentSizeObj?.label || data.size}
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-[#A4AA93] truncate">
-                      {selectedPkgName}
-                      {data.addons.length > 0 ? ` · +${data.addons.length} upgrade${data.addons.length > 1 ? "s" : ""}` : ""}
-                    </div>
-                  </div>
+          <div className="mt-4 p-3 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-md flex items-center justify-between gap-3 text-xs select-none">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="h-8 w-8 rounded-xl bg-[#25281D] border border-[#AA8B63]/40 flex items-center justify-center shrink-0">
+                <span className="text-sm">🐾</span>
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 truncate">
+                  <span className="font-bold text-[#FAF0E2] truncate">
+                    {data.petName.trim() ? data.petName : "Your Dog"}
+                  </span>
+                  <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-[#25281D] text-[#AA8B63] font-bold uppercase shrink-0">
+                    {currentSizeObj?.label || data.size}
+                  </span>
                 </div>
-
-                <div className="text-right shrink-0">
-                  <span className="text-[9px] font-mono text-[#A4AA93] uppercase block">
-                    Estimated Total
-                  </span>
-                  <span className="font-display font-extrabold text-lg text-[#AA8B63]">
-                    ${currentTotal}
-                  </span>
+                <div className="text-[11px] text-[#A4AA93] truncate">
+                  {selectedPkgName}
+                  {data.addons.length > 0 ? ` · +${data.addons.length} upgrade${data.addons.length > 1 ? "s" : ""}` : ""}
                 </div>
               </div>
-            );
-          })()
+            </div>
+
+            <div className="text-right shrink-0">
+              <span className="text-[9px] font-mono text-[#A4AA93] uppercase block">
+                Estimated Total
+              </span>
+              <span className="font-display font-extrabold text-lg text-[#AA8B63]">
+                {data.packageId ? `$${currentEstimatedTotal}` : "—"}
+              </span>
+            </div>
+          </div>
         )}
 
         {/* Action Button */}
@@ -438,7 +474,7 @@ Please confirm our doorstep arrival time! 🚐❤️`;
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FAF0E2]" />
                 </span>
                 <Truck className="h-4.5 w-4.5" />
-                <span>Dispatch Solar Van to My Doorstep</span>
+                <span>Confirm Booking & Dispatch Solar Van</span>
               </span>
             ) : (
               <span className="flex items-center justify-center gap-2">
@@ -464,9 +500,9 @@ function StepPetSize({
   return (
     <div>
       <StepHeader
-        eyebrow="Step 1"
+        eyebrow="Step 1 · Size"
         title="Choose Your Pet's Size"
-        subtitle="View the 3D model of each size to ensure the ideal pampering suite inside our solar van."
+        subtitle="View the 3D model of each size to ensure custom space and suite preparation inside our solar van."
       />
       <div className="mt-4">
         <PetBlueprint
@@ -478,229 +514,7 @@ function StepPetSize({
   );
 }
 
-/* -------------------- STEP 2: PET PROFILE & BREED -------------------- */
-function StepPetProfile({
-  data,
-  setData,
-}: {
-  data: GroomingFlowState;
-  setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const clickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", clickOutside);
-    return () => document.removeEventListener("mousedown", clickOutside);
-  }, []);
-
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setData((prev) => ({ ...prev, petPhoto: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const filteredBreeds = data.breed
-    ? breedsList.filter((b) => b.toLowerCase().includes(data.breed.toLowerCase())).slice(0, 6)
-    : breedsList.slice(0, 5);
-
-  const temperaments: { id: Temperament; label: string; icon: string }[] = [
-    { id: "calm", label: "Calm & Gentle", icon: "🐾" },
-    { id: "playful", label: "Playful / Energetic", icon: "⚡" },
-    { id: "nervous", label: "Shy or Anxious", icon: "🤍" },
-    { id: "senior", label: "Senior / Gentle Touch", icon: "✨" },
-  ];
-
-  return (
-    <div>
-      <StepHeader
-        eyebrow="Step 3 · Pet Profile"
-        title="Who is your companion?"
-        subtitle="Share their name, breed, and temperament so our stylist can personalize their experience."
-      />
-
-      <div className="mt-5 space-y-4">
-        {/* Pet Name */}
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Pet's Name
-          </label>
-          <div className="relative">
-            <Heart className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
-            <input
-              type="text"
-              value={data.petName}
-              onChange={(e) => setData({ ...data, petName: e.target.value })}
-              placeholder="e.g. Maya, Bruno, Charlie..."
-              className="w-full pl-10 pr-4 h-12 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-sm text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] focus:ring-1 focus:ring-[#AA8B63] transition-all"
-            />
-          </div>
-        </div>
-
-        {/* Breed Autocomplete */}
-        <div className="relative" ref={dropdownRef}>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Breed or Mix
-          </label>
-          <div className="relative">
-            <Sparkles className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
-            <input
-              type="text"
-              value={data.breed}
-              onChange={(e) => {
-                setData({ ...data, breed: e.target.value });
-                setIsOpen(true);
-              }}
-              onFocus={() => setIsOpen(true)}
-              placeholder="e.g. Golden Retriever, Goldendoodle, Frenchie..."
-              className="w-full pl-10 pr-4 h-12 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-sm text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] focus:ring-1 focus:ring-[#AA8B63] transition-all"
-              autoComplete="off"
-            />
-          </div>
-
-          {isOpen && filteredBreeds.length > 0 && (
-            <div className="absolute z-50 left-0 right-0 mt-2 max-h-48 overflow-y-auto rounded-xl border border-[#FAF0E2]/15 bg-[#1F2318]/95 backdrop-blur-md p-1.5 shadow-2xl">
-              {filteredBreeds.map((breed) => (
-                <button
-                  key={breed}
-                  type="button"
-                  onClick={() => {
-                    setData({ ...data, breed });
-                    setIsOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2.5 text-xs text-[#FAF0E2] hover:bg-[#AA8B63]/20 rounded-lg transition-colors cursor-pointer select-none font-medium flex items-center justify-between"
-                >
-                  <span>{breed}</span>
-                  <span className="text-[10px] text-[#AA8B63]">Select</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Temperament */}
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1.5">
-            Temperament During Grooming
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {temperaments.map((temp) => {
-              const isSelected = data.temperament === temp.id;
-              return (
-                <button
-                  key={temp.id}
-                  type="button"
-                  onClick={() => setData({ ...data, temperament: temp.id })}
-                  className={cn(
-                    "p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition-all duration-300 cursor-pointer select-none",
-                    isSelected
-                      ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-[0_0_12px_rgba(170,139,99,0.3)]"
-                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/40"
-                  )}
-                >
-                  <span className="text-base">{temp.icon}</span>
-                  <span className="text-xs font-medium">{temp.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Optional Pet Photo (Camera / Gallery Upload) */}
-        <div className="pt-2 border-t border-[#FAF0E2]/10">
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider flex items-center gap-1.5">
-              <Camera className="h-3.5 w-3.5 text-[#AA8B63]" />
-              <span>Pet Photo (Optional)</span>
-            </label>
-            <span className="text-[9.5px] font-mono text-[#AA8B63] bg-[#AA8B63]/15 px-2 py-0.5 rounded-full">
-              For coat assessment
-            </span>
-          </div>
-
-          <input
-            type="file"
-            ref={fileInputRef}
-            accept="image/*"
-            capture="environment"
-            onChange={handlePhotoUpload}
-            className="hidden"
-          />
-
-          {data.petPhoto ? (
-            <div className="relative p-3 rounded-2xl bg-[#14160F] border border-[#AA8B63]/60 flex items-center justify-between gap-3 shadow-md">
-              <div className="flex items-center gap-3">
-                <img
-                  src={data.petPhoto}
-                  alt="Pet preview"
-                  className="h-14 w-14 object-cover rounded-xl border border-[#FAF0E2]/20 shadow-sm"
-                />
-                <div>
-                  <div className="text-xs font-bold text-[#FAF0E2] flex items-center gap-1">
-                    <Check className="h-3.5 w-3.5 text-[#AA8B63]" />
-                    <span>Photo attached for stylist</span>
-                  </div>
-                  <span className="text-[10px] text-[#A4AA93]">
-                    Helps us prepare custom scissors & combs
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-1.5 rounded-lg text-xs text-[#AA8B63] hover:bg-[#25281D] transition-colors cursor-pointer"
-                  title="Change photo"
-                >
-                  <Camera className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setData({ ...data, petPhoto: null })}
-                  className="p-1.5 rounded-lg text-xs text-red-400 hover:bg-red-950/30 transition-colors cursor-pointer"
-                  title="Remove photo"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full p-3.5 rounded-2xl border border-dashed border-[#FAF0E2]/20 hover:border-[#AA8B63] bg-[#14160F]/60 hover:bg-[#1C1F15] transition-all flex items-center justify-between gap-3 cursor-pointer group text-left"
-            >
-              <div className="h-9 w-9 rounded-xl bg-[#22261A] group-hover:bg-[#AA8B63] group-hover:text-[#161811] text-[#AA8B63] flex items-center justify-center transition-colors shrink-0 shadow-inner">
-                <Camera className="h-4.5 w-4.5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-bold text-[#FAF0E2] group-hover:text-[#AA8B63] transition-colors block">
-                  Snap photo or upload from library
-                </span>
-                <span className="text-[10px] text-[#A4AA93] block truncate">
-                  Show us their current face or coat length (JPG, PNG)
-                </span>
-              </div>
-              <Upload className="h-4 w-4 text-[#A4AA93] group-hover:text-[#AA8B63] shrink-0" />
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- STEP 3: SERVICE (2x2 GRID MATCHING IMAGE 1) -------------------- */
+/* -------------------- STEP 2: SERVICE (2x2 GRID - NO PRESELECTION) -------------------- */
 function StepServicePackage({
   data,
   setData,
@@ -754,10 +568,10 @@ function StepServicePackage({
       <StepHeader
         eyebrow="Step 2 · Service"
         title="Select Your Grooming Service"
-        subtitle="Personalized, one-on-one grooming delivered directly to your doorstep."
+        subtitle="Choose the service that fits your pet's styling and maintenance needs."
       />
 
-      {/* 2x2 Segmented Grid matching Image 1 */}
+      {/* 2x2 Segmented Grid matching user image (NO preselected default) */}
       <div className="mt-4 p-2 rounded-3xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-inner">
         <div className="grid grid-cols-2 gap-2">
           {services2x2.map((item) => {
@@ -817,16 +631,22 @@ function StepServicePackage({
         </div>
       </div>
 
+      {!data.packageId && (
+        <div className="mt-2 text-center text-[10.5px] font-mono text-[#AA8B63] animate-pulse">
+          Please select one of the 4 services above to continue
+        </div>
+      )}
+
       {/* Spa Upgrades / Add-ons */}
       <div className="mt-4 pt-3 border-t border-[#FAF0E2]/10">
         <div className="flex items-center justify-between mb-2">
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider">
-            Spa Upgrades / Add-ons
+            Spa Upgrades & Add-ons
           </label>
-          <span className="text-[10px] font-mono text-[#AA8B63]">Optional enhancements</span>
+          <span className="text-[10px] font-mono text-[#AA8B63]">Optional</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 max-h-[140px] overflow-y-auto pr-1">
+        <div className="grid grid-cols-2 gap-2 max-h-[135px] overflow-y-auto pr-1">
           {SPA_UPGRADES.map((add) => {
             const isSelected = data.addons.includes(add.id);
             return (
@@ -856,98 +676,293 @@ function StepServicePackage({
   );
 }
 
-/* -------------------- STEP 4: COAT CONDITION -------------------- */
-function StepCoatCondition({
+/* -------------------- STEP 3: PET PROFILE (AGE, VACCINES, MEDICAL CONDITIONS, PHOTO) -------------------- */
+function StepPetProfile({
   data,
   setData,
 }: {
   data: GroomingFlowState;
   setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
 }) {
-  const coatOptions = [
-    {
-      id: "smooth" as const,
-      title: "Smooth & Tangle-Free",
-      desc: "Regular brushing at home, clean coat with minimal to no knots.",
-      icon: Smile,
-    },
-    {
-      id: "tangles" as const,
-      title: "Moderate Tangles / Dense Coat",
-      desc: "Snags behind ears, legs, or belly requiring gentle deshedding & conditioning.",
-      icon: Scissors,
-    },
-    {
-      id: "matted" as const,
-      title: "Heavily Matted / Sensitive Skin",
-      desc: "Requires specialized gentle dematting, deep hydration, or gentle rescue trimming.",
-      icon: AlertCircle,
-    },
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const clickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", clickOutside);
+    return () => document.removeEventListener("mousedown", clickOutside);
+  }, []);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setData((prev) => ({ ...prev, petPhoto: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const filteredBreeds = data.breed
+    ? breedsList.filter((b) => b.toLowerCase().includes(data.breed.toLowerCase())).slice(0, 6)
+    : breedsList.slice(0, 5);
+
+  const ageOptions = ["Puppy (< 1 yr)", "Adult (1–7 yrs)", "Senior (8+ yrs)"];
+
+  const medicalOptions = [
+    "None / Healthy",
+    "Arthritis / Joint Stiffness",
+    "Allergies / Sensitive Skin",
+    "Vision / Hearing Loss",
+    "Heart Condition / Senior Care",
   ];
 
   return (
     <div>
       <StepHeader
-        eyebrow="Step 4"
-        title="Coat & Skin Condition"
-        subtitle="This allows our mobile stylist to prepare the proper balms, blades, and shears."
+        eyebrow="Step 3 · Pet Details"
+        title="Who is your companion?"
+        subtitle="Provide their details, medical care notes, and vaccination status for safe handling."
       />
 
-      <div className="mt-5 space-y-3">
-        {coatOptions.map((opt) => {
-          const isSelected = data.coatCondition === opt.id;
-          const IconComp = opt.icon;
-          return (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => setData({ ...data, coatCondition: opt.id })}
-              className={cn(
-                "relative w-full text-left p-4 rounded-2xl border flex items-center gap-4 transition-all duration-300 cursor-pointer select-none",
-                isSelected
-                  ? "bg-[#AA8B63]/20 border-[#AA8B63] shadow-[0_0_15px_rgba(170,139,99,0.3)] scale-102"
-                  : "bg-[#1B1E15] border-[#FAF0E2]/10 hover:border-[#AA8B63]/40"
-              )}
-            >
-              <div
-                className={cn(
-                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors",
-                  isSelected
-                    ? "border-[#AA8B63] bg-[#AA8B63]/30 text-[#FAF0E2]"
-                    : "border-[#FAF0E2]/15 bg-[#25281D] text-[#A4AA93]"
-                )}
-              >
-                <IconComp className="h-5 w-5" />
-              </div>
+      <div className="mt-4 space-y-3.5 max-h-[360px] overflow-y-auto pr-1">
+        {/* Pet Name */}
+        <div>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+            Pet's Name
+          </label>
+          <div className="relative">
+            <Heart className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
+            <input
+              type="text"
+              value={data.petName}
+              onChange={(e) => setData({ ...data, petName: e.target.value })}
+              placeholder="e.g. Maya, Bruno, Charlie..."
+              className="w-full pl-10 pr-4 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+            />
+          </div>
+        </div>
 
-              <div className="pr-6">
-                <div
+        {/* Breed Autocomplete */}
+        <div className="relative" ref={dropdownRef}>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+            Breed or Mix
+          </label>
+          <div className="relative">
+            <Sparkles className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
+            <input
+              type="text"
+              value={data.breed}
+              onChange={(e) => {
+                setData({ ...data, breed: e.target.value });
+                setIsOpen(true);
+              }}
+              onFocus={() => setIsOpen(true)}
+              placeholder="e.g. Golden Retriever, Goldendoodle, Frenchie..."
+              className="w-full pl-10 pr-4 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+              autoComplete="off"
+            />
+          </div>
+
+          {isOpen && filteredBreeds.length > 0 && (
+            <div className="absolute z-50 left-0 right-0 mt-1 max-h-40 overflow-y-auto rounded-xl border border-[#FAF0E2]/15 bg-[#1F2318]/95 backdrop-blur-md p-1 shadow-2xl">
+              {filteredBreeds.map((breed) => (
+                <button
+                  key={breed}
+                  type="button"
+                  onClick={() => {
+                    setData({ ...data, breed });
+                    setIsOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-xs text-[#FAF0E2] hover:bg-[#AA8B63]/20 rounded-lg transition-colors cursor-pointer font-medium flex items-center justify-between"
+                >
+                  <span>{breed}</span>
+                  <span className="text-[10px] text-[#AA8B63]">Select</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Pet Age */}
+        <div>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1.5">
+            Pet Age
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {ageOptions.map((age) => {
+              const isSelected = data.petAge === age;
+              return (
+                <button
+                  key={age}
+                  type="button"
+                  onClick={() => setData({ ...data, petAge: age })}
                   className={cn(
-                    "text-sm font-bold transition-colors font-display",
-                    isSelected ? "text-[#FAF0E2]" : "text-[#E2D7C5]"
+                    "p-2 rounded-xl border text-center text-xs font-medium transition-all duration-200 cursor-pointer",
+                    isSelected
+                      ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-sm"
+                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
                   )}
                 >
-                  {opt.title}
-                </div>
-                <div className="text-[11.5px] text-[#A4AA93] mt-0.5 leading-normal">
-                  {opt.desc}
+                  {age}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Vaccinated Question */}
+        <div>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
+            <ShieldCheck className="h-3.5 w-3.5 text-[#AA8B63]" />
+            <span>Are core vaccinations up to date? (Rabies / DHPP)</span>
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setData({ ...data, vaccinated: "yes" })}
+              className={cn(
+                "p-2.5 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
+                data.vaccinated === "yes"
+                  ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
+                  : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+              )}
+            >
+              ✓ Yes, Up to Date
+            </button>
+            <button
+              type="button"
+              onClick={() => setData({ ...data, vaccinated: "no" })}
+              className={cn(
+                "p-2.5 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
+                data.vaccinated === "no"
+                  ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
+                  : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+              )}
+            >
+              In Progress / Exemption
+            </button>
+          </div>
+        </div>
+
+        {/* Medical or Physical Conditions (Replaces Temperament) */}
+        <div>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
+            <Activity className="h-3.5 w-3.5 text-[#AA8B63]" />
+            <span>Any medical or physical conditions?</span>
+          </label>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {medicalOptions.map((opt) => {
+              const isSelected = data.medicalConditions === opt;
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setData({ ...data, medicalConditions: opt })}
+                  className={cn(
+                    "px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer",
+                    isSelected
+                      ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-sm"
+                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+                  )}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Optional Pet Photo */}
+        <div className="pt-2 border-t border-[#FAF0E2]/10">
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider flex items-center gap-1.5">
+              <Camera className="h-3.5 w-3.5 text-[#AA8B63]" />
+              <span>Pet Photo (Optional)</span>
+            </label>
+            <span className="text-[9.5px] font-mono text-[#AA8B63] bg-[#AA8B63]/15 px-2 py-0.5 rounded-full">
+              For coat assessment
+            </span>
+          </div>
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            capture="environment"
+            onChange={handlePhotoUpload}
+            className="hidden"
+          />
+
+          {data.petPhoto ? (
+            <div className="p-3 rounded-2xl bg-[#14160F] border border-[#AA8B63]/60 flex items-center justify-between gap-3 shadow-md">
+              <div className="flex items-center gap-3">
+                <img
+                  src={data.petPhoto}
+                  alt="Pet preview"
+                  className="h-12 w-12 object-cover rounded-xl border border-[#FAF0E2]/20"
+                />
+                <div>
+                  <div className="text-xs font-bold text-[#FAF0E2] flex items-center gap-1">
+                    <Check className="h-3.5 w-3.5 text-[#AA8B63]" />
+                    <span>Photo attached for stylist</span>
+                  </div>
+                  <span className="text-[10px] text-[#A4AA93]">
+                    Helps us prepare custom scissors & combs
+                  </span>
                 </div>
               </div>
-
-              {isSelected && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-[#AA8B63] text-[#161811]">
-                  <Check className="h-3 w-3" />
-                </div>
-              )}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-1.5 text-xs text-[#AA8B63] hover:bg-[#25281D] rounded-lg"
+                  title="Change photo"
+                >
+                  <Camera className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setData({ ...data, petPhoto: null })}
+                  className="p-1.5 text-xs text-red-400 hover:bg-red-950/30 rounded-lg"
+                  title="Remove photo"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full p-3 rounded-2xl border border-dashed border-[#FAF0E2]/20 hover:border-[#AA8B63] bg-[#14160F]/60 hover:bg-[#1C1F15] transition-all flex items-center justify-between gap-3 cursor-pointer group text-left"
+            >
+              <div className="h-8 w-8 rounded-xl bg-[#22261A] group-hover:bg-[#AA8B63] group-hover:text-[#161811] text-[#AA8B63] flex items-center justify-center shrink-0">
+                <Camera className="h-4 w-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-bold text-[#FAF0E2] group-hover:text-[#AA8B63] block">
+                  Snap photo or upload from library
+                </span>
+                <span className="text-[10px] text-[#A4AA93] block truncate">
+                  Show us their current coat length
+                </span>
+              </div>
+              <Upload className="h-4 w-4 text-[#A4AA93] group-hover:text-[#AA8B63] shrink-0" />
             </button>
-          );
-        })}
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-/* -------------------- STEP 5: DOORSTEP & CONTACT WITH GPS -------------------- */
+/* -------------------- STEP 4: LOCATION & CONTACT (INCLUDES EMAIL) -------------------- */
 function StepDoorstepLocation({
   data,
   setData,
@@ -1047,13 +1062,13 @@ function StepDoorstepLocation({
   return (
     <div>
       <StepHeader
-        eyebrow="Step 5"
+        eyebrow="Step 4 · Location"
         title="Where should we park our van?"
-        subtitle="We park directly at your doorstep. 100% self-powered, zero water or electrical hookups needed."
+        subtitle="We arrive directly at your doorstep in the SF Bay Area & select East Bay."
       />
 
-      <div className="mt-4 space-y-3.5">
-        {/* Owner Name */}
+      <div className="mt-4 space-y-3">
+        {/* Parent Name */}
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
             Pet Parent Full Name
@@ -1065,7 +1080,24 @@ function StepDoorstepLocation({
               value={data.ownerName}
               onChange={(e) => setData({ ...data, ownerName: e.target.value })}
               placeholder="e.g. Jessica Miller"
-              className="w-full pl-10 pr-4 h-12 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-sm text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] focus:ring-1 focus:ring-[#AA8B63] transition-all"
+              className="w-full pl-10 pr-4 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+            />
+          </div>
+        </div>
+
+        {/* Email Address (Newly Added) */}
+        <div>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+            Email Address
+          </label>
+          <div className="relative">
+            <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
+            <input
+              type="email"
+              value={data.email}
+              onChange={(e) => setData({ ...data, email: e.target.value })}
+              placeholder="e.g. jessica@example.com"
+              className="w-full pl-10 pr-4 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
             />
           </div>
         </div>
@@ -1082,7 +1114,7 @@ function StepDoorstepLocation({
               value={data.phone}
               onChange={(e) => setData({ ...data, phone: e.target.value })}
               placeholder="e.g. +1 (850) 960-0034"
-              className="w-full pl-10 pr-4 h-12 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-sm text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] focus:ring-1 focus:ring-[#AA8B63] transition-all"
+              className="w-full pl-10 pr-4 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
             />
           </div>
         </div>
@@ -1098,24 +1130,23 @@ function StepDoorstepLocation({
               type="text"
               value={data.address}
               onChange={(e) => setData({ ...data, address: e.target.value })}
-              placeholder="Street, number, apt, or neighborhood (SF & East Bay)"
-              className="w-full pl-10 pr-24 h-12 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-sm text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] focus:ring-1 focus:ring-[#AA8B63] transition-all"
+              placeholder="Street, number, apt (SF Bay Area & East Bay)"
+              className="w-full pl-10 pr-24 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
             />
             <button
               type="button"
               disabled={isLocating}
               onClick={handleUseMyLocation}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 text-[9.5px] font-bold font-mono tracking-wide text-[#AA8B63] border border-[#AA8B63]/30 hover:border-[#AA8B63] hover:bg-[#AA8B63]/10 rounded-lg transition-all cursor-pointer select-none disabled:opacity-50"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[9px] font-bold font-mono tracking-wide text-[#AA8B63] border border-[#AA8B63]/30 hover:border-[#AA8B63] hover:bg-[#AA8B63]/10 rounded-lg transition-all cursor-pointer select-none disabled:opacity-50"
             >
               {isLocating ? "LOCATING..." : "GPS LOCATE"}
             </button>
           </div>
         </div>
 
-        {/* Locating Progress */}
         {isLocating && (
-          <div className="mt-2 space-y-1">
-            <div className="flex justify-between text-[10px] text-[#AA8B63] font-mono font-bold uppercase tracking-wide animate-pulse">
+          <div className="mt-1 space-y-1">
+            <div className="flex justify-between text-[9.5px] text-[#AA8B63] font-mono font-bold uppercase tracking-wide animate-pulse">
               <span>SYNCING SATELLITES...</span>
               <span>{locateProgress}%</span>
             </div>
@@ -1140,6 +1171,112 @@ function StepDoorstepLocation({
   );
 }
 
+/* -------------------- STEP 5: BOOKING SYSTEM WITH SCHEDULE DATE & TIME -------------------- */
+function StepBookingSchedule({
+  data,
+  setData,
+  dates,
+}: {
+  data: GroomingFlowState;
+  setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
+  dates: { dayLabel: string; month: string; dayNum: number; fullDate: string }[];
+}) {
+  return (
+    <div>
+      <StepHeader
+        eyebrow="Step 5 · Schedule"
+        title="Choose Date & Time Window"
+        subtitle="Select your preferred doorstep arrival window for our solar mobile spa van."
+      />
+
+      <div className="mt-4 space-y-4">
+        {/* Date Selector Carousel */}
+        <div>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5 text-[#AA8B63]" />
+            <span>Select Preferred Day</span>
+          </label>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {dates.map((d) => {
+              const isSelected = data.scheduledDate === d.fullDate;
+              return (
+                <button
+                  key={d.fullDate}
+                  type="button"
+                  onClick={() => setData({ ...data, scheduledDate: d.fullDate })}
+                  className={cn(
+                    "min-w-[70px] p-2.5 rounded-2xl border text-center transition-all duration-200 cursor-pointer shrink-0 flex flex-col items-center justify-center",
+                    isSelected
+                      ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-lg scale-105"
+                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/40"
+                  )}
+                >
+                  <span className={cn("text-[9px] font-mono uppercase", isSelected ? "text-[#161811]/90 font-bold" : "text-[#AA8B63]")}>
+                    {d.dayLabel}
+                  </span>
+                  <span className="font-display font-extrabold text-base my-0.5">
+                    {d.dayNum}
+                  </span>
+                  <span className="text-[9px] font-mono opacity-80">
+                    {d.month}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Time Slot Selection */}
+        <div>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-[#AA8B63]" />
+            <span>Select Arrival Window</span>
+          </label>
+
+          <div className="grid grid-cols-3 gap-2">
+            {TIME_SLOTS.map((slot) => {
+              const isSelected = data.scheduledTime === slot.time;
+              return (
+                <button
+                  key={slot.id}
+                  type="button"
+                  onClick={() => setData({ ...data, scheduledTime: slot.time })}
+                  className={cn(
+                    "p-2.5 rounded-xl border text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center",
+                    isSelected
+                      ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] font-bold shadow-sm scale-102"
+                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/30"
+                  )}
+                >
+                  <span className="font-mono text-xs font-bold text-[#FAF0E2]">{slot.time}</span>
+                  <span className="text-[8.5px] font-mono text-[#AA8B63] opacity-80 mt-0.5">{slot.period}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Selected Window Confirmation Callout */}
+        <div className="p-3 rounded-2xl bg-[#14160F] border border-[#AA8B63]/40 flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <Check className="h-4 w-4 text-[#AA8B63]" />
+            <div>
+              <span className="text-[10px] text-[#A4AA93] font-mono block">Confirmed Doorstep Window:</span>
+              <strong className="text-[#FAF0E2] font-display text-xs sm:text-sm">
+                {data.scheduledDate} · {data.scheduledTime}
+              </strong>
+            </div>
+          </div>
+          <span className="text-[9px] font-mono text-[#AA8B63] bg-[#AA8B63]/15 px-2 py-1 rounded-lg shrink-0">
+            30-Min Arrival Window
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* -------------------- STEP 6: DISPATCHED VIEW -------------------- */
 function DispatchedSpaView({
   eta,
@@ -1152,43 +1289,42 @@ function DispatchedSpaView({
 }) {
   const mins = Math.floor(eta / 60);
   const secs = String(eta % 60).padStart(2, "0");
-  const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.name || "Full Grooming Spa";
+  const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.name || "Signature Grooming";
 
   return (
     <div className="text-center py-2">
-      {/* Animated Van & Crest Icon */}
-      <div className="relative mx-auto h-28 w-28 flex items-center justify-center">
+      <div className="relative mx-auto h-24 w-24 flex items-center justify-center">
         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#AA8B63]/30 to-[#59593E]/30 blur-2xl animate-pulse" />
         <img
           src="/assets/souva-badge-circle-transparent.png"
           alt="SOUVA Badge"
-          className="h-20 w-20 object-contain rounded-full shadow-[0_0_25px_rgba(170,139,99,0.5)] relative z-10"
+          className="h-18 w-18 object-contain rounded-full shadow-[0_0_25px_rgba(170,139,99,0.5)] relative z-10"
         />
         <div className="absolute -right-2 -top-1 h-7 w-7 rounded-full bg-[#AA8B63] text-[#161811] flex items-center justify-center shadow-lg animate-bounce">
           <Truck className="h-4 w-4" />
         </div>
       </div>
 
-      <div className="mt-4 text-[11px] font-bold uppercase tracking-widest text-[#AA8B63] flex items-center justify-center gap-1.5 font-mono">
+      <div className="mt-3 text-[11px] font-bold uppercase tracking-widest text-[#AA8B63] flex items-center justify-center gap-1.5 font-mono">
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#AA8B63]" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FAF0E2]" />
         </span>
-        Solar Mobile Spa Van En Route
+        Booking Request Confirmed
       </div>
 
-      <h3 className="font-display text-4xl font-bold mt-2 tracking-tight text-[#FAF0E2]">
-        ESTIMATED ARRIVAL{" "}
-        <span className="text-gradient-gold font-mono block mt-1">
-          {mins}:{secs} min
+      <h3 className="font-display text-3xl sm:text-4xl font-bold mt-1.5 tracking-tight text-[#FAF0E2]">
+        {data.scheduledDate}{" "}
+        <span className="text-gradient-gold font-mono block mt-1 text-2xl sm:text-3xl">
+          {data.scheduledTime}
         </span>
       </h3>
 
       {/* Real-time Van Progress Bar */}
-      <div className="mt-6 mb-4 relative text-left">
+      <div className="mt-5 mb-4 relative text-left">
         <div className="flex justify-between text-[9.5px] text-[#A4AA93] mb-1.5 font-mono font-bold uppercase tracking-wider">
           <span>BAY AREA CENTRAL HUB</span>
-          <span className="text-[#AA8B63] animate-pulse">ROLLING TO YOU...</span>
+          <span className="text-[#AA8B63] animate-pulse">SCHEDULED DISPATCH...</span>
           <span>YOUR DOORSTEP</span>
         </div>
 
@@ -1207,7 +1343,6 @@ function DispatchedSpaView({
           </div>
         </div>
 
-        {/* Animated Van marker riding along the bar */}
         <div
           className="absolute -top-3.5 transition-all duration-1000"
           style={{
@@ -1220,54 +1355,46 @@ function DispatchedSpaView({
         </div>
       </div>
 
-      <p className="mt-3 text-sm text-[#A4AA93]">
-        Certified master pet stylist dispatched to pamper{" "}
+      <p className="mt-2 text-xs sm:text-sm text-[#A4AA93]">
+        Certified master pet stylist assigned to pamper{" "}
         <strong className="text-[#FAF0E2]">{data.petName || "your companion"}</strong> at:
         <br />
-        <span className="text-[#FAF0E2] font-semibold text-base mt-1 block">
+        <span className="text-[#FAF0E2] font-semibold text-sm mt-1 block">
           {data.address || "Your doorstep"}
         </span>
       </p>
 
       {/* Booking summary receipt */}
-      <div className="mt-6 rounded-2xl border border-[#FAF0E2]/10 bg-[#1B1E15] p-4 text-left text-xs space-y-2">
+      <div className="mt-5 rounded-2xl border border-[#FAF0E2]/10 bg-[#1B1E15] p-3.5 text-left text-xs space-y-1.5">
         {data.petPhoto && (
           <div className="flex items-center gap-3 pb-2 border-b border-[#FAF0E2]/10">
             <img
               src={data.petPhoto}
               alt={data.petName}
-              className="h-12 w-12 object-cover rounded-xl border border-[#AA8B63]/40 shadow-sm"
+              className="h-10 w-10 object-cover rounded-xl border border-[#AA8B63]/40"
             />
             <div>
-              <span className="text-[10px] text-[#AA8B63] font-mono font-bold uppercase tracking-wider block">
+              <span className="text-[9.5px] text-[#AA8B63] font-mono font-bold uppercase tracking-wider block">
                 Pet Photo Attached
               </span>
               <span className="text-xs font-bold text-[#FAF0E2]">
-                {data.petName} ({data.breed})
+                {data.petName} ({data.breed} · {data.petAge})
               </span>
             </div>
           </div>
         )}
+        <Row label="Appointment Time" value={`${data.scheduledDate} at ${data.scheduledTime}`} />
         <Row label="Pet Companion" value={`${data.petName} (${data.breed} · ${data.size.toUpperCase()})`} />
-        <Row label="Selected Spa Service" value={selectedPkg} />
-        <Row label="Curated Upgrades" value={data.addons.length > 0 ? data.addons.join(", ") : "None"} />
-        <Row
-          label="Coat & Skin Condition"
-          value={
-            data.coatCondition === "smooth"
-              ? "Smooth & Clean"
-              : data.coatCondition === "tangles"
-              ? "Moderate Tangles"
-              : "Matted / Sensitive"
-          }
-        />
-        <Row label="Parent Contact" value={`${data.ownerName} · ${data.phone}`} />
+        <Row label="Vaccinations & Health" value={`Vaccines: ${data.vaccinated === "yes" ? "Up to date" : "Pending"} · ${data.medicalConditions}`} />
+        <Row label="Selected Service" value={selectedPkg} />
+        {data.addons.length > 0 && <Row label="Spa Upgrades" value={data.addons.join(", ")} />}
+        <Row label="Parent Contact" value={`${data.ownerName} · ${data.phone} (${data.email})`} />
       </div>
 
       <button
         type="button"
         onClick={onReset}
-        className="mt-6 text-xs text-[#A4AA93] hover:text-[#AA8B63] transition-colors underline underline-offset-4 font-semibold cursor-pointer"
+        className="mt-5 text-xs text-[#A4AA93] hover:text-[#AA8B63] transition-colors underline underline-offset-4 font-semibold cursor-pointer"
       >
         Book another appointment or edit details
       </button>
@@ -1277,9 +1404,9 @@ function DispatchedSpaView({
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-3 py-1.5 border-b border-[#FAF0E2]/5 last:border-b-0">
-      <span className="text-[#A4AA93]">{label}</span>
-      <span className="font-semibold text-right text-[#FAF0E2]">{value}</span>
+    <div className="flex justify-between gap-3 py-1 border-b border-[#FAF0E2]/5 last:border-b-0">
+      <span className="text-[#A4AA93] text-[11px]">{label}</span>
+      <span className="font-semibold text-right text-[#FAF0E2] text-[11px]">{value}</span>
     </div>
   );
 }
