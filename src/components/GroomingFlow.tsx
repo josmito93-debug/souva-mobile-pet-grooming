@@ -20,9 +20,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PetBlueprint, type PetSize } from "@/components/PetBlueprint";
+import { PetBlueprint } from "@/components/PetBlueprint";
 import breedsList from "@/data/breeds.json";
-import { SOUVA_PACKAGES, SPA_ADDONS } from "@/data/services";
+import { SOUVA_PACKAGES, SPA_UPGRADES, type PetSize } from "@/data/services";
 import { addDispatchRequest } from "@/lib/dispatchStore";
 
 export type CoatState = "smooth" | "tangles" | "matted";
@@ -143,8 +143,8 @@ export function GroomingFlow({
     breed: "",
     petPhoto: null,
     temperament: "calm",
-    packageId: "full-grooming",
-    addons: ["blueberry-facial"],
+    packageId: "bath-refresh",
+    addons: ["paw-nose-balm"],
     coatCondition: "smooth",
     ownerName: "",
     phone: "",
@@ -174,8 +174,8 @@ export function GroomingFlow({
       breed: "",
       petPhoto: null,
       temperament: "calm",
-      packageId: "full-grooming",
-      addons: ["blueberry-facial"],
+      packageId: "bath-refresh",
+      addons: ["paw-nose-balm"],
       coatCondition: "smooth",
       ownerName: "",
       phone: "",
@@ -649,7 +649,7 @@ function StepPetProfile({
   );
 }
 
-/* -------------------- STEP 3: SERVICE PACKAGE & ADDONS -------------------- */
+/* -------------------- STEP 3: SERVICE (2x2 GRID MATCHING IMAGE 1) -------------------- */
 function StepServicePackage({
   data,
   setData,
@@ -667,56 +667,116 @@ function StepServicePackage({
     setData({ ...data, addons: next });
   };
 
+  const services2x2 = [
+    {
+      id: "bath-refresh",
+      title: "Bath & Brush",
+      subtitle: "Bath, dry, nails, ears",
+      fullTitle: "Bath & Refresh",
+      price: SOUVA_PACKAGES.find((p) => p.id === "bath-refresh")?.prices[data.size as PetSize] || 65,
+    },
+    {
+      id: "bath-tidy",
+      title: "Bath & Tidy",
+      subtitle: "+ light trimming",
+      fullTitle: "Bath & Tidy",
+      price: SOUVA_PACKAGES.find((p) => p.id === "bath-tidy")?.prices[data.size as PetSize] || 80,
+    },
+    {
+      id: "essential-full-groom",
+      title: "Full Groom",
+      subtitle: "Short / shave down",
+      fullTitle: "Essential Full Groom",
+      price: SOUVA_PACKAGES.find((p) => p.id === "essential-full-groom")?.prices[data.size as PetSize] || 110,
+    },
+    {
+      id: "signature-grooming",
+      title: "Full Groom",
+      subtitle: 'Longer style ½"+',
+      fullTitle: "Signature Grooming",
+      price: SOUVA_PACKAGES.find((p) => p.id === "signature-grooming")?.prices[data.size as PetSize] || 125,
+    },
+  ];
+
   return (
     <div>
       <StepHeader
-        eyebrow="Step 3"
-        title="Select Your Spa Package"
-        subtitle="Every session includes warm towel treatments, organic botanical shampoo, and calming aromatherapy."
+        eyebrow="3 · SERVICE"
+        title="Select Your Grooming Service"
+        subtitle="Personalized, one-on-one grooming delivered directly to your doorstep."
       />
 
-      {/* Packages Grid */}
-      <div className="mt-4 space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
-        {SOUVA_PACKAGES.map((pkg) => {
-          const isSelected = data.packageId === pkg.id;
-          return (
-            <button
-              key={pkg.id}
-              type="button"
-              onClick={() => setData({ ...data, packageId: pkg.id })}
-              className={cn(
-                "w-full text-left p-3.5 rounded-2xl border transition-all duration-300 cursor-pointer relative select-none",
-                isSelected
-                  ? "bg-[#AA8B63]/20 border-[#AA8B63] shadow-[0_0_15px_rgba(170,139,99,0.25)]"
-                  : "bg-[#1B1E15] border-[#FAF0E2]/10 hover:border-[#AA8B63]/40"
-              )}
-            >
-              {pkg.popular && (
-                <span className="absolute right-3 top-3 px-2 py-0.5 text-[8.5px] font-mono font-bold uppercase rounded-full bg-[#AA8B63] text-[#161811]">
-                  Most Popular
-                </span>
-              )}
-              <div className="flex items-center justify-between">
-                <span className="font-display font-bold text-sm text-[#FAF0E2]">
-                  {pkg.name}
-                </span>
-                <span className="font-mono text-xs font-bold text-[#AA8B63] mr-2">
-                  {pkg.priceRange}
-                </span>
-              </div>
-              <p className="text-[11px] text-[#A4AA93] mt-1 line-clamp-1">{pkg.tagline}</p>
-            </button>
-          );
-        })}
+      {/* 2x2 Segmented Grid matching Image 1 */}
+      <div className="mt-4 p-2 rounded-3xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-inner">
+        <div className="grid grid-cols-2 gap-2">
+          {services2x2.map((item) => {
+            const isSelected = data.packageId === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setData({ ...data, packageId: item.id })}
+                className={cn(
+                  "p-4 rounded-2xl text-left transition-all duration-300 cursor-pointer select-none flex flex-col justify-between min-h-[96px]",
+                  isSelected
+                    ? "bg-[#FAF0E2] text-[#161811] shadow-[0_8px_20px_rgba(0,0,0,0.4)] scale-[1.02]"
+                    : "bg-[#1C1F15]/60 text-[#FAF0E2]/90 hover:bg-[#25281D] hover:text-[#FAF0E2]"
+                )}
+              >
+                <div>
+                  <div
+                    className={cn(
+                      "text-sm sm:text-base font-display font-bold leading-tight",
+                      isSelected ? "text-[#161811]" : "text-[#FAF0E2]"
+                    )}
+                  >
+                    {item.title}
+                  </div>
+                  <div
+                    className={cn(
+                      "text-[11px] font-mono mt-1 leading-snug",
+                      isSelected ? "text-[#59593E] font-medium" : "text-[#A4AA93]"
+                    )}
+                  >
+                    {item.subtitle}
+                  </div>
+                </div>
+
+                <div className="mt-2.5 pt-2 border-t border-current/10 flex items-center justify-between">
+                  <span
+                    className={cn(
+                      "text-[9.5px] font-mono uppercase tracking-wider",
+                      isSelected ? "text-[#161811]/70" : "text-[#A4AA93]"
+                    )}
+                  >
+                    From
+                  </span>
+                  <span
+                    className={cn(
+                      "font-mono font-extrabold text-sm",
+                      isSelected ? "text-[#161811]" : "text-[#AA8B63]"
+                    )}
+                  >
+                    ${item.price}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Add-ons */}
+      {/* Spa Upgrades / Add-ons */}
       <div className="mt-4 pt-3 border-t border-[#FAF0E2]/10">
-        <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-2">
-          Curated Add-on Upgrades
-        </label>
-        <div className="flex flex-wrap gap-1.5">
-          {SPA_ADDONS.map((add) => {
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider">
+            Spa Upgrades / Add-ons
+          </label>
+          <span className="text-[10px] font-mono text-[#AA8B63]">Optional enhancements</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 max-h-[140px] overflow-y-auto pr-1">
+          {SPA_UPGRADES.map((add) => {
             const isSelected = data.addons.includes(add.id);
             return (
               <button
@@ -724,16 +784,18 @@ function StepServicePackage({
                 type="button"
                 onClick={() => toggleAddon(add.id)}
                 className={cn(
-                  "px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all duration-300 cursor-pointer select-none flex items-center gap-1.5",
+                  "p-2.5 rounded-xl border text-left text-xs font-medium transition-all duration-300 cursor-pointer select-none flex flex-col justify-between",
                   isSelected
-                    ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-md"
+                    ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
                     : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/40"
                 )}
                 title={add.desc}
               >
-                {isSelected && <Check className="h-3 w-3" />}
-                <span>{add.label}</span>
-                <span className="opacity-75 font-mono text-[10px]">{add.price}</span>
+                <div className="flex items-start justify-between gap-1">
+                  <span className="text-[11px] font-bold text-[#FAF0E2] line-clamp-1">{add.name}</span>
+                  {isSelected && <Check className="h-3 w-3 text-[#AA8B63] shrink-0 mt-0.5" />}
+                </div>
+                <span className="text-[10px] font-mono text-[#AA8B63] mt-1 font-bold">{add.price}</span>
               </button>
             );
           })}

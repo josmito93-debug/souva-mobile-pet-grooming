@@ -1,3 +1,5 @@
+import { PetSize } from "@/data/services";
+
 export type RequestStatus =
   | "pending"
   | "assigned"
@@ -16,7 +18,7 @@ export interface DispatchRequest {
   lng: number;
   petName: string;
   breed: string;
-  size: "toy" | "small" | "medium" | "large" | "giant";
+  size: PetSize;
   temperament: string;
   petPhoto: string | null;
   packageId: string;
@@ -92,7 +94,7 @@ export const INITIAL_REQUESTS: DispatchRequest[] = [
     lng: -122.0652,
     petName: "Luna & Rocky",
     breed: "Poodle (Toy)",
-    size: "toy",
+    size: "small",
     temperament: "Shy or Anxious",
     petPhoto: null,
     packageId: "bath-brush",

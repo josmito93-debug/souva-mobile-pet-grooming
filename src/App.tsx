@@ -27,7 +27,14 @@ import { StoreSection } from "@/components/StoreSection";
 import { CartDrawer } from "@/components/CartDrawer";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { CartProvider, useCart } from "@/lib/cartContext";
-import { SOUVA_PACKAGES } from "@/data/services";
+import {
+  SOUVA_PACKAGES,
+  SPA_UPGRADES,
+  ADDITIONAL_SERVICE_FEES,
+  PRICING_INFORMATION,
+  SIZE_GUIDE,
+  type PetSize,
+} from "@/data/services";
 import { cn } from "@/lib/utils";
 
 export default function App() {
@@ -52,6 +59,7 @@ function AppContent() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [previewSize, setPreviewSize] = useState<PetSize>("small");
   const [flowStatus, setFlowStatus] = useState({ armed: false, dispatched: false });
   const [burst, setBurst] = useState(0);
   const prevDispatched = useRef(false);
@@ -417,77 +425,215 @@ function AppContent() {
         {/* E-COMMERCE BOUTIQUE & COSMETICS LINE */}
         <StoreSection />
 
-        {/* SERVICES SECTION */}
-        <section id="services" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 bg-[#191C13]/60 relative">
+        {/* SERVICES & PRICING SECTION */}
+        <section id="services" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 bg-[#191C13]/75 relative">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center max-w-2xl mx-auto mb-12">
+            {/* Section Header */}
+            <div className="text-center max-w-2xl mx-auto mb-10">
               <span className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase block mb-2">
-                {"// EXCLUSIVE DOORSTEP SPA SERVICES //"}
+                {"// DOORSTEP CARE & TAILORED EXPERIENCES //"}
               </span>
-              <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#FAF0E2]">
-                Elevated Mobile Grooming Treatments
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-[#FAF0E2]">
+                SERVICES & PRICING
               </h2>
-              <p className="mt-3 text-[#A4AA93] text-sm md:text-base leading-relaxed">
-                Designed to provide tranquil comfort, silky coat health, and individual attention,
-                using exclusively organic, cruelty-free formulas.
+              <p className="mt-3 text-[#E2D7C5] text-sm md:text-base leading-relaxed">
+                Personalized, one-on-one grooming services delivered directly to your doorstep.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {SOUVA_PACKAGES.map((pkg) => (
-                <div
-                  key={pkg.id}
-                  className={cn(
-                    "p-6 rounded-3xl border flex flex-col justify-between transition-all duration-300 relative group",
-                    pkg.popular
-                      ? "bg-[#22261A] border-[#AA8B63]/60 shadow-[0_12px_36px_rgba(0,0,0,0.6)] hover:border-[#AA8B63]"
-                      : "bg-[#1B1E15] border-[#FAF0E2]/10 hover:border-[#AA8B63]/40"
-                  )}
-                >
-                  {pkg.popular && (
-                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[10px] font-bold font-mono uppercase tracking-wider">
-                      Most Popular
-                    </span>
-                  )}
+            {/* Interactive SIZE GUIDE Switcher */}
+            <div className="mb-10 max-w-3xl mx-auto">
+              <div className="flex items-center justify-between mb-2.5 px-1">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#AA8B63]">
+                  SIZE GUIDE (Select to view starting rates):
+                </span>
+                <span className="text-[11px] font-mono text-[#FAF0E2]/70">
+                  {SIZE_GUIDE.find((s) => s.id === previewSize)?.weight}
+                </span>
+              </div>
 
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-mono text-[#A4AA93] flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5 text-[#AA8B63]" />
-                        {pkg.duration}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {SIZE_GUIDE.map((sg) => {
+                  const isActive = previewSize === sg.id;
+                  return (
+                    <button
+                      key={sg.id}
+                      type="button"
+                      onClick={() => setPreviewSize(sg.id)}
+                      className={cn(
+                        "p-3 rounded-2xl border text-center transition-all duration-300 cursor-pointer select-none",
+                        isActive
+                          ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] shadow-[0_0_18px_rgba(170,139,99,0.4)] font-bold scale-[1.02]"
+                          : "bg-[#22261A] border-[#FAF0E2]/10 text-[#FAF0E2]/80 hover:border-[#AA8B63]/40"
+                      )}
+                    >
+                      <div className="font-display font-bold text-sm leading-tight">{sg.label}</div>
+                      <div className={cn("text-[10px] font-mono mt-0.5", isActive ? "text-[#161811]" : "text-[#AA8B63]")}>
+                        {sg.weight}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* The 4 Packages Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {SOUVA_PACKAGES.map((pkg) => {
+                const currentPrice = pkg.prices[previewSize];
+                return (
+                  <div
+                    key={pkg.id}
+                    className={cn(
+                      "p-6 rounded-3xl border flex flex-col justify-between transition-all duration-300 relative group",
+                      pkg.popular
+                        ? "bg-[#22261A] border-[#AA8B63] shadow-[0_16px_40px_rgba(0,0,0,0.6)]"
+                        : "bg-[#1B1E15] border-[#FAF0E2]/10 hover:border-[#AA8B63]/40"
+                    )}
+                  >
+                    {pkg.popular && (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[10px] font-bold font-mono uppercase tracking-wider shadow-md">
+                        Signature Choice
                       </span>
-                      <span className="font-display font-bold text-lg text-[#FAF0E2]">
-                        {pkg.priceRange}
-                      </span>
+                    )}
+
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-mono text-[#A4AA93] flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5 text-[#AA8B63]" />
+                          {pkg.duration}
+                        </span>
+                        <div className="text-right">
+                          <span className="text-[10px] font-mono text-[#A4AA93] block">Starting at</span>
+                          <span className="font-display font-extrabold text-2xl text-[#FAF0E2]">
+                            ${currentPrice}
+                          </span>
+                        </div>
+                      </div>
+
+                      <h3 className="font-display text-xl font-bold text-[#FAF0E2] group-hover:text-[#AA8B63] transition-colors">
+                        {pkg.name}
+                      </h3>
+                      <p className="text-xs text-[#A4AA93] mt-2 mb-5 leading-relaxed">
+                        {pkg.tagline}
+                      </p>
+
+                      <div className="border-t border-[#FAF0E2]/10 pt-4">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold block mb-2">
+                          Includes:
+                        </span>
+                        <ul className="space-y-2 text-xs text-[#FAF0E2]/90">
+                          {pkg.includes.map((feat, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <Check className="h-3.5 w-3.5 text-[#AA8B63] shrink-0 mt-0.5" />
+                              <span>{feat}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
 
-                    <h3 className="font-display text-xl font-bold text-[#FAF0E2] group-hover:text-[#AA8B63] transition-colors">
-                      {pkg.name}
-                    </h3>
-                    <p className="text-xs text-[#A4AA93] mt-1 mb-5">
-                      {pkg.tagline}
-                    </p>
-
-                    <ul className="space-y-2 text-xs text-[#FAF0E2]/90 border-t border-[#FAF0E2]/10 pt-4">
-                      {pkg.features.map((feat, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <Check className="h-3.5 w-3.5 text-[#AA8B63] shrink-0 mt-0.5" />
-                          <span>{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <button
+                      type="button"
+                      onClick={scrollToHero}
+                      className="mt-6 w-full py-2.5 rounded-xl border border-[#AA8B63]/40 bg-[#AA8B63]/10 text-xs font-bold text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <span>Select This Service</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
                   </div>
+                );
+              })}
+            </div>
 
-                  <button
-                    type="button"
-                    onClick={scrollToHero}
-                    className="mt-6 w-full py-2.5 rounded-xl border border-[#AA8B63]/40 bg-[#AA8B63]/10 text-xs font-bold text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            {/* SPA UPGRADES / ADD ONS SUBSECTION */}
+            <div className="mt-16 pt-12 border-t border-[#FAF0E2]/10">
+              <div className="text-center max-w-2xl mx-auto mb-8">
+                <span className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase block mb-1">
+                  {"// CURATED ENHANCEMENTS //"}
+                </span>
+                <h3 className="font-display text-2xl sm:text-3xl font-bold text-[#FAF0E2]">
+                  SPA UPGRADES & ADD-ONS
+                </h3>
+                <p className="mt-2 text-xs sm:text-sm text-[#A4AA93]">
+                  Personalize your pet’s appointment with one of our thoughtfully selected spa enhancements.
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {SPA_UPGRADES.map((upgrade) => (
+                  <div
+                    key={upgrade.id}
+                    className="p-5 rounded-2xl bg-[#1D2016] border border-[#FAF0E2]/10 hover:border-[#AA8B63]/40 transition-colors flex flex-col justify-between"
                   >
-                    <span>Book This Service</span>
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ))}
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
+                          {upgrade.name}
+                        </h4>
+                        <span className="font-mono font-bold text-xs text-[#AA8B63] shrink-0">
+                          {upgrade.price}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#A4AA93] leading-relaxed">
+                        {upgrade.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ADDITIONAL SERVICE FEES SUBSECTION */}
+            <div className="mt-12 pt-10 border-t border-[#FAF0E2]/10">
+              <div className="text-center max-w-2xl mx-auto mb-8">
+                <span className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase block mb-1">
+                  {"// SPECIALIZED TIME & CARE //"}
+                </span>
+                <h3 className="font-display text-2xl sm:text-3xl font-bold text-[#FAF0E2]">
+                  ADDITIONAL SERVICE FEES
+                </h3>
+                <p className="mt-2 text-xs sm:text-sm text-[#A4AA93]">
+                  Every pet receives personalized care based on their individual needs. Additional fees may apply when coat condition or handling needs require extra time beyond the scheduled appointment.
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-4">
+                {ADDITIONAL_SERVICE_FEES.map((fee) => (
+                  <div
+                    key={fee.id}
+                    className="p-5 rounded-2xl bg-[#1C1F15] border border-[#FAF0E2]/10 flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
+                          {fee.title}
+                        </h4>
+                      </div>
+                      <div className="font-mono text-xs font-bold text-[#AA8B63] mb-2">
+                        {fee.fee}
+                      </div>
+                      <p className="text-xs text-[#A4AA93] leading-relaxed">
+                        {fee.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-[11px] font-mono text-[#AA8B63] text-center mt-4">
+                We will communicate any anticipated additional charges whenever possible before proceeding.
+              </p>
+            </div>
+
+            {/* PRICING INFORMATION DISCLAIMER BOX */}
+            <div className="mt-12 p-6 rounded-3xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-xl max-w-4xl mx-auto text-center">
+              <div className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase mb-2">
+                {PRICING_INFORMATION.title}
+              </div>
+              <p className="text-xs sm:text-sm text-[#E2D7C5] leading-relaxed max-w-3xl mx-auto">
+                {PRICING_INFORMATION.body}
+              </p>
             </div>
           </div>
         </section>

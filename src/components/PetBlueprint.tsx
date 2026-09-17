@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { type PetSize, SIZE_GUIDE } from "@/data/services";
 
-export type PetSize = "toy" | "small" | "medium" | "large" | "giant";
+export type { PetSize };
 
 interface PetBlueprintProps {
   selectedSize: PetSize;
@@ -11,40 +12,33 @@ const DOG_ANIMATIONS: Record<
   PetSize,
   { mov: string; webm: string; label: string; weight: string; breedExample: string }
 > = {
-  toy: {
-    mov: "/assets/dog-sizes/toy.mov",
-    webm: "/assets/dog-sizes/toy.webm",
-    label: "Toy Size",
-    weight: "< 12 lbs",
-    breedExample: "Pomeranian, Yorkie, Chihuahua, Toy Poodle",
-  },
   small: {
     mov: "/assets/dog-sizes/small.mov",
     webm: "/assets/dog-sizes/small.webm",
-    label: "Small Size",
-    weight: "13 - 25 lbs",
-    breedExample: "French Bulldog, Pug, Shih Tzu, Boston Terrier",
+    label: "Small",
+    weight: "Up to 15 lb",
+    breedExample: "Pomeranian, Yorkie, Chihuahua, Toy Poodle",
   },
   medium: {
     mov: "/assets/dog-sizes/medium.mov",
     webm: "/assets/dog-sizes/medium.webm",
-    label: "Medium Size",
-    weight: "26 - 50 lbs",
-    breedExample: "Corgi, Beagle, Cocker Spaniel, Mini Schnauzer",
+    label: "Medium",
+    weight: "16–35 lb",
+    breedExample: "French Bulldog, Pug, Cocker Spaniel, Corgi, Beagle",
   },
   large: {
     mov: "/assets/dog-sizes/large.mov",
     webm: "/assets/dog-sizes/large.webm",
-    label: "Large Size",
-    weight: "51 - 80 lbs",
-    breedExample: "Golden Retriever, Doodle, German Shepherd, Lab",
+    label: "Large",
+    weight: "36–50 lb",
+    breedExample: "Standard Schnauzer, Border Collie, Australian Shepherd",
   },
-  giant: {
+  xlarge: {
     mov: "/assets/dog-sizes/giant.mov",
     webm: "/assets/dog-sizes/giant.webm",
-    label: "Giant Size",
-    weight: "80+ lbs",
-    breedExample: "Bernese Mountain Dog, Great Dane, Mastiff",
+    label: "X-Large",
+    weight: "Over 50 lb",
+    breedExample: "Golden Retriever, Labradoodle, German Shepherd, Bernese",
   },
 };
 
@@ -52,31 +46,23 @@ export function PetBlueprint({
   selectedSize,
   onSelectSize,
 }: PetBlueprintProps) {
-  const sizeOptions: { id: PetSize; label: string; weight: string }[] = [
-    { id: "toy", label: "Toy", weight: "< 12 lbs" },
-    { id: "small", label: "Small", weight: "13-25 lbs" },
-    { id: "medium", label: "Medium", weight: "26-50 lbs" },
-    { id: "large", label: "Large", weight: "51-80 lbs" },
-    { id: "giant", label: "Giant", weight: "80+ lbs" },
-  ];
-
-  const activeDog = DOG_ANIMATIONS[selectedSize];
+  const activeDog = DOG_ANIMATIONS[selectedSize] || DOG_ANIMATIONS.small;
 
   return (
     <div className="w-full">
-      {/* Size Selector Tabs */}
+      {/* Size Selector Tabs (4 Official Sizes) */}
       <div className="mb-2">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[11px] font-mono uppercase tracking-wider text-[#A4AA93]">
-            Select Your Dog's Size:
+            Select Dog Size:
           </span>
           <span className="text-[10px] font-mono text-[#AA8B63] font-bold">
             {activeDog.label} ({activeDog.weight})
           </span>
         </div>
 
-        <div className="grid grid-cols-5 gap-1.5">
-          {sizeOptions.map((opt) => {
+        <div className="grid grid-cols-4 gap-2">
+          {SIZE_GUIDE.map((opt) => {
             const isActive = selectedSize === opt.id;
             return (
               <button
@@ -84,16 +70,16 @@ export function PetBlueprint({
                 type="button"
                 onClick={() => onSelectSize(opt.id)}
                 className={cn(
-                  "py-2 px-1 rounded-xl text-center border transition-all duration-300 cursor-pointer select-none relative",
+                  "py-2.5 px-1.5 rounded-2xl text-center border transition-all duration-300 cursor-pointer select-none relative",
                   isActive
                     ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] shadow-[0_0_15px_rgba(170,139,99,0.45)] scale-102 font-bold"
                     : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/40"
                 )}
               >
-                <div className={cn("text-[11px] font-display", isActive ? "font-extrabold" : "font-semibold")}>
+                <div className={cn("text-xs font-display", isActive ? "font-extrabold" : "font-semibold")}>
                   {opt.label}
                 </div>
-                <div className={cn("text-[8.5px] font-mono mt-0.5", isActive ? "text-[#161811]/90 font-bold" : "opacity-75")}>
+                <div className={cn("text-[9px] font-mono mt-0.5", isActive ? "text-[#161811]/90 font-bold" : "opacity-75")}>
                   {opt.weight}
                 </div>
               </button>
