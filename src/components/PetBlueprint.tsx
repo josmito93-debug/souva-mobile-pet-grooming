@@ -14,37 +14,37 @@ const DOG_ANIMATIONS: Record<
   toy: {
     mov: "/assets/dog-sizes/toy.mov",
     webm: "/assets/dog-sizes/toy.webm",
-    label: "Talla Toy",
+    label: "Toy Size",
     weight: "< 12 lbs",
-    breedExample: "Pomeranian, Yorkie, Chihuahua",
+    breedExample: "Pomeranian, Yorkie, Chihuahua, Toy Poodle",
   },
   small: {
     mov: "/assets/dog-sizes/small.mov",
     webm: "/assets/dog-sizes/small.webm",
-    label: "Talla Small",
+    label: "Small Size",
     weight: "13 - 25 lbs",
-    breedExample: "French Bulldog, Pug, Shih Tzu",
+    breedExample: "French Bulldog, Pug, Shih Tzu, Boston Terrier",
   },
   medium: {
     mov: "/assets/dog-sizes/medium.mov",
     webm: "/assets/dog-sizes/medium.webm",
-    label: "Talla Medium",
+    label: "Medium Size",
     weight: "26 - 50 lbs",
-    breedExample: "Corgi, Beagle, Cocker Spaniel",
+    breedExample: "Corgi, Beagle, Cocker Spaniel, Mini Schnauzer",
   },
   large: {
     mov: "/assets/dog-sizes/large.mov",
     webm: "/assets/dog-sizes/large.webm",
-    label: "Talla Large",
+    label: "Large Size",
     weight: "51 - 80 lbs",
-    breedExample: "Golden Retriever, Doodle, Pastor",
+    breedExample: "Golden Retriever, Doodle, German Shepherd, Lab",
   },
   giant: {
     mov: "/assets/dog-sizes/giant.mov",
     webm: "/assets/dog-sizes/giant.webm",
-    label: "Talla Giant",
+    label: "Giant Size",
     weight: "80+ lbs",
-    breedExample: "Bernese, Mastín, Gran Danés",
+    breedExample: "Bernese Mountain Dog, Great Dane, Mastiff",
   },
 };
 
@@ -68,7 +68,7 @@ export function PetBlueprint({
       <div className="mb-2">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[11px] font-mono uppercase tracking-wider text-[#A4AA93]">
-            Talla de tu Perro:
+            Select Your Dog's Size:
           </span>
           <span className="text-[10px] font-mono text-[#AA8B63] font-bold">
             {activeDog.label} ({activeDog.weight})
@@ -102,7 +102,7 @@ export function PetBlueprint({
         </div>
       </div>
 
-      {/* Floating Dog Alpha Video - SIN FONDO, SIN DIV BLOCK, FLOTANDO LIBRE */}
+      {/* Floating Dog Alpha Video - Zero Background, Floating Freely */}
       <div className="relative w-full flex flex-col items-center justify-center my-2 select-none pointer-events-none">
         <video
           key={selectedSize}

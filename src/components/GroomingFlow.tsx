@@ -18,7 +18,6 @@ import {
   Camera,
   Upload,
   Trash2,
-  Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PetBlueprint, type PetSize } from "@/components/PetBlueprint";
@@ -52,12 +51,12 @@ const STEPS_TOTAL = 5;
 /* -------------------- Status LED Grid -------------------- */
 function StatusLedGrid({ activeIndex, hot }: { activeIndex: number; hot: boolean }) {
   const steps = [
-    { icon: Sparkles, label: "Talla & Spa" },
-    { icon: Heart, label: "Mascota" },
-    { icon: Scissors, label: "Servicio" },
-    { icon: Shield, label: "Manto" },
-    { icon: MapPin, label: "Tu Puerta" },
-    { icon: Truck, label: "Van Móvil" },
+    { icon: Sparkles, label: "Size" },
+    { icon: Heart, label: "Pet Profile" },
+    { icon: Scissors, label: "Service" },
+    { icon: Shield, label: "Coat Care" },
+    { icon: MapPin, label: "Location" },
+    { icon: Truck, label: "Dispatch" },
   ];
 
   return (
@@ -82,7 +81,6 @@ function StatusLedGrid({ activeIndex, hot }: { activeIndex: number; hot: boolean
                   isOn && hot && "is-hot"
                 )}
               >
-                {/* Corner dots */}
                 {isOn && (
                   <>
                     <span className="lg-corner lg-corner--tl" />
@@ -141,7 +139,6 @@ export function GroomingFlow({
 
   const [data, setData] = useState<GroomingFlowState>({
     size: "medium",
-    zones: ["face", "body", "paws"],
     petName: "",
     breed: "",
     petPhoto: null,
@@ -152,7 +149,7 @@ export function GroomingFlow({
     ownerName: "",
     phone: "",
     address: "",
-    preferredTime: "Lo antes posible (Hoy)",
+    preferredTime: "As soon as possible (Today)",
     latitude: null,
     longitude: null,
   });
@@ -173,7 +170,6 @@ export function GroomingFlow({
     setEtaSeconds(25 * 60);
     setData({
       size: "medium",
-      zones: ["face", "body", "paws"],
       petName: "",
       breed: "",
       petPhoto: null,
@@ -184,7 +180,7 @@ export function GroomingFlow({
       ownerName: "",
       phone: "",
       address: "",
-      preferredTime: "Lo antes posible (Hoy)",
+      preferredTime: "As soon as possible (Today)",
       latitude: null,
       longitude: null,
     });
@@ -224,50 +220,50 @@ export function GroomingFlow({
       setStep(step + 1);
     } else {
       // Dispatch & open WhatsApp
-      const waNumber = "18509600034"; // SOUVA booking concierge line
-      const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.name || "Full Grooming";
-      const addonsText = data.addons.length > 0 ? data.addons.join(", ") : "Ninguno";
+      const waNumber = "18509600034";
+      const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.name || "Full Grooming Spa";
+      const addonsText = data.addons.length > 0 ? data.addons.join(", ") : "None";
       const coatText =
         data.coatCondition === "smooth"
-          ? "Manto suave y sin nudos"
+          ? "Smooth & Tangle-Free"
           : data.coatCondition === "tangles"
-          ? "Algunos nudos o enredos"
-          : "Manto muy anudado / Piel sensible";
+          ? "Moderate Tangles / Dense Coat"
+          : "Heavily Matted / Sensitive Skin";
 
       const mapsLink =
         data.latitude && data.longitude
           ? `https://www.google.com/maps?q=${data.latitude},${data.longitude}`
           : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.address)}`;
 
-      const message = `✨ RESERVA VIP - SOUVA MOBILE PET GROOMING ✨
+      const message = `✨ VIP BOOKING - SOUVA MOBILE PET GROOMING ✨
 
-🐾 MASCOTA:
-• Nombre: ${data.petName}
-• Raza: ${data.breed}
-• Talla: ${data.size.toUpperCase()}
-• Temperamento: ${data.temperament}
-${data.petPhoto ? "• Foto del peludo: Adjunta en la web para evaluación del estilista\n" : ""}
-✂️ SERVICIO SELECCIONADO:
-• Paquete: ${selectedPkg}
-• Mimos Extra (Add-ons): ${addonsText}
-• Condición del pelaje: ${coatText}
-• Horario preferido: ${data.preferredTime}
+🐾 PET PROFILE:
+• Name: ${data.petName}
+• Breed: ${data.breed}
+• Size: ${data.size.toUpperCase()}
+• Temperament: ${data.temperament}
+${data.petPhoto ? "• Photo: Attached on portal for stylist assessment\n" : ""}
+✂️ SELECTED SPA SERVICE:
+• Package: ${selectedPkg}
+• Upgrades (Add-ons): ${addonsText}
+• Coat Condition: ${coatText}
+• Preferred Arrival: ${data.preferredTime}
 
-📍 CLIENTE & UBICACIÓN:
-• Tutor/a: ${data.ownerName}
-• Teléfono: ${data.phone}
-• Dirección: ${data.address}
+📍 CLIENT & DOORSTEP LOCATION:
+• Parent: ${data.ownerName}
+• Phone: ${data.phone}
+• Address: ${data.address}
 • Google Maps: ${mapsLink}
 
-¡Por favor confirmar disponibilidad de la van móvil para consentir a mi peludo! 🚐❤️`;
+Please confirm our doorstep arrival time! 🚐❤️`;
 
-      // Save to Dispatch Admin Store
+      // Save to Dispatch Admin Store (Bay Area coordinates fallback)
       addDispatchRequest({
         customerName: data.ownerName,
         phone: data.phone,
         address: data.address,
-        lat: data.latitude || 30.2672 + (Math.random() - 0.5) * 0.08,
-        lng: data.longitude || -97.7431 + (Math.random() - 0.5) * 0.08,
+        lat: data.latitude || 37.7749 + (Math.random() - 0.5) * 0.08,
+        lng: data.longitude || -122.4194 + (Math.random() - 0.5) * 0.08,
         petName: data.petName,
         breed: data.breed,
         size: data.size,
@@ -280,9 +276,9 @@ ${data.petPhoto ? "• Foto del peludo: Adjunta en la web para evaluación del e
         preferredTime: data.preferredTime,
         etaMinutes: 25,
         vanId: "VAN-01",
-        vanName: "Van 01 (Estilista Asignado)",
+        vanName: "Van 01 (SF & East Bay Fleet)",
         status: "assigned",
-        notes: "Solicitud registrada desde el portal web.",
+        notes: "Web doorstep dispatch request.",
       });
 
       const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
@@ -310,13 +306,13 @@ ${data.petPhoto ? "• Foto del peludo: Adjunta en la web para evaluación del e
           }}
           disabled={step === 0 || dispatched}
           className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#FAF0E2]/15 bg-[#1B1E15] text-[#A4AA93] hover:text-[#FAF0E2] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
-          aria-label="Volver"
+          aria-label="Back"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
 
         <div className="text-xs font-semibold text-[#AA8B63] font-mono tracking-wider">
-          {dispatched ? "VAN EN RUTA" : `PASO ${step + 1} DE ${STEPS_TOTAL}`}
+          {dispatched ? "VAN EN ROUTE" : `STEP ${step + 1} OF ${STEPS_TOTAL}`}
         </div>
 
         <div className="w-9" />
@@ -391,11 +387,11 @@ ${data.petPhoto ? "• Foto del peludo: Adjunta en la web para evaluación del e
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FAF0E2]" />
                 </span>
                 <Truck className="h-4.5 w-4.5" />
-                <span>Despachar Van a Mi Puerta</span>
+                <span>Dispatch Solar Van to My Doorstep</span>
               </span>
             ) : (
               <span className="flex items-center justify-center gap-2">
-                <span>Continuar</span>
+                <span>Continue</span>
                 <ArrowRight className="h-4 w-4" />
               </span>
             )}
@@ -406,7 +402,7 @@ ${data.petPhoto ? "• Foto del peludo: Adjunta en la web para evaluación del e
   );
 }
 
-/* -------------------- STEP 1: PET SIZE & ANIMATION -------------------- */
+/* -------------------- STEP 1: PET SIZE & FLOATING ANIMATION -------------------- */
 function StepPetSize({
   data,
   setData,
@@ -417,9 +413,9 @@ function StepPetSize({
   return (
     <div>
       <StepHeader
-        eyebrow="Paso 1"
-        title="Talla de tu Mascota"
-        subtitle="Visualiza la animación de cada tamaño para elegir el servicio adecuado para tu perro."
+        eyebrow="Step 1"
+        title="Choose Your Pet's Size"
+        subtitle="View the 3D model of each size to ensure the ideal pampering suite inside our solar van."
       />
       <div className="mt-4">
         <PetBlueprint
@@ -468,25 +464,25 @@ function StepPetProfile({
     : breedsList.slice(0, 5);
 
   const temperaments: { id: Temperament; label: string; icon: string }[] = [
-    { id: "calm", label: "Tranquilo & Dócil", icon: "🐾" },
-    { id: "playful", label: "Juguetón / Enérgico", icon: "⚡" },
-    { id: "nervous", label: "Tímido o Nervioso", icon: "🤍" },
-    { id: "senior", label: "Senior / Cuidados Suaves", icon: "✨" },
+    { id: "calm", label: "Calm & Gentle", icon: "🐾" },
+    { id: "playful", label: "Playful / Energetic", icon: "⚡" },
+    { id: "nervous", label: "Shy or Anxious", icon: "🤍" },
+    { id: "senior", label: "Senior / Gentle Touch", icon: "✨" },
   ];
 
   return (
     <div>
       <StepHeader
-        eyebrow="Paso 2"
-        title="¿Quién es tu compañero?"
-        subtitle="Dinos su nombre, raza y temperamento para personalizar su experiencia de spa."
+        eyebrow="Step 2"
+        title="Who is your companion?"
+        subtitle="Share their name, breed, and temperament so our stylist can personalize their experience."
       />
 
       <div className="mt-5 space-y-4">
         {/* Pet Name */}
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Nombre de la Mascota
+            Pet's Name
           </label>
           <div className="relative">
             <Heart className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
@@ -494,7 +490,7 @@ function StepPetProfile({
               type="text"
               value={data.petName}
               onChange={(e) => setData({ ...data, petName: e.target.value })}
-              placeholder="Ej. Bruno, Maya, Toby..."
+              placeholder="e.g. Maya, Bruno, Charlie..."
               className="w-full pl-10 pr-4 h-12 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-sm text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] focus:ring-1 focus:ring-[#AA8B63] transition-all"
             />
           </div>
@@ -503,7 +499,7 @@ function StepPetProfile({
         {/* Breed Autocomplete */}
         <div className="relative" ref={dropdownRef}>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Raza o Tipo
+            Breed or Mix
           </label>
           <div className="relative">
             <Sparkles className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
@@ -515,7 +511,7 @@ function StepPetProfile({
                 setIsOpen(true);
               }}
               onFocus={() => setIsOpen(true)}
-              placeholder="Ej. Golden Retriever, Poodle, Mestizo..."
+              placeholder="e.g. Golden Retriever, Goldendoodle, Frenchie..."
               className="w-full pl-10 pr-4 h-12 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-sm text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] focus:ring-1 focus:ring-[#AA8B63] transition-all"
               autoComplete="off"
             />
@@ -534,7 +530,7 @@ function StepPetProfile({
                   className="w-full text-left px-3 py-2.5 text-xs text-[#FAF0E2] hover:bg-[#AA8B63]/20 rounded-lg transition-colors cursor-pointer select-none font-medium flex items-center justify-between"
                 >
                   <span>{breed}</span>
-                  <span className="text-[10px] text-[#AA8B63]">Seleccionar</span>
+                  <span className="text-[10px] text-[#AA8B63]">Select</span>
                 </button>
               ))}
             </div>
@@ -544,7 +540,7 @@ function StepPetProfile({
         {/* Temperament */}
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1.5">
-            Temperamento en el baño
+            Temperament During Grooming
           </label>
           <div className="grid grid-cols-2 gap-2">
             {temperaments.map((temp) => {
@@ -574,10 +570,10 @@ function StepPetProfile({
           <div className="flex items-center justify-between mb-1.5">
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider flex items-center gap-1.5">
               <Camera className="h-3.5 w-3.5 text-[#AA8B63]" />
-              <span>Foto de tu Perrito (Opcional)</span>
+              <span>Pet Photo (Optional)</span>
             </label>
             <span className="text-[9.5px] font-mono text-[#AA8B63] bg-[#AA8B63]/15 px-2 py-0.5 rounded-full">
-              Para evaluar manto
+              For coat assessment
             </span>
           </div>
 
@@ -595,16 +591,16 @@ function StepPetProfile({
               <div className="flex items-center gap-3">
                 <img
                   src={data.petPhoto}
-                  alt="Foto del peludo"
+                  alt="Pet preview"
                   className="h-14 w-14 object-cover rounded-xl border border-[#FAF0E2]/20 shadow-sm"
                 />
                 <div>
                   <div className="text-xs font-bold text-[#FAF0E2] flex items-center gap-1">
                     <Check className="h-3.5 w-3.5 text-[#AA8B63]" />
-                    <span>Foto adjuntada para el estilista</span>
+                    <span>Photo attached for stylist</span>
                   </div>
                   <span className="text-[10px] text-[#A4AA93]">
-                    Ayudará a preparar las tijeras y peines indicados
+                    Helps us prepare custom scissors & combs
                   </span>
                 </div>
               </div>
@@ -613,7 +609,7 @@ function StepPetProfile({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="p-1.5 rounded-lg text-xs text-[#AA8B63] hover:bg-[#25281D] transition-colors cursor-pointer"
-                  title="Cambiar foto"
+                  title="Change photo"
                 >
                   <Camera className="h-4 w-4" />
                 </button>
@@ -621,7 +617,7 @@ function StepPetProfile({
                   type="button"
                   onClick={() => setData({ ...data, petPhoto: null })}
                   className="p-1.5 rounded-lg text-xs text-red-400 hover:bg-red-950/30 transition-colors cursor-pointer"
-                  title="Eliminar foto"
+                  title="Remove photo"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -638,10 +634,10 @@ function StepPetProfile({
               </div>
               <div className="flex-1 min-w-0">
                 <span className="text-xs font-bold text-[#FAF0E2] group-hover:text-[#AA8B63] transition-colors block">
-                  Tomar foto o subir de galería
+                  Snap photo or upload from library
                 </span>
                 <span className="text-[10px] text-[#A4AA93] block truncate">
-                  Muestra su carita o cuerpo entero para conocerlo mejor
+                  Show us their current face or coat length (JPG, PNG)
                 </span>
               </div>
               <Upload className="h-4 w-4 text-[#A4AA93] group-hover:text-[#AA8B63] shrink-0" />
@@ -674,9 +670,9 @@ function StepServicePackage({
   return (
     <div>
       <StepHeader
-        eyebrow="Paso 3"
-        title="Selecciona el Paquete de Spa"
-        subtitle="Cada servicio incluye toallas tibias, champú orgánico y aromaterapia relajante."
+        eyebrow="Step 3"
+        title="Select Your Spa Package"
+        subtitle="Every session includes warm towel treatments, organic botanical shampoo, and calming aromatherapy."
       />
 
       {/* Packages Grid */}
@@ -697,7 +693,7 @@ function StepServicePackage({
             >
               {pkg.popular && (
                 <span className="absolute right-3 top-3 px-2 py-0.5 text-[8.5px] font-mono font-bold uppercase rounded-full bg-[#AA8B63] text-[#161811]">
-                  Más Solicitado
+                  Most Popular
                 </span>
               )}
               <div className="flex items-center justify-between">
@@ -717,7 +713,7 @@ function StepServicePackage({
       {/* Add-ons */}
       <div className="mt-4 pt-3 border-t border-[#FAF0E2]/10">
         <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-2">
-          Mimos Especiales (Add-ons opcionales)
+          Curated Add-on Upgrades
         </label>
         <div className="flex flex-wrap gap-1.5">
           {SPA_ADDONS.map((add) => {
@@ -758,20 +754,20 @@ function StepCoatCondition({
   const coatOptions = [
     {
       id: "smooth" as const,
-      title: "Manto Suave y Desenredado",
-      desc: "Cepillado regular en casa, pelaje limpio sin nudos considerables.",
+      title: "Smooth & Tangle-Free",
+      desc: "Regular brushing at home, clean coat with minimal to no knots.",
       icon: Smile,
     },
     {
       id: "tangles" as const,
-      title: "Nudos Moderados / Manto Denso",
-      desc: "Zonas con enredos ligeros (detrás de orejas, patitas o axilas) que requieren deslanado.",
+      title: "Moderate Tangles / Dense Coat",
+      desc: "Snags behind ears, legs, or belly requiring gentle deshedding & conditioning.",
       icon: Scissors,
     },
     {
       id: "matted" as const,
-      title: "Manto Muy Anudado / Piel Sensible",
-      desc: "Requiere técnica especializada de desanudado suave, hidratación profunda o corte de rescate.",
+      title: "Heavily Matted / Sensitive Skin",
+      desc: "Requires specialized gentle dematting, deep hydration, or gentle rescue trimming.",
       icon: AlertCircle,
     },
   ];
@@ -779,9 +775,9 @@ function StepCoatCondition({
   return (
     <div>
       <StepHeader
-        eyebrow="Paso 4"
-        title="Condición del Pelaje & Piel"
-        subtitle="Esto ayuda a nuestro estilista móvil a preparar los bálsamos y herramientas adecuadas."
+        eyebrow="Step 4"
+        title="Coat & Skin Condition"
+        subtitle="This allows our mobile stylist to prepare the proper balms, blades, and shears."
       />
 
       <div className="mt-5 space-y-3">
@@ -868,7 +864,7 @@ function StepDoorstepLocation({
     if (!navigator.geolocation) {
       clearInterval(interval);
       setLocateProgress(100);
-      setLocateError("La geolocalización no está soportada");
+      setLocateError("Geolocation is not supported by your browser");
       setTimeout(() => setIsLocating(false), 800);
       return;
     }
@@ -884,8 +880,8 @@ function StepDoorstepLocation({
           const addrObj = result.address || {};
           const street = addrObj.road || addrObj.suburb || "";
           const houseNumber = addrObj.house_number || "";
-          const city = addrObj.city || addrObj.town || addrObj.village || "Austin";
-          const state = addrObj.state || "TX";
+          const city = addrObj.city || addrObj.town || addrObj.village || "San Francisco";
+          const state = addrObj.state || "CA";
           const postcode = addrObj.postcode || "";
 
           const cleanAddr =
@@ -919,7 +915,7 @@ function StepDoorstepLocation({
               ...data,
               latitude,
               longitude,
-              address: `Ubicación GPS (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
+              address: `GPS Pin (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
             });
             setIsLocating(false);
           }, 500);
@@ -928,7 +924,7 @@ function StepDoorstepLocation({
       (error) => {
         clearInterval(interval);
         setLocateProgress(100);
-        setLocateError(error.message || "Error al obtener ubicación");
+        setLocateError(error.message || "Failed to locate");
         setTimeout(() => setIsLocating(false), 1000);
       },
       { enableHighAccuracy: true, timeout: 8000 }
@@ -938,16 +934,16 @@ function StepDoorstepLocation({
   return (
     <div>
       <StepHeader
-        eyebrow="Paso 5"
-        title="¿A qué puerta enviamos la Van?"
-        subtitle="Estacionamos frente a tu domicilio sin ensuciar ni requerir toma de agua ni electricidad."
+        eyebrow="Step 5"
+        title="Where should we park our van?"
+        subtitle="We park directly at your doorstep. 100% self-powered, zero water or electrical hookups needed."
       />
 
       <div className="mt-4 space-y-3.5">
         {/* Owner Name */}
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Tu Nombre y Apellido
+            Pet Parent Full Name
           </label>
           <div className="relative">
             <User className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
@@ -955,7 +951,7 @@ function StepDoorstepLocation({
               type="text"
               value={data.ownerName}
               onChange={(e) => setData({ ...data, ownerName: e.target.value })}
-              placeholder="Ej. Valeria Gómez"
+              placeholder="e.g. Jessica Miller"
               className="w-full pl-10 pr-4 h-12 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-sm text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] focus:ring-1 focus:ring-[#AA8B63] transition-all"
             />
           </div>
@@ -964,7 +960,7 @@ function StepDoorstepLocation({
         {/* Phone */}
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Teléfono Móvil (WhatsApp)
+            Mobile Phone (WhatsApp or Call)
           </label>
           <div className="relative">
             <Phone className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
@@ -972,7 +968,7 @@ function StepDoorstepLocation({
               type="tel"
               value={data.phone}
               onChange={(e) => setData({ ...data, phone: e.target.value })}
-              placeholder="Ej. +1 (555) 123-4567"
+              placeholder="e.g. +1 (850) 960-0034"
               className="w-full pl-10 pr-4 h-12 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-sm text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] focus:ring-1 focus:ring-[#AA8B63] transition-all"
             />
           </div>
@@ -981,7 +977,7 @@ function StepDoorstepLocation({
         {/* Address & GPS */}
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Dirección del Servicio
+            Doorstep Street Address
           </label>
           <div className="relative">
             <MapPin className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
@@ -989,7 +985,7 @@ function StepDoorstepLocation({
               type="text"
               value={data.address}
               onChange={(e) => setData({ ...data, address: e.target.value })}
-              placeholder="Calle, número, departamento o barrio"
+              placeholder="Street, number, apt, or neighborhood (SF & East Bay)"
               className="w-full pl-10 pr-24 h-12 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-sm text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] focus:ring-1 focus:ring-[#AA8B63] transition-all"
             />
             <button
@@ -998,7 +994,7 @@ function StepDoorstepLocation({
               onClick={handleUseMyLocation}
               className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 text-[9.5px] font-bold font-mono tracking-wide text-[#AA8B63] border border-[#AA8B63]/30 hover:border-[#AA8B63] hover:bg-[#AA8B63]/10 rounded-lg transition-all cursor-pointer select-none disabled:opacity-50"
             >
-              {isLocating ? "BUSCANDO..." : "GPS LOCALIZAR"}
+              {isLocating ? "LOCATING..." : "GPS LOCATE"}
             </button>
           </div>
         </div>
@@ -1007,7 +1003,7 @@ function StepDoorstepLocation({
         {isLocating && (
           <div className="mt-2 space-y-1">
             <div className="flex justify-between text-[10px] text-[#AA8B63] font-mono font-bold uppercase tracking-wide animate-pulse">
-              <span>SINCRONIZANDO CON SATÉLITES GPS...</span>
+              <span>SYNCING SATELLITES...</span>
               <span>{locateProgress}%</span>
             </div>
             <div className="energy-bar-wrap">
@@ -1031,7 +1027,7 @@ function StepDoorstepLocation({
   );
 }
 
-/* -------------------- STEP 6: DISPATCHED / VAN EN RUTA VIEW -------------------- */
+/* -------------------- STEP 6: DISPATCHED VIEW -------------------- */
 function DispatchedSpaView({
   eta,
   data,
@@ -1043,7 +1039,7 @@ function DispatchedSpaView({
 }) {
   const mins = Math.floor(eta / 60);
   const secs = String(eta % 60).padStart(2, "0");
-  const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.name || "Full Grooming";
+  const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.name || "Full Grooming Spa";
 
   return (
     <div className="text-center py-2">
@@ -1065,11 +1061,11 @@ function DispatchedSpaView({
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#AA8B63]" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FAF0E2]" />
         </span>
-        Van Móvil de Spa en Camino
+        Solar Mobile Spa Van En Route
       </div>
 
       <h3 className="font-display text-4xl font-bold mt-2 tracking-tight text-[#FAF0E2]">
-        LLEGADA ESTIMADA{" "}
+        ESTIMATED ARRIVAL{" "}
         <span className="text-gradient-gold font-mono block mt-1">
           {mins}:{secs} min
         </span>
@@ -1078,9 +1074,9 @@ function DispatchedSpaView({
       {/* Real-time Van Progress Bar */}
       <div className="mt-6 mb-4 relative text-left">
         <div className="flex justify-between text-[9.5px] text-[#A4AA93] mb-1.5 font-mono font-bold uppercase tracking-wider">
-          <span>CENTRAL SOUVA SPA</span>
-          <span className="text-[#AA8B63] animate-pulse">EN TRÁNSITO VIP...</span>
-          <span>TU DOMICILIO</span>
+          <span>BAY AREA CENTRAL HUB</span>
+          <span className="text-[#AA8B63] animate-pulse">ROLLING TO YOU...</span>
+          <span>YOUR DOORSTEP</span>
         </div>
 
         <div className="energy-bar-wrap relative">
@@ -1112,11 +1108,11 @@ function DispatchedSpaView({
       </div>
 
       <p className="mt-3 text-sm text-[#A4AA93]">
-        Estilista canino profesional asignado/a para consentir a{" "}
-        <strong className="text-[#FAF0E2]">{data.petName || "tu peludo"}</strong> en:
+        Certified master pet stylist dispatched to pamper{" "}
+        <strong className="text-[#FAF0E2]">{data.petName || "your companion"}</strong> at:
         <br />
         <span className="text-[#FAF0E2] font-semibold text-base mt-1 block">
-          {data.address || "Tu puerta"}
+          {data.address || "Your doorstep"}
         </span>
       </p>
 
@@ -1131,7 +1127,7 @@ function DispatchedSpaView({
             />
             <div>
               <span className="text-[10px] text-[#AA8B63] font-mono font-bold uppercase tracking-wider block">
-                Foto Adjunta
+                Pet Photo Attached
               </span>
               <span className="text-xs font-bold text-[#FAF0E2]">
                 {data.petName} ({data.breed})
@@ -1139,20 +1135,20 @@ function DispatchedSpaView({
             </div>
           </div>
         )}
-        <Row label="Mascota" value={`${data.petName} (${data.breed} · ${data.size.toUpperCase()})`} />
-        <Row label="Servicio Principal" value={selectedPkg} />
-        <Row label="Mimos Extra" value={data.addons.length > 0 ? data.addons.join(", ") : "Ninguno"} />
+        <Row label="Pet Companion" value={`${data.petName} (${data.breed} · ${data.size.toUpperCase()})`} />
+        <Row label="Selected Spa Service" value={selectedPkg} />
+        <Row label="Curated Upgrades" value={data.addons.length > 0 ? data.addons.join(", ") : "None"} />
         <Row
-          label="Condición del Manto"
+          label="Coat & Skin Condition"
           value={
             data.coatCondition === "smooth"
-              ? "Suave / Regular"
+              ? "Smooth & Clean"
               : data.coatCondition === "tangles"
-              ? "Enredos moderados"
-              : "Anudado / Piel sensible"
+              ? "Moderate Tangles"
+              : "Matted / Sensitive"
           }
         />
-        <Row label="Contacto" value={`${data.ownerName} · ${data.phone}`} />
+        <Row label="Parent Contact" value={`${data.ownerName} · ${data.phone}`} />
       </div>
 
       <button
@@ -1160,7 +1156,7 @@ function DispatchedSpaView({
         onClick={onReset}
         className="mt-6 text-xs text-[#A4AA93] hover:text-[#AA8B63] transition-colors underline underline-offset-4 font-semibold cursor-pointer"
       >
-        Programar otra cita o modificar reserva
+        Book another appointment or edit details
       </button>
     </div>
   );

@@ -57,7 +57,6 @@ export function ProductCard({
           className="h-full max-h-[200px] w-auto max-w-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
         />
 
-        {/* Quick view hover icon */}
         <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <span className="h-8 w-8 rounded-full bg-[#25281D]/90 border border-[#FAF0E2]/20 flex items-center justify-center text-[#FAF0E2] shadow-lg hover:bg-[#AA8B63] hover:text-[#161811] transition-colors">
             <Eye className="h-4 w-4" />
@@ -84,7 +83,7 @@ export function ProductCard({
               ))}
             </div>
             <span className="font-mono text-[10.5px] text-[#A4AA93] ml-1">
-              ({product.reviewsCount})
+              ({product.reviewsCount} reviews)
             </span>
           </div>
 
@@ -100,7 +99,7 @@ export function ProductCard({
           {product.bundleItems && (
             <div className="mt-3 pt-3 border-t border-[#FAF0E2]/5 space-y-1">
               <span className="text-[10px] uppercase font-mono font-bold text-[#AA8B63] block">
-                Incluye en este pack:
+                Included in this kit:
               </span>
               {product.bundleItems.slice(0, 3).map((item, idx) => (
                 <div key={idx} className="flex items-center gap-1.5 text-[11px] text-[#E2D7C5]">
@@ -110,7 +109,7 @@ export function ProductCard({
               ))}
               {product.bundleItems.length > 3 && (
                 <span className="text-[10px] text-[#AA8B63] font-mono">
-                  + {product.bundleItems.length - 3} productos más
+                  + {product.bundleItems.length - 3} more items
                 </span>
               )}
             </div>
@@ -150,12 +149,12 @@ export function ProductCard({
             {justAdded ? (
               <>
                 <Check className="h-3.5 w-3.5" />
-                <span>Agregado</span>
+                <span>Added</span>
               </>
             ) : (
               <>
                 <ShoppingBag className="h-3.5 w-3.5" />
-                <span>Añadir</span>
+                <span>Add to Bag</span>
               </>
             )}
           </button>

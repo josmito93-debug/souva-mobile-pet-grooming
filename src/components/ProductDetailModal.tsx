@@ -36,7 +36,6 @@ export function ProductDetailModal({
 
       {/* Modal Card */}
       <div className="relative w-full max-w-2xl bg-[#1C1E16] border border-[#FAF0E2]/15 rounded-3xl shadow-2xl overflow-hidden z-10 my-8">
-        {/* Close Button */}
         <button
           onClick={onClose}
           type="button"
@@ -84,7 +83,7 @@ export function ProductDetailModal({
                   ))}
                 </div>
                 <span className="font-mono text-[10.5px] text-[#A4AA93] ml-1">
-                  {product.rating} ({product.reviewsCount} opiniones verificadas)
+                  {product.rating} ({product.reviewsCount} verified reviews)
                 </span>
               </div>
 
@@ -107,7 +106,7 @@ export function ProductDetailModal({
                 )}
                 {product.originalPrice && (
                   <span className="text-[10px] font-mono font-bold text-[#AA8B63] bg-[#AA8B63]/15 px-2 py-0.5 rounded-md">
-                    Ahorras ${product.originalPrice - product.price}
+                    Save ${product.originalPrice - product.price}
                   </span>
                 )}
               </div>
@@ -121,7 +120,7 @@ export function ProductDetailModal({
               {product.bundleItems && (
                 <div className="mt-4 p-3.5 rounded-2xl bg-[#23271B] border border-[#FAF0E2]/10">
                   <span className="text-xs font-mono font-bold text-[#AA8B63] uppercase tracking-wider block mb-2">
-                    Contenido del Paquete:
+                    Included in this kit:
                   </span>
                   <ul className="space-y-1.5 text-xs text-[#FAF0E2]">
                     {product.bundleItems.map((item, idx) => (
@@ -138,7 +137,7 @@ export function ProductDetailModal({
               {product.benefits && (
                 <div className="mt-4">
                   <span className="text-xs font-mono font-bold text-[#A4AA93] uppercase tracking-wider block mb-1.5">
-                    Beneficios Principales:
+                    Key Benefits:
                   </span>
                   <div className="grid grid-cols-1 gap-1.5">
                     {product.benefits.map((b, i) => (
@@ -156,7 +155,7 @@ export function ProductDetailModal({
                 <div className="mt-4 pt-3 border-t border-[#FAF0E2]/10">
                   <span className="text-[11px] font-mono font-bold text-[#A4AA93] uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
                     <Droplets className="h-3.5 w-3.5 text-[#AA8B63]" />
-                    <span>Ingredientes Botánicos:</span>
+                    <span>Botanical Ingredients:</span>
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {product.ingredients.map((ing, i) => (
@@ -174,7 +173,7 @@ export function ProductDetailModal({
               {/* How to use */}
               {product.howToUse && (
                 <div className="mt-4 pt-3 border-t border-[#FAF0E2]/10 text-xs text-[#A4AA93]">
-                  <strong className="text-[#FAF0E2] block mb-0.5">Modo de aplicación:</strong>
+                  <strong className="text-[#FAF0E2] block mb-0.5">Application Ritual:</strong>
                   <span>{product.howToUse}</span>
                 </div>
               )}
@@ -182,7 +181,6 @@ export function ProductDetailModal({
 
             {/* Bottom Actions */}
             <div className="mt-6 pt-4 border-t border-[#FAF0E2]/15 flex items-center gap-4">
-              {/* Quantity Counter */}
               <div className="flex items-center border border-[#FAF0E2]/20 rounded-xl bg-[#14160F] p-1">
                 <button
                   type="button"
@@ -203,7 +201,6 @@ export function ProductDetailModal({
                 </button>
               </div>
 
-              {/* Add button */}
               <button
                 type="button"
                 onClick={handleAdd}
@@ -217,12 +214,12 @@ export function ProductDetailModal({
                 {added ? (
                   <>
                     <Check className="h-4 w-4" />
-                    <span>¡Agregado al Carrito!</span>
+                    <span>Added to Bag!</span>
                   </>
                 ) : (
                   <>
                     <ShoppingBag className="h-4 w-4" />
-                    <span>Añadir al Carrito · ${(product.price * quantity).toFixed(2)}</span>
+                    <span>Add to Bag · ${(product.price * quantity).toFixed(2)}</span>
                   </>
                 )}
               </button>

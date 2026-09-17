@@ -11,13 +11,12 @@ import {
   Scissors,
   Check,
   Star,
-  Calendar,
   Instagram,
   Facebook,
   ChevronRight,
   Droplets,
-  Award,
   ShoppingBag,
+  Zap,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { InteractiveTile } from "@/components/InteractiveTile";
@@ -105,7 +104,6 @@ function AppContent() {
     ? "240, 215, 175"
     : "170, 139, 99";
 
-  // If in admin view, render the AdminDashboard
   if (currentView === "admin") {
     return <AdminDashboard onBackToSite={navigateToSite} />;
   }
@@ -133,23 +131,30 @@ function AppContent() {
       );
 
       // 2. Preloader curtain fades away at 0.8s so full video plays front & center
-      tl.to(".preloader", {
-        opacity: 0,
-        duration: 0.7,
-        ease: "power3.inOut",
-        onComplete: () => {
-          const el = document.querySelector(".preloader") as HTMLElement | null;
-          if (el) el.style.pointerEvents = "none";
+      tl.to(
+        ".preloader",
+        {
+          opacity: 0,
+          duration: 0.7,
+          ease: "power3.inOut",
+          onComplete: () => {
+            const el = document.querySelector(".preloader") as HTMLElement | null;
+            if (el) el.style.pointerEvents = "none";
+          },
         },
-      }, 0.8);
+        0.8
+      );
 
-      // 3. Background video plays in full glory until second 8.0!
-      // At second 8.0: Video smoothly dims to ambient background
-      tl.to(".hero-bg-video", {
-        opacity: 0.20,
-        duration: 1.2,
-        ease: "power2.inOut",
-      }, 8.0);
+      // 3. Background video plays until second 8.0
+      tl.to(
+        ".hero-bg-video",
+        {
+          opacity: 0.20,
+          duration: 1.2,
+          ease: "power2.inOut",
+        },
+        8.0
+      );
 
       // 4. Hero spa atmosphere & gold glow fade in at 8.0s
       tl.fromTo(".hero-spa-ambient", { opacity: 0 }, { opacity: 1, duration: 1.0 }, 8.0);
@@ -230,25 +235,25 @@ function AppContent() {
               <span>SOUVA · MOBILE PET GROOMING</span>
             </div>
             <span className="text-[8.5px] text-[#A4AA93] tracking-widest opacity-80">
-              PRESENTING THE PAMPERING PARLOR
+              SAN FRANCISCO BAY AREA & SELECT EAST BAY
             </span>
           </div>
         </div>
       )}
 
-      {/* Floating Skip Intro Pill during first 8 seconds */}
+      {/* Floating Skip Intro Button during first 8 seconds */}
       {loading && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#161811]/85 backdrop-blur-md border border-[#FAF0E2]/15 text-[10.5px] font-mono text-[#FAF0E2] shadow-xl">
             <span className="h-2 w-2 rounded-full bg-[#AA8B63] animate-pulse" />
-            <span>SOUVA · PRESENTACIÓN EN VIVO</span>
+            <span>SOUVA · CINEMATIC PRESENTATION</span>
           </div>
           <button
             type="button"
             onClick={skipIntro}
             className="px-4 py-2 rounded-full bg-[#AA8B63] text-[#161811] text-xs font-mono font-bold tracking-wider uppercase hover:bg-[#C4A67E] transition-all cursor-pointer shadow-2xl flex items-center gap-1.5"
           >
-            <span>Saltar Intro</span>
+            <span>Skip Intro</span>
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
@@ -287,64 +292,63 @@ function AppContent() {
               {/* Left Side: Brand Story & Value Prop */}
               <div className="hero-left-content lg:col-span-5 flex flex-col justify-between py-2 space-y-6">
                 <div>
-                  {/* Status Badge */}
+                  {/* Location Status Badge */}
                   <div className="inline-flex items-center gap-2 rounded-full border border-[#FAF0E2]/15 bg-[#202419]/80 backdrop-blur-md px-4 py-1.5 text-xs font-medium tracking-wide text-[#FAF0E2]">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#AA8B63]" />
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FAF0E2]" />
                     </span>
-                    <span>Austin & Central Texas · Spa Móvil Activo</span>
+                    <span>San Francisco Bay Area and select East Bay Area CA</span>
                   </div>
 
                   {/* Main Display Headline */}
-                  <h1 className="mt-5 font-display text-4xl sm:text-5xl lg:text-[3.25rem] font-bold tracking-tight leading-[1.08] text-[#FAF0E2]">
-                    Your pet's mobile
-                    <br />
-                    <span className="text-gradient-gold">pampering parlor.</span>
+                  <h1 className="mt-5 font-display text-3xl sm:text-4xl lg:text-[2.85rem] font-bold tracking-tight leading-[1.12] text-[#FAF0E2]">
+                    The Bay Area’s elevated{" "}
+                    <span className="text-gradient-gold block mt-1">
+                      mobile grooming experience
+                    </span>
                   </h1>
 
-                  <p className="mt-4 text-base md:text-lg text-[#E2D7C5] font-serif italic">
-                    Luxury Grooming, Right at Your Doorstep.
+                  {/* Official User Copy */}
+                  <p className="mt-4 text-sm sm:text-[15px] text-[#E2D7C5] leading-relaxed">
+                    A private, one-on-one mobile grooming experience designed around your pet’s
+                    comfort and individual needs. Our solar-powered van and thoughtfully selected
+                    premium products support a more eco-conscious approach, while delivering
+                    personalized care and beautifully tailored results directly to your doorstep.
                   </p>
 
-                  <p className="mt-3 text-sm md:text-[15px] text-[#A4AA93] leading-relaxed max-w-md">
-                    El spa canino que llega directo a tu casa. Sin jaulas, sin esperas
-                    angustiantes y con estilistas dedicados 1 a 1 para consentir a tu
-                    peludo con agua tibia ozonizada y productos botánicos de alta gama.
-                  </p>
-
-                  {/* Quick Highlight Image */}
-                  <div className="mt-6 flex items-center gap-3 p-2.5 rounded-2xl bg-[#1E2217]/70 border border-[#FAF0E2]/10 max-w-md">
+                  {/* Quick Feature Callout */}
+                  <div className="mt-5 flex items-center gap-3 p-3 rounded-2xl bg-[#1E2217]/70 border border-[#FAF0E2]/10 max-w-md shadow-lg">
                     <img
                       src="/assets/souva-hero-dog.png"
-                      alt="Golden Retriever en Van SOUVA"
-                      className="h-16 w-20 object-cover rounded-xl border border-[#FAF0E2]/15"
+                      alt="Golden Retriever inside SOUVA Van"
+                      className="h-16 w-20 object-cover rounded-xl border border-[#FAF0E2]/15 shrink-0"
                     />
                     <div className="text-xs">
                       <div className="font-display font-bold text-[#FAF0E2] flex items-center gap-1.5">
-                        <span>Experiencia 100% Sin Estrés</span>
-                        <Heart className="h-3 w-3 text-[#AA8B63] fill-[#AA8B63]" />
+                        <span>100% Solar-Powered & Autonomous</span>
+                        <Zap className="h-3 w-3 text-[#AA8B63] fill-[#AA8B63]" />
                       </div>
-                      <p className="text-[11px] text-[#A4AA93] mt-0.5">
-                        Van totalmente autónoma: no conectamos agua ni electricidad de tu hogar.
+                      <p className="text-[11px] text-[#A4AA93] mt-0.5 leading-snug">
+                        Zero electrical or water hookups required from your home. Completely self-contained luxury.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Trust Badges */}
-                <div className="pt-5 border-t border-[#FAF0E2]/10 flex flex-wrap items-center justify-between gap-3 text-xs font-medium text-[#A4AA93]">
-                  <span className="flex items-center gap-1.5">
+                {/* 3 Core Mandated Trust Badges */}
+                <div className="pt-5 border-t border-[#FAF0E2]/10 flex flex-wrap items-center justify-between gap-3 text-xs font-medium text-[#FAF0E2]">
+                  <span className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full dot-success" />
-                    <span>Llegamos a tu Puerta</span>
+                    <span className="font-semibold">Convenient Doorstep Service</span>
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <Shield className="h-4 w-4 text-[#AA8B63]" />
-                    <span>Asegurados & Certificados</span>
+                  <span className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5 text-[#AA8B63]" />
+                    <span className="font-semibold">No Cages, No Waiting</span>
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <Droplets className="h-4 w-4 text-[#AA8B63]" />
-                    <span>Cosmética Orgánica</span>
+                  <span className="flex items-center gap-2">
+                    <Heart className="h-3.5 w-3.5 text-[#AA8B63]" />
+                    <span className="font-semibold">Private One-on-One Care</span>
                   </span>
                 </div>
               </div>
@@ -376,7 +380,7 @@ function AppContent() {
             {/* Premium Step-by-Step Bento Cards */}
             <div className="bento-steps-section mt-16 sm:mt-20 border-t border-[#FAF0E2]/10 pt-10">
               <div className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase mb-6 text-center">
-                {"// CÓMO FUNCIONA // TRES PASOS HACIA EL SPA EN TU PUERTA"}
+                {"// HOW IT WORKS // THREE STEPS TO ELEVATED DOORSTEP PAMPERING"}
               </div>
 
               <div className="grid md:grid-cols-3 gap-6">
@@ -384,22 +388,22 @@ function AppContent() {
                   {
                     n: "01",
                     icon: <Scissors className="h-5 w-5" />,
-                    t: "Personaliza en el Blueprint",
-                    d: "Selecciona el tamaño de tu perro, toca las zonas a cuidar y adjunta su foto opcional para evaluación.",
+                    t: "Select Pet Size",
+                    d: "Choose your dog's size to preview our 3D model and ensure custom suite preparation inside our solar van.",
                     delay: "0s",
                   },
                   {
                     n: "02",
                     icon: <Sparkles className="h-5 w-5" />,
-                    t: "Elige su Paquete de Mimos",
-                    d: "Desde baño con aromaterapia de avena hasta mascarilla de arándanos y cepillado dental enzimático.",
+                    t: "Choose Spa Treatment",
+                    d: "From organic colloidal oat baths to blueberry facials, gentle deshedding, and paw restorative butter.",
                     delay: "1.5s",
                   },
                   {
                     n: "03",
                     icon: <Truck className="h-5 w-5" />,
-                    t: "Fija tu Ubicación & Llega la Van",
-                    d: "Usa GPS o tu dirección. Nuestra van de última generación estaciona en tu puerta lista para consentir.",
+                    t: "Drop Your Pin & We Arrive",
+                    d: "Confirm your doorstep address. Our private solar van parks directly outside ready to pamper.",
                     delay: "3s",
                   },
                 ].map((s) => (
@@ -418,14 +422,14 @@ function AppContent() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <span className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase block mb-2">
-                {"// SERVICIOS EXCLUSIVOS DE SPA MÓVIL //"}
+                {"// EXCLUSIVE DOORSTEP SPA SERVICES //"}
               </span>
               <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#FAF0E2]">
-                Tratamientos de Grooming en tu Puerta
+                Elevated Mobile Grooming Treatments
               </h2>
               <p className="mt-3 text-[#A4AA93] text-sm md:text-base leading-relaxed">
-                Diseñados para brindar el máximo confort y brillo sedoso a tu mascota,
-                empleando únicamente productos ecológicos hipoalergénicos.
+                Designed to provide tranquil comfort, silky coat health, and individual attention,
+                using exclusively organic, cruelty-free formulas.
               </p>
             </div>
 
@@ -442,7 +446,7 @@ function AppContent() {
                 >
                   {pkg.popular && (
                     <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[10px] font-bold font-mono uppercase tracking-wider">
-                      Más Elegido
+                      Most Popular
                     </span>
                   )}
 
@@ -479,7 +483,7 @@ function AppContent() {
                     onClick={scrollToHero}
                     className="mt-6 w-full py-2.5 rounded-xl border border-[#AA8B63]/40 bg-[#AA8B63]/10 text-xs font-bold text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <span>Reservar Servicio</span>
+                    <span>Book This Service</span>
                     <ChevronRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -495,30 +499,30 @@ function AppContent() {
               {"// THE SOUVA EXPERIENCE //"}
             </span>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#FAF0E2]">
-              Antes y Después de Cada Sesión
+              Before & After Transformations
             </h2>
             <p className="mt-3 text-[#A4AA93] text-sm md:text-base max-w-xl mx-auto leading-relaxed mb-8">
-              Observa el cambio de un pelaje apagado a un look brillante, limpio,
-              esponjoso y libre de enredos.
+              Witness the visual transformation from dull, tangled fur to a brilliant, silky,
+              delightfully scented finish.
             </p>
 
             <BeforeAfterSlider />
           </div>
         </section>
 
-        {/* SALON GALLERY & FLEET HIGHLIGHTS */}
+        {/* SALON GALLERY & SOLAR FLEET HIGHLIGHTS */}
         <section id="gallery" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 bg-[#181B13]">
           <div className="max-w-6xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <span className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase block mb-2">
-                {"// NUESTRAS INSTALACIONES MÓVILES //"}
+                {"// OUR SOLAR-POWERED FLEET //"}
               </span>
               <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#FAF0E2]">
-                Tecnología de Vanguardia & Cuidado Amoroso
+                Cutting-Edge Technology & Gentle Care
               </h2>
               <p className="mt-3 text-[#A4AA93] text-sm leading-relaxed">
-                Cada van SOUVA cuenta con aire acondicionado independiente, mesa hidráulica
-                ergonómica, secador silencioso de temperatura controlada y agua tibia desinfectada.
+                Every SOUVA mobile salon features independent climate control, an ergonomic
+                hydraulic lift table, silent warm airflow, and sanitized water filtration.
               </p>
             </div>
 
@@ -527,16 +531,16 @@ function AppContent() {
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
                     src="/assets/souva-salon-interior.png"
-                    alt="Interior de la Van Móvil SOUVA"
+                    alt="Interior of SOUVA Mobile Grooming Salon"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
                 <div className="p-5">
                   <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
-                    Interior Climatizado & Seguro
+                    Climate-Controlled & Sanitized Suite
                   </h4>
                   <p className="text-xs text-[#A4AA93] mt-1.5 leading-relaxed">
-                    Mesa hidráulica de precisión y bañera en acero inoxidable que garantiza comodidad absoluta para mascotas de cualquier edad.
+                    Precision hydraulic grooming table and stainless steel tub ensuring comfort, stability, and zero stress for dogs of all ages.
                   </p>
                 </div>
               </div>
@@ -545,16 +549,16 @@ function AppContent() {
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
                     src="/assets/souva-products.png"
-                    alt="Productos de Estética Canina SOUVA"
+                    alt="SOUVA Botanical Pet Cosmetics"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
                 <div className="p-5">
                   <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
-                    Línea Exclusiva de Cosmética
+                    Artisan Botanical Product Line
                   </h4>
                   <p className="text-xs text-[#A4AA93] mt-1.5 leading-relaxed">
-                    Champús de avena, acondicionadores desenredantes y bálsamo reparador formulados sin parabenos, sulfatos ni aromas sintéticos irritantes.
+                    Colloidal oat shampoos, silk detanglers, and healing paw butter formulated without parabens, sulfates, or artificial fragrances.
                   </p>
                 </div>
               </div>
@@ -563,16 +567,16 @@ function AppContent() {
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
                     src="/assets/souva-van-profile.png"
-                    alt="Van Móvil SOUVA Wrap"
+                    alt="SOUVA Solar Mobile Van"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
                 <div className="p-5">
                   <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
-                    Flota de Spa 100% Autónoma
+                    100% Solar-Powered Autonomous Fleet
                   </h4>
                   <p className="text-xs text-[#A4AA93] mt-1.5 leading-relaxed">
-                    Nuestras unidades van equipadas con generador silencioso inversor y tanques de agua limpia y residual, sin conectarse a tu casa.
+                    Self-sustaining clean battery systems, pure water tanks, and zero emissions while parked outside your Bay Area residence.
                   </p>
                 </div>
               </div>
@@ -585,32 +589,32 @@ function AppContent() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center max-w-xl mx-auto mb-12">
               <span className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase block mb-2">
-                {"// LO QUE DICEN NUESTROS CLIENTES //"}
+                {"// VERIFIED PET PARENT REVIEWS //"}
               </span>
               <h2 className="font-display text-3xl font-bold text-[#FAF0E2]">
-                Amados por Mascotas & Familias
+                Adored by Pets & Families Across the Bay
               </h2>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
               {[
                 {
-                  author: "María L. & Toby (Golden Retriever)",
-                  text: "¡Mi perro quedó perfecto! Antes odiaba ir a la peluquería tradicional porque se ponía nervioso en la jaula. Con SOUVA lo atienden justo frente a nuestra casa con paciencia infinita.",
+                  author: "Sarah M. & Toby (Golden Retriever)",
+                  text: "The most seamless grooming experience we've ever had in San Francisco. Toby used to dread cage dryers at traditional salons. SOUVA parked right on our street, and he came back calm, fluffy, and smelling heavenly.",
                   stars: 5,
-                  city: "Austin, TX",
+                  city: "Pacific Heights, San Francisco",
                 },
                 {
-                  author: "Carlos D. & Luna (Caniche Toy)",
-                  text: "El corte a tijera quedó impecable y el aroma de su champú dura semanas. La puntualidad de la van y la facilidad de reservar por el modal fue de 10.",
+                  author: "David L. & Luna (Toy Poodle)",
+                  text: "Her scissor cut was immaculate. The eco-conscious solar van is whisper quiet, and the booking portal made coordinating arrival super easy. Hands down the premier service in the East Bay.",
                   stars: 5,
-                  city: "Pflugerville, TX",
+                  city: "Rockridge, Oakland",
                 },
                 {
-                  author: "Elena R. & Thor (Bulldog Francés)",
-                  text: "Excelente servicio para perros con piel delicada. El bálsamo en sus almohadillas y la limpieza facial de arándanos le dejó la cara limpia sin irritar sus pliegues.",
+                  author: "Elena K. & Thor (French Bulldog)",
+                  text: "Thor has sensitive skin and allergy folds. Their hypoallergenic colloidal oat wash and blueberry facial kept his coat shiny and calm without any redness. Worth every penny.",
                   stars: 5,
-                  city: "Round Rock, TX",
+                  city: "Walnut Creek, CA",
                 },
               ].map((rev, idx) => (
                 <div
@@ -645,10 +649,10 @@ function AppContent() {
           <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
             <div>
               <h3 className="font-display text-2xl md:text-3xl font-bold text-[#FAF0E2]">
-                ¿Listo para consentir a tu peludo?
+                Ready to elevate your pet's grooming?
               </h3>
               <p className="text-sm text-[#A4AA93] mt-1">
-                Agenda tu cita VIP en 60 segundos con nuestro selector interactivo en la cabecera.
+                Book your private doorstep appointment in 60 seconds with our interactive portal.
               </p>
             </div>
             <button
@@ -656,7 +660,7 @@ function AppContent() {
               onClick={scrollToHero}
               className="px-8 py-3.5 rounded-2xl btn-luxury font-bold text-xs tracking-wider cursor-pointer shadow-xl shrink-0"
             >
-              Pedir Van a Mi Puerta
+              Book Solar Van to Doorstep
             </button>
           </div>
         </section>
@@ -681,29 +685,29 @@ function Header({ onBookClick }: { onBookClick: () => void }) {
       <nav className="hidden lg:flex items-center gap-6 text-xs font-medium text-[#FAF0E2]/80">
         <a href="#store" className="hover:text-[#AA8B63] transition-colors flex items-center gap-1">
           <Sparkles className="h-3 w-3 text-[#AA8B63]" />
-          <span>Boutique & Cosmética</span>
+          <span>Boutique & Products</span>
         </a>
         <a href="#services" className="hover:text-[#AA8B63] transition-colors">
-          Servicios Móviles
+          Services
         </a>
         <a href="#before-after" className="hover:text-[#AA8B63] transition-colors">
-          Antes & Después
+          Before & After
         </a>
         <a href="#gallery" className="hover:text-[#AA8B63] transition-colors">
-          La Van & Spa
+          The Van
         </a>
         <a href="#reviews" className="hover:text-[#AA8B63] transition-colors">
-          Testimonios
+          Reviews
         </a>
       </nav>
 
       <div className="flex items-center gap-3">
-        {/* Shopping Cart Button */}
+        {/* Shopping Bag Button */}
         <button
           type="button"
           onClick={() => setIsOpen(true)}
           className="relative p-2 rounded-full bg-[#25281D] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:border-[#AA8B63] transition-colors cursor-pointer shadow-sm"
-          aria-label="Abrir Carrito"
+          aria-label="Open Shopping Bag"
         >
           <ShoppingBag className="h-4 w-4 text-[#AA8B63]" />
           {totalItems > 0 && (
@@ -726,7 +730,7 @@ function Header({ onBookClick }: { onBookClick: () => void }) {
           onClick={onBookClick}
           className="px-4 py-2 text-xs font-bold font-mono tracking-wide rounded-full bg-[#AA8B63] text-[#161811] hover:bg-[#C4A67E] transition-colors cursor-pointer shadow-md"
         >
-          RESERVAR
+          BOOK NOW
         </button>
       </div>
     </header>
@@ -746,10 +750,10 @@ function Footer({ onOpenAdmin }: { onOpenAdmin: () => void }) {
             <span className="text-[#AA8B63]">♥</span>
           </div>
           <p className="text-[#A4AA93] text-[10px]">
-            "Nuestro amor por los peludos, entregado en tu puerta."
+            "The Bay Area’s elevated mobile grooming experience."
           </p>
           <span className="text-[10px] text-[#A4AA93]/60">
-            © {new Date().getFullYear()} SOUVA Pet Grooming LLC. Todos los derechos reservados.
+            © {new Date().getFullYear()} SOUVA Mobile Pet Grooming LLC. All rights reserved.
           </span>
           <button
             type="button"
@@ -757,14 +761,14 @@ function Footer({ onOpenAdmin }: { onOpenAdmin: () => void }) {
             className="text-[10px] text-[#A4AA93]/50 hover:text-[#AA8B63] transition-colors flex items-center gap-1.5 mt-2 cursor-pointer text-left w-fit"
           >
             <Shield className="h-3 w-3" />
-            <span>Portal Dueños / Despacho & Mapa (/admin)</span>
+            <span>Owner Portal / Fleet Dispatch (/admin)</span>
           </button>
         </div>
 
         <div className="flex flex-wrap items-center gap-6 md:gap-10">
           <div className="flex flex-col gap-1">
             <span className="text-[9.5px] uppercase tracking-wider text-[#AA8B63] font-bold">
-              CONTACTO / WHATSAPP
+              CONCIERGE / WHATSAPP
             </span>
             <a href="tel:+18509600034" className="text-[#FAF0E2] hover:text-[#AA8B63] transition-colors">
               +1 (850) 960-0034
@@ -773,16 +777,16 @@ function Footer({ onOpenAdmin }: { onOpenAdmin: () => void }) {
 
           <div className="flex flex-col gap-1">
             <span className="text-[9.5px] uppercase tracking-wider text-[#AA8B63] font-bold">
-              HORARIO DE ATENCIÓN
+              OPERATING HOURS
             </span>
-            <span className="text-[#FAF0E2]">Lunes a Sábado: 8:00 AM - 7:00 PM</span>
+            <span className="text-[#FAF0E2]">Monday – Saturday: 8:00 AM – 7:00 PM</span>
           </div>
 
           <div className="flex flex-col gap-1">
             <span className="text-[9.5px] uppercase tracking-wider text-[#AA8B63] font-bold">
-              ZONA DE COBERTURA
+              SERVICE AREA
             </span>
-            <span className="text-[#FAF0E2]">Austin · Pflugerville · Round Rock · Cedar Park</span>
+            <span className="text-[#FAF0E2]">San Francisco · Oakland · Berkeley · Walnut Creek · San Ramon</span>
           </div>
 
           <div className="flex items-center gap-3 pt-2 sm:pt-0">

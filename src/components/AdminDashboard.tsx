@@ -5,19 +5,14 @@ import {
   Phone,
   Clock,
   Check,
-  AlertCircle,
-  Shield,
   Search,
   MessageCircle,
   ExternalLink,
   ArrowLeft,
-  Sparkles,
   RefreshCw,
   Plus,
   Minus,
   Lock,
-  User,
-  Heart,
 } from "lucide-react";
 import {
   DispatchRequest,
@@ -25,7 +20,6 @@ import {
   getStoredRequests,
   updateRequestETA,
   updateRequestStatus,
-  deleteDispatchRequest,
 } from "@/lib/dispatchStore";
 import { AdminMap } from "@/components/AdminMap";
 import { SouvaLogo } from "@/components/SouvaLogo";
@@ -69,7 +63,6 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
 
   const handleVerifyPin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Default owner PIN 8509 (from phone 850) or 1234
     if (pinInput === "8509" || pinInput === "1234") {
       sessionStorage.setItem("souva_admin_auth", "true");
       setIsAuthenticated(true);
@@ -94,21 +87,20 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
 
   const handleNotifyClientWhatsApp = (req: DispatchRequest) => {
     const cleanPhone = req.phone.replace(/[^0-9]/g, "");
-    const message = `🚐 *ACTUALIZACIÓN DE LLEGADA - SOUVA MOBILE PET GROOMING* 🐾
+    const message = `🚐 *ARRIVAL UPDATE - SOUVA MOBILE PET GROOMING* 🐾
 
-Hola ${req.customerName}, te informamos sobre el servicio para *${req.petName}*:
+Hello ${req.customerName}, here is an update regarding ${req.petName}'s appointment:
 
-⏱️ *Tiempo estimado de llegada (ETA):* ${req.etaMinutes} minutos.
-🚐 *Unidad asignada:* ${req.vanName}
-📍 *Destino:* ${req.address}
+⏱️ *Estimated Time of Arrival (ETA):* ${req.etaMinutes} minutes.
+🚐 *Assigned Unit:* ${req.vanName}
+📍 *Destination:* ${req.address}
 
-Nuestro estilista canino está preparando el agua tibia ozonizada y los champús botánicos para consentir a ${req.petName}. ¡Nos vemos en breve! ✨`;
+Our mobile stylist has prepared the warm ozonated water and organic botanical shampoo. See you shortly! ✨`;
 
     const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
 
-  // Filter requests
   const filteredRequests = requests.filter((r) => {
     const matchesFilter =
       statusFilter === "all"
@@ -126,13 +118,11 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
     return matchesFilter && matchesSearch;
   });
 
-  // Calculate Metrics
   const activeCount = requests.filter((r) =>
     ["pending", "assigned", "en_route", "in_service"].includes(r.status)
   ).length;
   const completedCount = requests.filter((r) => r.status === "completed").length;
 
-  // PIN Login Gate
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#14160F] text-[#FAF0E2] flex items-center justify-center p-4">
@@ -142,10 +132,10 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
           </div>
 
           <h2 className="font-display text-2xl font-bold text-[#FAF0E2]">
-            Portal de Dueños & Despacho
+            Owners & Dispatch Portal
           </h2>
           <p className="text-xs text-[#A4AA93] mt-1.5 mb-6">
-            Acceso administrativo para monitorear citas, ver ubicación en mapa y actualizar el ETA de los clientes.
+            Administrative access to monitor active appointments, live fleet GPS radar, and update customer arrival ETAs.
           </p>
 
           <form onSubmit={handleVerifyPin} className="space-y-4">
@@ -155,13 +145,13 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                 maxLength={6}
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
-                placeholder="Ingresa tu PIN (8509)"
+                placeholder="Enter PIN (8509)"
                 className="w-full px-4 py-3.5 text-center font-mono text-lg tracking-[0.4em] bg-[#14160F] border border-[#FAF0E2]/20 rounded-2xl text-[#FAF0E2] focus:outline-none focus:border-[#AA8B63]"
                 autoFocus
               />
               {pinError && (
                 <span className="text-[11px] text-red-400 font-mono block mt-2">
-                  PIN incorrecto. Prueba con 8509 o 1234.
+                  Incorrect PIN. Try 8509 or 1234.
                 </span>
               )}
             </div>
@@ -170,16 +160,16 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
               type="submit"
               className="w-full py-3.5 rounded-xl bg-[#AA8B63] text-[#161811] font-bold text-xs font-mono tracking-wider uppercase cursor-pointer hover:bg-[#C4A67E] transition-colors shadow-lg"
             >
-              Ingresar al Panel
+              Access Dashboard
             </button>
 
             <button
               type="button"
               onClick={onBackToSite}
-              className="text-xs text-[#A4AA93] hover:text-[#FAF0E2] transition-colors mt-4 flex items-center justify-center gap-1.5 mx-auto"
+              className="text-xs text-[#A4AA93] hover:text-[#FAF0E2] transition-colors mt-4 flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Volver a la Web Principal</span>
+              <span>Return to Public Website</span>
             </button>
           </form>
         </div>
@@ -195,29 +185,28 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
           <SouvaLogo showSubtitle={false} />
           <div className="hidden sm:flex flex-col border-l border-[#FAF0E2]/10 pl-4">
             <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#AA8B63]">
-              DISPATCH & OPERATIONS HUD
+              BAY AREA FLEET DISPATCH HUD
             </span>
             <span className="text-xs font-bold text-[#FAF0E2]">
-              Centro de Control de Flota SOUVA
+              SOUVA Mobile Operations Control
             </span>
           </div>
         </div>
 
-        {/* Quick HUD Metrics */}
         <div className="hidden lg:flex items-center gap-6 text-xs font-mono">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#22261A] border border-[#FAF0E2]/10">
             <Truck className="h-4 w-4 text-[#AA8B63]" />
-            <span>2 Vans en Servicio</span>
+            <span>2 Solar Vans Active</span>
           </div>
 
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#22261A] border border-[#FAF0E2]/10">
             <span className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
-            <span>{activeCount} Activas</span>
+            <span>{activeCount} Active Dispatches</span>
           </div>
 
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#22261A] border border-[#FAF0E2]/10">
             <Check className="h-4 w-4 text-green-400" />
-            <span>{completedCount} Completadas</span>
+            <span>{completedCount} Completed</span>
           </div>
         </div>
 
@@ -226,7 +215,7 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
             type="button"
             onClick={refreshData}
             className="p-2 rounded-xl bg-[#22261A] border border-[#FAF0E2]/10 hover:border-[#AA8B63] text-[#FAF0E2] cursor-pointer"
-            title="Actualizar datos"
+            title="Refresh requests"
           >
             <RefreshCw className="h-4 w-4" />
           </button>
@@ -237,7 +226,7 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
             className="px-4 py-2 rounded-xl border border-[#FAF0E2]/15 bg-[#22261A] hover:bg-[#AA8B63] hover:text-[#161811] text-xs font-mono font-bold text-[#FAF0E2] transition-colors cursor-pointer flex items-center gap-2"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Volver a la Web</span>
+            <span>Back to Site</span>
           </button>
         </div>
       </header>
@@ -246,7 +235,7 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
       <div className="flex-1 grid lg:grid-cols-12 overflow-hidden">
         {/* Left Side: Requests List & Live Controls */}
         <div className="lg:col-span-6 xl:col-span-5 border-r border-[#FAF0E2]/10 flex flex-col bg-[#161811] max-h-[calc(100vh-65px)] overflow-hidden">
-          {/* Filters & Search Bar */}
+          {/* Filters & Search */}
           <div className="p-4 border-b border-[#FAF0E2]/10 space-y-3 bg-[#1C1F15]">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#A4AA93]" />
@@ -254,7 +243,7 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar por cliente, perro, ID o dirección..."
+                placeholder="Search by client, pet, ID, or Bay Area city..."
                 className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#14160F] border border-[#FAF0E2]/15 rounded-xl text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
               />
             </div>
@@ -270,7 +259,7 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                     : "bg-[#25281D] text-[#A4AA93] hover:text-[#FAF0E2]"
                 )}
               >
-                Todas ({requests.length})
+                All ({requests.length})
               </button>
               <button
                 type="button"
@@ -282,7 +271,7 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                     : "bg-[#25281D] text-[#A4AA93] hover:text-[#FAF0E2]"
                 )}
               >
-                En Ruta / Activas ({activeCount})
+                Active En Route ({activeCount})
               </button>
               <button
                 type="button"
@@ -294,7 +283,7 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                     : "bg-[#25281D] text-[#A4AA93] hover:text-[#FAF0E2]"
                 )}
               >
-                Completadas ({completedCount})
+                Completed ({completedCount})
               </button>
             </div>
           </div>
@@ -304,10 +293,10 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
             {filteredRequests.length === 0 ? (
               <div className="text-center py-12 text-[#A4AA93]">
                 <p className="text-sm font-bold font-display text-[#FAF0E2]">
-                  No hay solicitudes en este filtro
+                  No appointments found
                 </p>
                 <span className="text-xs">
-                  Cualquier reserva hecha en la web aparecerá aquí automáticamente.
+                  Any request submitted on the public website appears here in real-time.
                 </span>
               </div>
             ) : (
@@ -324,7 +313,6 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                         : "bg-[#1B1E15] border-[#FAF0E2]/10 hover:border-[#AA8B63]/40"
                     )}
                   >
-                    {/* Header line */}
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs font-bold text-[#AA8B63]">
@@ -335,7 +323,6 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                         </span>
                       </div>
 
-                      {/* Status Selector */}
                       <select
                         value={req.status}
                         onChange={(e) =>
@@ -351,17 +338,16 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                             : "bg-[#25281D] border-[#FAF0E2]/15 text-[#A4AA93]"
                         )}
                       >
-                        <option value="pending">En Espera</option>
-                        <option value="assigned">Van Asignada</option>
-                        <option value="en_route">En Tránsito (En Camino)</option>
-                        <option value="arrived">En la Puerta</option>
-                        <option value="in_service">En Spa</option>
-                        <option value="completed">Completado</option>
-                        <option value="cancelled">Cancelado</option>
+                        <option value="pending">Queued</option>
+                        <option value="assigned">Van Assigned</option>
+                        <option value="en_route">En Route (Driving)</option>
+                        <option value="arrived">At Doorstep</option>
+                        <option value="in_service">In Spa Session</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
                       </select>
                     </div>
 
-                    {/* Pet & Owner Info */}
                     <div className="flex gap-3 items-center">
                       <div className="h-12 w-12 rounded-xl bg-[#14160F] border border-[#FAF0E2]/15 overflow-hidden flex items-center justify-center shrink-0">
                         {req.petPhoto ? (
@@ -385,7 +371,7 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                           </span>
                         </div>
                         <p className="text-xs text-[#A4AA93] truncate">
-                          {req.breed} · Tutor: {req.customerName}
+                          {req.breed} · Parent: {req.customerName}
                         </p>
                         <p className="text-[11px] text-[#A4AA93]/80 truncate flex items-center gap-1 mt-0.5">
                           <MapPin className="h-3 w-3 text-[#AA8B63] shrink-0" />
@@ -401,19 +387,18 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono text-[#A4AA93] uppercase font-bold">
-                          ETA Cliente:
+                          Client ETA:
                         </span>
                         <span className="font-display font-bold text-base text-[#FAF0E2]">
                           {req.etaMinutes} min
                         </span>
 
-                        {/* Increment / Decrement Buttons */}
                         <div className="flex items-center gap-1 border border-[#FAF0E2]/15 rounded-lg bg-[#14160F] p-0.5">
                           <button
                             type="button"
                             onClick={() => handleEtaChange(req.id, -5)}
                             className="h-6 w-6 rounded flex items-center justify-center hover:bg-[#25281D] text-[#FAF0E2] cursor-pointer"
-                            title="-5 minutos"
+                            title="-5 minutes"
                           >
                             <Minus className="h-3 w-3" />
                           </button>
@@ -421,21 +406,20 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                             type="button"
                             onClick={() => handleEtaChange(req.id, 5)}
                             className="h-6 w-6 rounded flex items-center justify-center hover:bg-[#25281D] text-[#FAF0E2] cursor-pointer"
-                            title="+5 minutos"
+                            title="+5 minutes"
                           >
                             <Plus className="h-3 w-3" />
                           </button>
                         </div>
                       </div>
 
-                      {/* WhatsApp Notify Button */}
                       <button
                         type="button"
                         onClick={() => handleNotifyClientWhatsApp(req)}
                         className="px-2.5 py-1.5 rounded-lg bg-[#25D366]/20 border border-[#25D366]/50 text-[#25D366] text-[11px] font-mono font-bold flex items-center gap-1.5 hover:bg-[#25D366] hover:text-[#071F10] transition-colors cursor-pointer"
                       >
                         <MessageCircle className="h-3.5 w-3.5" />
-                        <span>Avisar ETA por WhatsApp</span>
+                        <span>Update ETA via WhatsApp</span>
                       </button>
                     </div>
                   </div>
@@ -447,7 +431,6 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
 
         {/* Right Side: Map & Deep Request Inspector */}
         <div className="lg:col-span-6 xl:col-span-7 flex flex-col p-4 md:p-6 bg-[#13150F] gap-4 max-h-[calc(100vh-65px)] overflow-y-auto">
-          {/* The Leaflet OpenStreetMap */}
           <div className="w-full h-[400px] lg:h-[460px] shrink-0">
             <AdminMap
               requests={requests}
@@ -456,7 +439,6 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
             />
           </div>
 
-          {/* Selected Request Deep Inspector Card */}
           {selectedRequest && (
             <div className="p-5 rounded-3xl bg-[#1C1F15] border border-[#FAF0E2]/15 shadow-xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#FAF0E2]/10">
@@ -491,7 +473,7 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                     rel="noreferrer"
                     className="px-3 py-1.5 rounded-xl bg-[#25281D] border border-[#FAF0E2]/15 text-xs font-mono text-[#FAF0E2] hover:border-[#AA8B63] flex items-center gap-1.5"
                   >
-                    <span>Abrir GPS / Waze</span>
+                    <span>Open GPS / Maps</span>
                     <ExternalLink className="h-3 w-3" />
                   </a>
 
@@ -500,16 +482,15 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
                     className="px-3 py-1.5 rounded-xl bg-[#AA8B63] text-[#161811] text-xs font-mono font-bold hover:bg-[#C4A67E] flex items-center gap-1.5"
                   >
                     <Phone className="h-3 w-3" />
-                    <span>Llamar</span>
+                    <span>Call Client</span>
                   </a>
                 </div>
               </div>
 
-              {/* Detail Grid */}
               <div className="grid sm:grid-cols-3 gap-3.5 my-4 text-xs font-mono">
                 <div className="p-3 rounded-xl bg-[#14160F] border border-[#FAF0E2]/10">
                   <span className="text-[10px] text-[#A4AA93] uppercase block mb-1">
-                    Cliente & Teléfono
+                    Client & Phone
                   </span>
                   <strong className="text-[#FAF0E2] block">{selectedRequest.customerName}</strong>
                   <span className="text-[#AA8B63]">{selectedRequest.phone}</span>
@@ -517,39 +498,38 @@ Nuestro estilista canino está preparando el agua tibia ozonizada y los champús
 
                 <div className="p-3 rounded-xl bg-[#14160F] border border-[#FAF0E2]/10">
                   <span className="text-[10px] text-[#A4AA93] uppercase block mb-1">
-                    Dirección de Entrega
+                    Doorstep Address
                   </span>
                   <span className="text-[#FAF0E2] line-clamp-2">{selectedRequest.address}</span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-[#14160F] border border-[#FAF0E2]/10">
                   <span className="text-[10px] text-[#A4AA93] uppercase block mb-1">
-                    Van Asignada
+                    Assigned Solar Van
                   </span>
                   <span className="text-[#FAF0E2] font-bold block">{selectedRequest.vanName}</span>
                   <span className="text-[#AA8B63]">ETA: {selectedRequest.etaMinutes} min</span>
                 </div>
               </div>
 
-              {/* Service details and notes */}
               <div className="p-3.5 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/10 text-xs space-y-1.5">
                 <div className="flex justify-between">
-                  <span className="text-[#A4AA93]">Condición del Manto:</span>
+                  <span className="text-[#A4AA93]">Coat Condition:</span>
                   <span className="text-[#FAF0E2] font-bold">{selectedRequest.coatCondition}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#A4AA93]">Temperamento:</span>
+                  <span className="text-[#A4AA93]">Temperament:</span>
                   <span className="text-[#FAF0E2]">{selectedRequest.temperament}</span>
                 </div>
                 {selectedRequest.addons.length > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-[#A4AA93]">Mimos Extra (Add-ons):</span>
+                    <span className="text-[#A4AA93]">Selected Add-ons:</span>
                     <span className="text-[#AA8B63]">{selectedRequest.addons.join(", ")}</span>
                   </div>
                 )}
                 {selectedRequest.notes && (
                   <div className="pt-2 border-t border-[#FAF0E2]/10 text-[11px] text-[#A4AA93]">
-                    <strong className="text-[#FAF0E2]">Nota:</strong> {selectedRequest.notes}
+                    <strong className="text-[#FAF0E2]">Stylist Note:</strong> {selectedRequest.notes}
                   </div>
                 )}
               </div>

@@ -6,11 +6,9 @@ import {
   ArrowRight,
   Truck,
   ShieldCheck,
-  Sparkles,
   MessageCircle,
 } from "lucide-react";
 import { useCart } from "@/lib/cartContext";
-import { cn } from "@/lib/utils";
 
 export function CartDrawer() {
   const {
@@ -38,7 +36,7 @@ export function CartDrawer() {
   const total = subtotal + shippingCost;
 
   const handleWhatsAppCheckout = () => {
-    const waNumber = "15551234567";
+    const waNumber = "18509600034";
     const itemsList = items
       .map(
         (i) =>
@@ -46,15 +44,15 @@ export function CartDrawer() {
       )
       .join("\n");
 
-    const message = `🛍️ *NUEVO PEDIDO BOUTIQUE SOUVA* 🛍️
+    const message = `🛍️ *NEW SOUVA BOUTIQUE ORDER* 🛍️
 
-${customerName ? `👤 Cliente: ${customerName}\n📞 Teléfono: ${customerPhone}\n📍 Dirección: ${shippingAddress}\n` : ""}
-📦 *PRODUCTOS:*
+${customerName ? `👤 Client: ${customerName}\n📞 Phone: ${customerPhone}\n📍 Address: ${shippingAddress}\n` : ""}
+📦 *ITEMS:*
 ${itemsList}
 
-💰 *TOTAL:* $${total.toFixed(2)} ${shippingCost === 0 ? "(Envío GRATIS)" : `(Envío $${shippingCost})`}
+💰 *TOTAL:* $${total.toFixed(2)} ${shippingCost === 0 ? "(Free Doorstep Delivery)" : `(Delivery $${shippingCost})`}
 
-Por favor confirmar disponibilidad y método de pago. ¡Muchas gracias! ✨🐾`;
+Please confirm order fulfillment and payment link. Thank you! ✨🐾`;
 
     const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
     window.open(waUrl, "_blank");
@@ -90,10 +88,10 @@ Por favor confirmar disponibilidad y método de pago. ¡Muchas gracias! ✨🐾`
             </div>
             <div>
               <h2 className="font-display font-bold text-base text-[#FAF0E2]">
-                Tu Carrito Boutique
+                Your Boutique Bag
               </h2>
               <span className="text-[11px] text-[#A4AA93] font-mono">
-                {items.length} {items.length === 1 ? "artículo" : "artículos"}
+                {items.length} {items.length === 1 ? "item" : "items"}
               </span>
             </div>
           </div>
@@ -113,10 +111,10 @@ Por favor confirmar disponibilidad y método de pago. ¡Muchas gracias! ✨🐾`
             <span className="flex items-center gap-1.5 text-[#FAF0E2]">
               <Truck className="h-3.5 w-3.5 text-[#AA8B63]" />
               {amountForFreeShipping === 0 ? (
-                <span className="text-[#FAF0E2] font-bold">¡Envío Gratis desbloqueado!</span>
+                <span className="text-[#FAF0E2] font-bold">Complimentary Doorstep Shipping Unlocked!</span>
               ) : (
                 <span>
-                  Faltan <strong className="text-[#AA8B63]">${amountForFreeShipping.toFixed(2)}</strong> para envío gratis
+                  Add <strong className="text-[#AA8B63]">${amountForFreeShipping.toFixed(2)}</strong> more for free shipping
                 </span>
               )}
             </span>
@@ -140,17 +138,17 @@ Por favor confirmar disponibilidad y método de pago. ¡Muchas gracias! ✨🐾`
                 <ShoppingBag className="h-8 w-8 opacity-60" />
               </div>
               <p className="font-display font-bold text-base text-[#FAF0E2]">
-                Tu bolsa está vacía
+                Your bag is empty
               </p>
               <p className="text-xs text-[#A4AA93] mt-1 max-w-xs">
-                Explora nuestra línea de cosmética botánica y paquetes de spa para tu peludo.
+                Explore our curated botanical cosmetic line and home spa kits for your companion.
               </p>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
                 className="mt-5 px-5 py-2.5 rounded-xl bg-[#AA8B63] text-[#161811] text-xs font-bold font-mono tracking-wide hover:bg-[#C4A67E] cursor-pointer"
               >
-                Ver Productos
+                Browse Collection
               </button>
             </div>
           ) : (
@@ -206,7 +204,7 @@ Por favor confirmar disponibilidad y método de pago. ¡Muchas gracias! ✨🐾`
                       type="button"
                       onClick={() => removeFromCart(product.id)}
                       className="text-[#A4AA93] hover:text-red-400 transition-colors p-1 cursor-pointer"
-                      title="Eliminar"
+                      title="Remove item"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -226,19 +224,18 @@ Por favor confirmar disponibilidad y método de pago. ¡Muchas gracias! ✨🐾`
         {/* Footer / Checkout Area */}
         {items.length > 0 && (
           <div className="p-5 border-t border-[#FAF0E2]/15 bg-[#1C1F15] space-y-3">
-            {/* Direct Checkout form toggle */}
             {showCheckoutForm ? (
               <form onSubmit={handleConfirmDirectOrder} className="space-y-2.5 pb-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono font-bold text-[#AA8B63] uppercase">
-                    Datos de Entrega
+                    Delivery Address Details
                   </span>
                   <button
                     type="button"
                     onClick={() => setShowCheckoutForm(false)}
                     className="text-[10px] text-[#A4AA93] underline cursor-pointer"
                   >
-                    Cancelar
+                    Cancel
                   </button>
                 </div>
                 <input
@@ -246,7 +243,7 @@ Por favor confirmar disponibilidad y método de pago. ¡Muchas gracias! ✨🐾`
                   required
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Tu Nombre Completo"
+                  placeholder="Full Name"
                   className="w-full px-3 py-2 text-xs bg-[#14160F] border border-[#FAF0E2]/15 rounded-xl text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
                 />
                 <input
@@ -254,7 +251,7 @@ Por favor confirmar disponibilidad y método de pago. ¡Muchas gracias! ✨🐾`
                   required
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="Teléfono / WhatsApp"
+                  placeholder="Phone Number / WhatsApp"
                   className="w-full px-3 py-2 text-xs bg-[#14160F] border border-[#FAF0E2]/15 rounded-xl text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
                 />
                 <input
@@ -262,7 +259,7 @@ Por favor confirmar disponibilidad y método de pago. ¡Muchas gracias! ✨🐾`
                   required
                   value={shippingAddress}
                   onChange={(e) => setShippingAddress(e.target.value)}
-                  placeholder="Dirección completa de entrega"
+                  placeholder="Doorstep Street Address (Bay Area / East Bay)"
                   className="w-full px-3 py-2 text-xs bg-[#14160F] border border-[#FAF0E2]/15 rounded-xl text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
                 />
                 <button
@@ -271,23 +268,22 @@ Por favor confirmar disponibilidad y método de pago. ¡Muchas gracias! ✨🐾`
                   className="w-full py-3 rounded-xl bg-green-600 text-white font-bold text-xs tracking-wider uppercase cursor-pointer hover:bg-green-700 transition-colors shadow-lg flex items-center justify-center gap-2"
                 >
                   {orderCompleted ? (
-                    <span>✓ ¡Pedido Confirmado con Éxito!</span>
+                    <span>✓ Order Placed Successfully!</span>
                   ) : (
-                    <span>Confirmar Pedido · ${total.toFixed(2)}</span>
+                    <span>Confirm Order · ${total.toFixed(2)}</span>
                   )}
                 </button>
               </form>
             ) : (
               <>
-                {/* Cost breakdown */}
                 <div className="space-y-1.5 text-xs text-[#A4AA93] font-mono">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
                     <span className="text-[#FAF0E2] font-bold">${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Envío a Domicilio</span>
-                    <span>{shippingCost === 0 ? "GRATIS" : `$${shippingCost.toFixed(2)}`}</span>
+                    <span>Bay Area Doorstep Delivery</span>
+                    <span>{shippingCost === 0 ? "FREE" : `$${shippingCost.toFixed(2)}`}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-[#FAF0E2]/10 text-sm font-bold text-[#FAF0E2]">
                     <span className="font-display">Total</span>
@@ -295,29 +291,27 @@ Por favor confirmar disponibilidad y método de pago. ¡Muchas gracias! ✨🐾`
                   </div>
                 </div>
 
-                {/* Primary Action 1: WhatsApp instant order */}
                 <button
                   type="button"
                   onClick={handleWhatsAppCheckout}
                   className="w-full py-3.5 rounded-xl bg-[#25D366] text-[#071F10] font-bold text-xs font-mono tracking-wide uppercase cursor-pointer hover:bg-[#20bd5a] transition-all flex items-center justify-center gap-2 shadow-lg"
                 >
                   <MessageCircle className="h-4 w-4 fill-current" />
-                  <span>Comprar por WhatsApp</span>
+                  <span>Order Directly via WhatsApp</span>
                 </button>
 
-                {/* Primary Action 2: Direct online form */}
                 <button
                   type="button"
                   onClick={() => setShowCheckoutForm(true)}
                   className="w-full py-3 rounded-xl bg-[#AA8B63] text-[#161811] font-bold text-xs font-mono tracking-wide uppercase cursor-pointer hover:bg-[#C4A67E] transition-all flex items-center justify-center gap-2 shadow-md"
                 >
-                  <span>Checkout Directo</span>
+                  <span>Direct Online Checkout</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </button>
 
                 <div className="text-[10px] text-[#A4AA93] text-center flex items-center justify-center gap-1">
                   <ShieldCheck className="h-3.5 w-3.5 text-[#AA8B63]" />
-                  <span>Compra 100% segura con garantía de satisfacción SOUVA</span>
+                  <span>100% Secure Checkout with SOUVA Satisfaction Guarantee</span>
                 </div>
               </>
             )}

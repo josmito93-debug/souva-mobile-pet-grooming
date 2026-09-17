@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, ShoppingBag, Gift, Package, Heart } from "lucide-react";
+import { Sparkles, ShoppingBag, Gift, Package } from "lucide-react";
 import { SOUVA_PRODUCTS, Product } from "@/data/products";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductDetailModal } from "@/components/ProductDetailModal";
@@ -14,12 +14,12 @@ export function StoreSection() {
   const { totalItems, setIsOpen } = useCart();
 
   const categories: { id: CategoryFilter; label: string; icon: string }[] = [
-    { id: "all", label: "Todos", icon: "✨" },
-    { id: "bundles", label: "Paquetes de Ahorro", icon: "🎁" },
-    { id: "bath", label: "Baño & Champú", icon: "🫧" },
-    { id: "care", label: "Patitas & Manto", icon: "🐾" },
-    { id: "fragrance", label: "Colonias & Aromas", icon: "🌸" },
-    { id: "accessories", label: "Accesorios", icon: "⭐" },
+    { id: "all", label: "All Items", icon: "✨" },
+    { id: "bundles", label: "Curated Bundles", icon: "🎁" },
+    { id: "bath", label: "Bath & Shampoos", icon: "🫧" },
+    { id: "care", label: "Paw & Skin Care", icon: "🐾" },
+    { id: "fragrance", label: "Botanical Colognes", icon: "🌸" },
+    { id: "accessories", label: "Accessories", icon: "⭐" },
   ];
 
   const filteredProducts =
@@ -35,20 +35,19 @@ export function StoreSection() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-[#AA8B63]/30 bg-[#25281D] px-3.5 py-1 text-[11px] font-mono font-bold tracking-wider text-[#AA8B63] uppercase mb-3">
               <Sparkles className="h-3 w-3" />
-              <span>BOUTIQUE EXCLUSIVA SOUVA</span>
+              <span>SOUVA BOUTIQUE COLLECTION</span>
             </div>
 
             <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-[#FAF0E2]">
-              Línea de Cosmética & Packs de Spa
+              Botanical Grooming Line & Home Spa Kits
             </h2>
 
             <p className="mt-3 text-sm md:text-base text-[#A4AA93] max-w-xl leading-relaxed">
-              Lleva la misma calidad que usamos en nuestras vans a tu casa.
-              Formulaciones botánicas veganas, hipoalergénicas y enriquecidas con aceites esenciales puros.
+              Experience the same pure organic formulas utilized inside our solar-powered mobile vans.
+              Cruelty-free, vegan, pH-balanced, and infused with therapeutic botanicals.
             </p>
           </div>
 
-          {/* Quick Cart Trigger button in section header */}
           <button
             type="button"
             onClick={() => setIsOpen(true)}
@@ -62,7 +61,7 @@ export function StoreSection() {
                 </span>
               )}
             </div>
-            <span>Ver Carrito ({totalItems})</span>
+            <span>View Bag ({totalItems})</span>
           </button>
         </div>
 
@@ -71,14 +70,14 @@ export function StoreSection() {
           <div className="relative z-10 max-w-xl">
             <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#AA8B63] uppercase tracking-wider mb-2">
               <Gift className="h-4 w-4" />
-              <span>OFERTA EXCLUSIVA EN PAQUETES</span>
+              <span>EXCLUSIVE CURATED SAVINGS</span>
             </div>
             <h3 className="font-display text-2xl sm:text-3xl font-bold text-[#FAF0E2]">
-              Kits de Spa con hasta $19 de Descuento
+              Home Spa Kits with up to $20 in Savings
             </h3>
             <p className="text-xs sm:text-sm text-[#E2D7C5] mt-2 leading-relaxed">
-              Adquiere los sets de cuidado completo que incluyen champú, acondicionador,
-              bálsamo de patitas y cepillo de cerdas nobles con bolsa de compras de regalo y envío gratuito.
+              Complete wellness systems featuring our organic oat shampoo, silk detangler,
+              paw healing butter, and eco-hardwood pin brush — plus a complimentary luxury canvas bag.
             </p>
           </div>
 
@@ -89,7 +88,7 @@ export function StoreSection() {
               className="px-6 py-3.5 rounded-2xl bg-[#AA8B63] text-[#161811] font-display font-bold text-xs tracking-wider uppercase hover:bg-[#C4A67E] transition-all cursor-pointer shadow-xl flex items-center gap-2"
             >
               <Package className="h-4 w-4" />
-              <span>Explorar Paquetes de Ahorro</span>
+              <span>Explore Curated Bundles</span>
             </button>
           </div>
         </div>
@@ -129,7 +128,6 @@ export function StoreSection() {
         </div>
       </div>
 
-      {/* Product Detail Modal */}
       <ProductDetailModal
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}

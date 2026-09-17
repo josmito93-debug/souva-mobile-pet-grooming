@@ -22,9 +22,9 @@ export function AdminMap({
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
-      // Initialize map centered around Austin / Central Texas
+      // Initialize map centered around SF Bay Area & East Bay
       const map = L.map(mapContainerRef.current, {
-        center: [30.34, -97.71],
+        center: [37.82, -122.28],
         zoom: 11,
         zoomControl: false,
       });
@@ -41,7 +41,7 @@ export function AdminMap({
         }
       ).addTo(map);
 
-      // Central SOUVA Depot marker
+      // Central SOUVA Bay Area Hub marker
       const depotIcon = L.divIcon({
         className: "custom-depot-marker",
         html: `
@@ -56,12 +56,12 @@ export function AdminMap({
         iconAnchor: [19, 19],
       });
 
-      L.marker([30.33, -97.71], { icon: depotIcon })
+      L.marker([37.8044, -122.2711], { icon: depotIcon })
         .addTo(map)
         .bindPopup(
           `<div style="font-family: sans-serif; padding: 4px; color: #161811;">
-            <strong style="color: #59593E;">CENTRAL SOUVA MOBILE SPA</strong><br/>
-            <span style="font-size: 11px;">Base de operaciones & esterilización</span>
+            <strong style="color: #59593E;">SOUVA BAY AREA CENTRAL HUB</strong><br/>
+            <span style="font-size: 11px;">Fleet charging station & sterilization depot</span>
           </div>`
         );
 
@@ -163,7 +163,7 @@ export function AdminMap({
       {/* Map Overlay Badge */}
       <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-xl bg-[#161811]/85 backdrop-blur-md border border-[#FAF0E2]/15 text-xs font-mono text-[#FAF0E2] flex items-center gap-2 shadow-lg">
         <span className="h-2 w-2 rounded-full bg-[#AA8B63] animate-pulse" />
-        <span>MAPA DE DESPACHO EN VIVO · AUSTIN & PFLUGERVILLE</span>
+        <span>LIVE FLEET RADAR · SF BAY AREA & EAST BAY CA</span>
       </div>
     </div>
   );
