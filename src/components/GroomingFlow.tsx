@@ -22,7 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { PetBlueprint } from "@/components/PetBlueprint";
 import breedsList from "@/data/breeds.json";
-import { SOUVA_PACKAGES, SPA_UPGRADES, type PetSize } from "@/data/services";
+import { SOUVA_PACKAGES, SPA_UPGRADES, SIZE_GUIDE, type PetSize } from "@/data/services";
 import { addDispatchRequest } from "@/lib/dispatchStore";
 
 export type CoatState = "smooth" | "tangles" | "matted";
@@ -52,8 +52,8 @@ const STEPS_TOTAL = 5;
 function StatusLedGrid({ activeIndex, hot }: { activeIndex: number; hot: boolean }) {
   const steps = [
     { icon: Sparkles, label: "Size" },
-    { icon: Heart, label: "Pet Profile" },
     { icon: Scissors, label: "Service" },
+    { icon: Heart, label: "Pet Profile" },
     { icon: Shield, label: "Coat Care" },
     { icon: MapPin, label: "Location" },
     { icon: Truck, label: "Dispatch" },
@@ -188,8 +188,8 @@ export function GroomingFlow({
 
   const canNext = Boolean(
     (step === 0 && Boolean(data.size)) ||
-      (step === 1 && data.petName.trim().length >= 1 && data.breed.trim().length >= 2) ||
-      (step === 2 && data.packageId) ||
+      (step === 1 && Boolean(data.packageId)) ||
+      (step === 2 && data.petName.trim().length >= 1 && data.breed.trim().length >= 2) ||
       (step === 3 && data.coatCondition) ||
       (step === 4 &&
         data.ownerName.trim().length >= 2 &&
@@ -359,15 +359,66 @@ Please confirm our doorstep arrival time! 🚐❤️`;
           ) : step === 0 ? (
             <StepPetSize data={data} setData={setData} />
           ) : step === 1 ? (
-            <StepPetProfile data={data} setData={setData} />
-          ) : step === 2 ? (
             <StepServicePackage data={data} setData={setData} />
+          ) : step === 2 ? (
+            <StepPetProfile data={data} setData={setData} />
           ) : step === 3 ? (
             <StepCoatCondition data={data} setData={setData} />
           ) : (
             <StepDoorstepLocation data={data} setData={setData} />
           )}
         </div>
+
+        {/* Live Selection & Price Counter Bar */}
+        {!dispatched && (
+          (() => {
+            const baseServicePrice =
+              SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.prices[data.size as PetSize] || 65;
+            const addonsCost = data.addons.reduce((sum, addId) => {
+              const item = SPA_UPGRADES.find((u) => u.id === addId);
+              if (!item) return sum;
+              const num = parseInt(item.price.replace(/[^0-9]/g, ""), 10) || 0;
+              return sum + num;
+            }, 0);
+            const currentTotal = baseServicePrice + addonsCost;
+            const currentSizeObj = SIZE_GUIDE.find((s) => s.id === data.size);
+            const selectedPkgName =
+              SOUVA_PACKAGES.find((p) => p.id === data.packageId)?.name || "Bath & Refresh";
+
+            return (
+              <div className="mt-4 p-3 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-md flex items-center justify-between gap-3 text-xs select-none">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="h-8 w-8 rounded-xl bg-[#25281D] border border-[#AA8B63]/40 flex items-center justify-center shrink-0">
+                    <span className="text-sm">🐾</span>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <span className="font-bold text-[#FAF0E2] truncate">
+                        {data.petName.trim() ? data.petName : "Your Dog"}
+                      </span>
+                      <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-[#25281D] text-[#AA8B63] font-bold uppercase shrink-0">
+                        {currentSizeObj?.label || data.size}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[#A4AA93] truncate">
+                      {selectedPkgName}
+                      {data.addons.length > 0 ? ` · +${data.addons.length} upgrade${data.addons.length > 1 ? "s" : ""}` : ""}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0">
+                  <span className="text-[9px] font-mono text-[#A4AA93] uppercase block">
+                    Estimated Total
+                  </span>
+                  <span className="font-display font-extrabold text-lg text-[#AA8B63]">
+                    ${currentTotal}
+                  </span>
+                </div>
+              </div>
+            );
+          })()
+        )}
 
         {/* Action Button */}
         {!dispatched && (
@@ -376,7 +427,7 @@ Please confirm our doorstep arrival time! 🚐❤️`;
             disabled={!canNext}
             onClick={handleNext}
             className={cn(
-              "mt-6 w-full py-4 text-sm font-bold btn-luxury relative z-10 flex items-center justify-center gap-2",
+              "mt-4 w-full py-4 text-sm font-bold btn-luxury relative z-10 flex items-center justify-center gap-2",
               justArmed && "just-armed"
             )}
           >
@@ -473,7 +524,7 @@ function StepPetProfile({
   return (
     <div>
       <StepHeader
-        eyebrow="Step 2"
+        eyebrow="Step 3 · Pet Profile"
         title="Who is your companion?"
         subtitle="Share their name, breed, and temperament so our stylist can personalize their experience."
       />
@@ -691,8 +742,8 @@ function StepServicePackage({
     },
     {
       id: "signature-grooming",
-      title: "Full Groom",
-      subtitle: 'Longer style ½"+',
+      title: "Signature Grooming",
+      subtitle: 'Longer style ½"+ · Scissor finish',
       fullTitle: "Signature Grooming",
       price: SOUVA_PACKAGES.find((p) => p.id === "signature-grooming")?.prices[data.size as PetSize] || 125,
     },
@@ -701,7 +752,7 @@ function StepServicePackage({
   return (
     <div>
       <StepHeader
-        eyebrow="3 · SERVICE"
+        eyebrow="Step 2 · Service"
         title="Select Your Grooming Service"
         subtitle="Personalized, one-on-one grooming delivered directly to your doorstep."
       />
