@@ -637,7 +637,7 @@ function StepServicePackage({
         </div>
       )}
 
-      {/* Spa Upgrades / Add-ons */}
+      {/* Spa Upgrades / Add-ons (Full display without internal scroll) */}
       <div className="mt-4 pt-3 border-t border-[#FAF0E2]/10">
         <div className="flex items-center justify-between mb-2">
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider">
@@ -646,7 +646,7 @@ function StepServicePackage({
           <span className="text-[10px] font-mono text-[#AA8B63]">Optional</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 max-h-[135px] overflow-y-auto pr-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {SPA_UPGRADES.map((add) => {
             const isSelected = data.addons.includes(add.id);
             return (
@@ -730,133 +730,140 @@ function StepPetProfile({
         subtitle="Provide their details, medical care notes, and vaccination status for safe handling."
       />
 
-      <div className="mt-4 space-y-3.5 max-h-[360px] overflow-y-auto pr-1">
-        {/* Pet Name */}
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Pet's Name
-          </label>
-          <div className="relative">
-            <Heart className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
-            <input
-              type="text"
-              value={data.petName}
-              onChange={(e) => setData({ ...data, petName: e.target.value })}
-              placeholder="e.g. Maya, Bruno, Charlie..."
-              className="w-full pl-10 pr-4 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-            />
-          </div>
-        </div>
-
-        {/* Breed Autocomplete */}
-        <div className="relative" ref={dropdownRef}>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Breed or Mix
-          </label>
-          <div className="relative">
-            <Sparkles className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
-            <input
-              type="text"
-              value={data.breed}
-              onChange={(e) => {
-                setData({ ...data, breed: e.target.value });
-                setIsOpen(true);
-              }}
-              onFocus={() => setIsOpen(true)}
-              placeholder="e.g. Golden Retriever, Goldendoodle, Frenchie..."
-              className="w-full pl-10 pr-4 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-              autoComplete="off"
-            />
-          </div>
-
-          {isOpen && filteredBreeds.length > 0 && (
-            <div className="absolute z-50 left-0 right-0 mt-1 max-h-40 overflow-y-auto rounded-xl border border-[#FAF0E2]/15 bg-[#1F2318]/95 backdrop-blur-md p-1 shadow-2xl">
-              {filteredBreeds.map((breed) => (
-                <button
-                  key={breed}
-                  type="button"
-                  onClick={() => {
-                    setData({ ...data, breed });
-                    setIsOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-xs text-[#FAF0E2] hover:bg-[#AA8B63]/20 rounded-lg transition-colors cursor-pointer font-medium flex items-center justify-between"
-                >
-                  <span>{breed}</span>
-                  <span className="text-[10px] text-[#AA8B63]">Select</span>
-                </button>
-              ))}
+      {/* Step 3 Form Fields (Adaptive natural height - NO scrollbar) */}
+      <div className="mt-4 space-y-3">
+        {/* Pet Name & Breed Side-by-Side */}
+        <div className="grid sm:grid-cols-2 gap-2.5">
+          {/* Pet Name */}
+          <div>
+            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+              Pet's Name
+            </label>
+            <div className="relative">
+              <Heart className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
+              <input
+                type="text"
+                value={data.petName}
+                onChange={(e) => setData({ ...data, petName: e.target.value })}
+                placeholder="e.g. Maya, Bruno..."
+                className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+              />
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* Pet Age */}
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1.5">
-            Pet Age
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {ageOptions.map((age) => {
-              const isSelected = data.petAge === age;
-              return (
-                <button
-                  key={age}
-                  type="button"
-                  onClick={() => setData({ ...data, petAge: age })}
-                  className={cn(
-                    "p-2 rounded-xl border text-center text-xs font-medium transition-all duration-200 cursor-pointer",
-                    isSelected
-                      ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-sm"
-                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-                  )}
-                >
-                  {age}
-                </button>
-              );
-            })}
+          {/* Breed Autocomplete */}
+          <div className="relative" ref={dropdownRef}>
+            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+              Breed or Mix
+            </label>
+            <div className="relative">
+              <Sparkles className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
+              <input
+                type="text"
+                value={data.breed}
+                onChange={(e) => {
+                  setData({ ...data, breed: e.target.value });
+                  setIsOpen(true);
+                }}
+                onFocus={() => setIsOpen(true)}
+                placeholder="e.g. Golden Retriever..."
+                className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+                autoComplete="off"
+              />
+            </div>
+
+            {isOpen && filteredBreeds.length > 0 && (
+              <div className="absolute z-50 left-0 right-0 mt-1 max-h-40 overflow-y-auto rounded-xl border border-[#FAF0E2]/15 bg-[#1F2318]/95 backdrop-blur-md p-1 shadow-2xl">
+                {filteredBreeds.map((breed) => (
+                  <button
+                    key={breed}
+                    type="button"
+                    onClick={() => {
+                      setData({ ...data, breed });
+                      setIsOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs text-[#FAF0E2] hover:bg-[#AA8B63]/20 rounded-lg transition-colors cursor-pointer font-medium flex items-center justify-between"
+                  >
+                    <span>{breed}</span>
+                    <span className="text-[10px] text-[#AA8B63]">Select</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Vaccinated Question */}
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#AA8B63]" />
-            <span>Are core vaccinations up to date? (Rabies / DHPP)</span>
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setData({ ...data, vaccinated: "yes" })}
-              className={cn(
-                "p-2.5 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
-                data.vaccinated === "yes"
-                  ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
-                  : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-              )}
-            >
-              ✓ Yes, Up to Date
-            </button>
-            <button
-              type="button"
-              onClick={() => setData({ ...data, vaccinated: "no" })}
-              className={cn(
-                "p-2.5 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
-                data.vaccinated === "no"
-                  ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
-                  : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-              )}
-            >
-              In Progress / Exemption
-            </button>
+        {/* Pet Age & Vaccines Side-by-Side */}
+        <div className="grid sm:grid-cols-2 gap-2.5">
+          {/* Pet Age */}
+          <div>
+            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+              Pet Age
+            </label>
+            <div className="grid grid-cols-3 gap-1">
+              {ageOptions.map((age) => {
+                const isSelected = data.petAge === age;
+                return (
+                  <button
+                    key={age}
+                    type="button"
+                    onClick={() => setData({ ...data, petAge: age })}
+                    className={cn(
+                      "p-1.5 rounded-lg border text-center text-[10.5px] font-medium transition-all duration-200 cursor-pointer",
+                      isSelected
+                        ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-sm"
+                        : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+                    )}
+                  >
+                    {age.split(" ")[0]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Vaccinated Question */}
+          <div>
+            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
+              <ShieldCheck className="h-3 w-3 text-[#AA8B63]" />
+              <span>Core Vaccines?</span>
+            </label>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={() => setData({ ...data, vaccinated: "yes" })}
+                className={cn(
+                  "p-1.5 rounded-lg border text-center text-[10.5px] font-semibold transition-all cursor-pointer",
+                  data.vaccinated === "yes"
+                    ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
+                    : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+                )}
+              >
+                ✓ Up to Date
+              </button>
+              <button
+                type="button"
+                onClick={() => setData({ ...data, vaccinated: "no" })}
+                className={cn(
+                  "p-1.5 rounded-lg border text-center text-[10.5px] font-semibold transition-all cursor-pointer",
+                  data.vaccinated === "no"
+                    ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
+                    : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+                )}
+              >
+                In Progress
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Medical or Physical Conditions (Replaces Temperament) */}
+        {/* Medical or Physical Conditions */}
         <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1.5">
             <Activity className="h-3.5 w-3.5 text-[#AA8B63]" />
-            <span>Any medical or physical conditions?</span>
+            <span>Medical or Physical Conditions?</span>
           </label>
-          <div className="flex flex-wrap gap-1.5 mb-2">
+          <div className="flex flex-wrap gap-1">
             {medicalOptions.map((opt) => {
               const isSelected = data.medicalConditions === opt;
               return (
@@ -865,7 +872,7 @@ function StepPetProfile({
                   type="button"
                   onClick={() => setData({ ...data, medicalConditions: opt })}
                   className={cn(
-                    "px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer",
+                    "px-2 py-1 rounded-lg border text-[10.5px] font-medium transition-all cursor-pointer",
                     isSelected
                       ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-sm"
                       : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
