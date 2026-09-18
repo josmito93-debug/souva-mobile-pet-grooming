@@ -186,10 +186,39 @@ export default async function handler(req: any, res: any) {
     const resendData = await resendResponse.json();
     console.log("Resend confirmation email response status:", resendResponse.status, resendData);
 
-    const emailSent = resendResponse.ok;
+    let emailSent = resendResponse.ok;
     let hint = null;
     if (!resendResponse.ok && resendData?.message?.includes("testing emails")) {
-      hint = "Notice: Resend test domain (onboarding@resend.dev) only allows sending to the email registered on your Resend account. To send to any client, verify your domain in Resend Dashboard (resend.com/domains) and set RESEND_FROM_EMAIL in Vercel.";
+      hint = "Notice: Resend test domain (onboarding@resend.dev) only allows sending to the email registered on your Resend account (info@souvagrooming.com). To send to any client, verify your domain in Resend Dashboard (resend.com/domains) and set RESEND_FROM_EMAIL in Vercel.";
+      
+      // Automatic fallback: send to the registered account email so the invoice PDF is never lost!
+      try {
+        const fallbackRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: ["info@souvagrooming.com"],
+            subject: `✨ SOUVA Invoice & Booking Confirmed: ${petName} on ${scheduledDate} (Client: ${email})`,
+            html: `<div style="padding: 12px 16px; background-color: #AA8B63; color: #161811; font-weight: bold; margin-bottom: 18px; border-radius: 10px; font-size: 13px;">Notice: Delivered to admin inbox (info@souvagrooming.com) because client email (${email}) requires domain verification at resend.com/domains</div>` + htmlContent,
+            attachments: [
+              {
+                filename: pdfFileName,
+                content: pdfBase64,
+              },
+            ],
+          }),
+        });
+        if (fallbackRes.ok) {
+          emailSent = true;
+          console.log("Invoice delivered to admin email info@souvagrooming.com via fallback");
+        }
+      } catch (fallbackErr) {
+        console.warn("Fallback to info@souvagrooming.com failed:", fallbackErr);
+      }
     }
 
     // 3. Schedule 30-minute reminder email with Resend
