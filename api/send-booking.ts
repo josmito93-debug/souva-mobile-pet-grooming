@@ -5,10 +5,33 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = (
+    process.env.RESEND_API_KEY ||
+    process.env.VITE_RESEND_API_KEY ||
+    process.env.RESEND_KEY ||
+    ""
+  ).trim();
 
   try {
-    const booking = req.body || {};
+    let booking = req.body;
+    if (typeof booking === "string") {
+      try {
+        booking = JSON.parse(booking);
+      } catch (e) {
+        console.error("Failed to parse body string:", e);
+      }
+    }
+    if (Buffer.isBuffer(booking)) {
+      try {
+        booking = JSON.parse(booking.toString("utf-8"));
+      } catch (e) {
+        console.error("Failed to parse buffer body:", e);
+      }
+    }
+    if (!booking || typeof booking !== "object") {
+      booking = {};
+    }
+
     const {
       ownerName = "Valued Pet Parent",
       email,
@@ -60,165 +83,189 @@ export default async function handler(req: any, res: any) {
     const cleanPetName = petName.replace(/[^a-zA-Z0-9]/g, "-");
     const pdfFileName = `SOUVA-Invoice-${cleanPetName}-${Date.now().toString().slice(-4)}.pdf`;
 
-    // 2. If Resend API key is configured, send the immediate confirmation email with attached PDF invoice
-    if (apiKey) {
-      const toRecipients = [email].filter(Boolean);
-      if (process.env.ADMIN_NOTIFICATION_EMAIL) {
-        toRecipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
-      }
-
-      const htmlContent = `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; background-color: #14160E; color: #FAF0E2; padding: 36px 28px; border-radius: 20px; border: 1px solid rgba(250, 240, 226, 0.12);">
-          
-          <div style="text-align: center; margin-bottom: 28px; border-bottom: 1px solid rgba(250, 240, 226, 0.1); padding-bottom: 20px;">
-            <div style="display: inline-block; padding: 6px 14px; background: rgba(170, 139, 99, 0.15); border: 1px solid #AA8B63; border-radius: 9999px; margin-bottom: 12px;">
-              <span style="color: #AA8B63; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">Official Service Invoice & Agreement</span>
-            </div>
-            <h1 style="color: #AA8B63; font-size: 28px; margin: 0; text-transform: uppercase; letter-spacing: 3px; font-weight: 800;">SOUVA</h1>
-            <p style="color: #A4AA93; font-size: 11px; margin: 6px 0 0 0; text-transform: uppercase; letter-spacing: 1.5px;">The Bay Area's Elevated Mobile Pet Grooming Experience</p>
-          </div>
-
-          <div style="background-color: #1B1E15; border: 1px solid #AA8B63; border-radius: 14px; padding: 22px; margin-bottom: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-            <span style="color: #AA8B63; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">CONFIRMED DOORSTEP APPOINTMENT</span>
-            <h2 style="color: #FAF0E2; font-size: 20px; margin: 0 0 6px 0;">📅 ${scheduledDate} · ${scheduledTime}</h2>
-            <p style="color: #A4AA93; font-size: 12px; margin: 0;">30-Minute Doorstep Arrival Window · Luxury Solar Van Dispatched</p>
-          </div>
-
-          <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 18px;">
-            <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">🐾 Pet Companion Profile</h3>
-            <table style="width: 100%; font-size: 13px; line-height: 1.8;">
-              <tr><td style="color: #A4AA93; width: 35%;">Name:</td><td style="color: #FAF0E2; font-weight: 700;">${petName}</td></tr>
-              <tr><td style="color: #A4AA93;">Breed:</td><td style="color: #FAF0E2;">${breed}</td></tr>
-              <tr><td style="color: #A4AA93;">Size & Gender:</td><td style="color: #FAF0E2;">${size.toUpperCase()} · ${gender.toUpperCase()} · ${petAge}</td></tr>
-              <tr><td style="color: #A4AA93;">Condition:</td><td style="color: #FAF0E2;">${petCondition}</td></tr>
-              <tr><td style="color: #A4AA93;">Rabies Vaccine:</td><td style="color: #FAF0E2;">${vaccinated === "yes" ? "Up to Date (Compliant)" : "In Progress"}</td></tr>
-              ${medicalConditions ? `<tr><td style="color: #A4AA93;">Medical Notes:</td><td style="color: #FAF0E2;">${medicalConditions}</td></tr>` : ""}
-              ${groomerNotes ? `<tr><td style="color: #A4AA93;">Groomer Notes:</td><td style="color: #FAF0E2; font-style: italic;">${groomerNotes}</td></tr>` : ""}
-            </table>
-          </div>
-
-          <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 18px;">
-            <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">✂️ Itemized Service & Pricing</h3>
-            <table style="width: 100%; font-size: 13px; line-height: 1.8;">
-              <tr><td style="color: #FAF0E2; font-weight: 600;">${packageName}</td><td style="color: #FAF0E2; text-align: right; font-weight: 700;">Base Service</td></tr>
-              ${addons && addons.length > 0 ? addons.map((add: string) => `<tr><td style="color: #A4AA93; padding-left: 12px;">+ ${add}</td><td style="color: #AA8B63; text-align: right;">Upgrade</td></tr>`).join("") : ""}
-              <tr style="border-top: 1px solid rgba(250, 240, 226, 0.1);"><td style="color: #AA8B63; font-weight: 700; font-size: 15px; padding-top: 10px;">Estimated Total Due:</td><td style="color: #AA8B63; text-align: right; font-weight: 800; font-size: 18px; padding-top: 10px;">$${estimatedTotal}.00 USD</td></tr>
-            </table>
-            <p style="color: #A4AA93; font-size: 11px; margin: 10px 0 0 0; font-style: italic;">Payment collected at doorstep upon service completion via Cash, Check, Credit Card or Zelle.</p>
-          </div>
-
-          <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 22px;">
-            <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">📍 Doorstep Destination</h3>
-            <p style="margin: 4px 0; font-size: 13px;"><strong>Parent:</strong> ${ownerName}</p>
-            <p style="margin: 4px 0; font-size: 13px;"><strong>Phone:</strong> ${phone} · <strong>Email:</strong> ${email}</p>
-            <p style="margin: 4px 0; font-size: 13px;"><strong>Address:</strong> ${address}</p>
-            ${parkingNotes ? `<p style="margin: 4px 0; font-size: 13px;"><strong>Parking:</strong> ${parkingNotes}</p>` : ""}
-          </div>
-
-          <div style="background-color: rgba(170, 139, 99, 0.08); border: 1px dashed rgba(170, 139, 99, 0.4); border-radius: 12px; padding: 14px; text-align: center; margin-bottom: 24px;">
-            <span style="color: #AA8B63; font-size: 11px; font-weight: 700; text-transform: uppercase;">📎 Official PDF Invoice Attached</span>
-            <p style="color: #A4AA93; font-size: 11px; margin: 4px 0 0 0;">Your detailed invoice with signed service agreement is attached to this email.</p>
-          </div>
-
-          <div style="text-align: center; color: #A4AA93; font-size: 11px; border-top: 1px solid rgba(250, 240, 226, 0.1); padding-top: 18px; line-height: 1.6;">
-            <p style="margin: 0; font-weight: 600; color: #FAF0E2;">SOUVA Mobile Pet Grooming LLC</p>
-            <p style="margin: 2px 0;">San Francisco Bay Area & Select East Bay Area CA</p>
-            <p style="margin: 4px 0 0 0;">Concierge / WhatsApp: +1 (850) 960-0034</p>
-          </div>
-        </div>
-      `;
-
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: process.env.RESEND_FROM_EMAIL || "Souva Mobile Grooming <onboarding@resend.dev>",
-          to: toRecipients.length > 0 ? toRecipients : ["souvamobilepetgrooming@gmail.com"],
-          subject: `✨ SOUVA Invoice & Booking Confirmed: ${petName} on ${scheduledDate}`,
-          html: htmlContent,
-          attachments: [
-            {
-              filename: pdfFileName,
-              content: pdfBase64,
-            },
-          ],
-        }),
+    if (!apiKey) {
+      console.warn("RESEND_API_KEY is not configured in Vercel environment variables.");
+      return res.status(200).json({
+        success: false,
+        emailSent: false,
+        message: "RESEND_API_KEY environment variable is not configured in Vercel. Please check Project Settings -> Environment Variables.",
+        fileName: pdfFileName,
+        pdfBase64,
       });
+    }
 
-      // 3. Schedule 30-minute reminder email with Resend
-      if (email && scheduledDate && scheduledTime) {
-        try {
-          const appointmentDate = parseAppointmentTime(scheduledDate, scheduledTime);
-          if (appointmentDate) {
-            const reminderTime = new Date(appointmentDate.getTime() - 30 * 60 * 1000);
-            const now = new Date();
-            const maxSchedule = new Date(now.getTime() + 71 * 60 * 60 * 1000);
+    // 2. Send confirmation email with attached branded PDF invoice
+    const toRecipients = [email].filter(Boolean);
+    if (process.env.ADMIN_NOTIFICATION_EMAIL) {
+      toRecipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
+    }
 
-            if (reminderTime > now && reminderTime <= maxSchedule) {
-              const reminderHtml = `
-                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #14160E; color: #FAF0E2; padding: 32px 24px; border-radius: 18px; border: 1px solid rgba(250, 240, 226, 0.15);">
-                  <div style="text-align: center; margin-bottom: 24px;">
-                    <h1 style="color: #AA8B63; font-size: 24px; margin: 0; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">SOUVA</h1>
-                    <p style="color: #A4AA93; font-size: 11px; margin: 4px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">Elevated Mobile Pet Grooming · Bay Area Fleet</p>
-                  </div>
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "Souva Mobile Grooming <onboarding@resend.dev>";
 
-                  <div style="background-color: #1B1E15; border: 1px solid #AA8B63; border-radius: 14px; padding: 22px; margin-bottom: 22px; text-align: center;">
-                    <div style="display: inline-block; padding: 4px 14px; background: rgba(170, 139, 99, 0.2); border: 1px solid #AA8B63; border-radius: 9999px; margin-bottom: 10px;">
-                      <span style="color: #AA8B63; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">🚐 Van En Route · 30-Minute Arrival Notice</span>
-                    </div>
-                    <h2 style="color: #FAF0E2; font-size: 21px; margin: 4px 0 8px 0;">We're Arriving Soon for ${petName}!</h2>
-                    <p style="color: #A4AA93; font-size: 13px; margin: 0; line-height: 1.5;">
-                      Our mobile grooming spa van is heading your way and will arrive at your doorstep in approximately <strong>30 minutes</strong> for your scheduled window (<strong>${scheduledTime}</strong>).
-                    </p>
-                  </div>
+    const htmlContent = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; background-color: #14160E; color: #FAF0E2; padding: 36px 28px; border-radius: 20px; border: 1px solid rgba(250, 240, 226, 0.12);">
+        
+        <div style="text-align: center; margin-bottom: 28px; border-bottom: 1px solid rgba(250, 240, 226, 0.1); padding-bottom: 20px;">
+          <div style="display: inline-block; padding: 6px 14px; background: rgba(170, 139, 99, 0.15); border: 1px solid #AA8B63; border-radius: 9999px; margin-bottom: 12px;">
+            <span style="color: #AA8B63; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">Official Service Invoice & Agreement</span>
+          </div>
+          <h1 style="color: #AA8B63; font-size: 28px; margin: 0; text-transform: uppercase; letter-spacing: 3px; font-weight: 800;">SOUVA</h1>
+          <p style="color: #A4AA93; font-size: 11px; margin: 6px 0 0 0; text-transform: uppercase; letter-spacing: 1.5px;">The Bay Area's Elevated Mobile Pet Grooming Experience</p>
+        </div>
 
-                  <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 22px;">
-                    <h3 style="color: #AA8B63; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 14px 0; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">
-                      📋 Quick Arrival Checklist
-                    </h3>
-                    <ul style="margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.8; color: #FAF0E2;">
-                      <li><strong>Potty Break:</strong> Please take ${petName} on a quick bathroom break before our stylist arrives.</li>
-                      <li><strong>Parking Space:</strong> Please ensure our van has approximately 2 car lengths available (${parkingNotes || "Driveway or curbside"}).</li>
-                      <li><strong>Keep Phone Nearby:</strong> Our stylist may text or call you at <strong>${phone}</strong> upon arrival at ${address}.</li>
-                      <li><strong>Doorstep Payment:</strong> Payment of <strong>$${estimatedTotal}.00 USD</strong> is collected at your doorstep (Cash, Check, Credit Card, or Zelle).</li>
-                    </ul>
-                  </div>
+        <div style="background-color: #1B1E15; border: 1px solid #AA8B63; border-radius: 14px; padding: 22px; margin-bottom: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+          <span style="color: #AA8B63; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">CONFIRMED DOORSTEP APPOINTMENT</span>
+          <h2 style="color: #FAF0E2; font-size: 20px; margin: 0 0 6px 0;">📅 ${scheduledDate} · ${scheduledTime}</h2>
+          <p style="color: #A4AA93; font-size: 12px; margin: 0;">30-Minute Doorstep Arrival Window · Luxury Solar Van Dispatched</p>
+        </div>
 
-                  <div style="text-align: center; color: #A4AA93; font-size: 11px; border-top: 1px solid rgba(250, 240, 226, 0.1); padding-top: 18px; line-height: 1.6;">
-                    <p style="margin: 0;">Need immediate assistance? Call or text our Concierge at <strong style="color: #FAF0E2;">+1 (850) 960-0034</strong></p>
-                    <p style="margin: 4px 0 0 0;">SOUVA Mobile Pet Grooming LLC · San Francisco Bay Area & Select East Bay CA</p>
-                  </div>
+        <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 18px;">
+          <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">🐾 Pet Companion Profile</h3>
+          <table style="width: 100%; font-size: 13px; line-height: 1.8;">
+            <tr><td style="color: #A4AA93; width: 35%;">Name:</td><td style="color: #FAF0E2; font-weight: 700;">${petName}</td></tr>
+            <tr><td style="color: #A4AA93;">Breed:</td><td style="color: #FAF0E2;">${breed}</td></tr>
+            <tr><td style="color: #A4AA93;">Size & Gender:</td><td style="color: #FAF0E2;">${size.toUpperCase()} · ${gender.toUpperCase()} · ${petAge}</td></tr>
+            <tr><td style="color: #A4AA93;">Condition:</td><td style="color: #FAF0E2;">${petCondition}</td></tr>
+            <tr><td style="color: #A4AA93;">Rabies Vaccine:</td><td style="color: #FAF0E2;">${vaccinated === "yes" ? "Up to Date (Compliant)" : "In Progress"}</td></tr>
+            ${medicalConditions ? `<tr><td style="color: #A4AA93;">Medical Notes:</td><td style="color: #FAF0E2;">${medicalConditions}</td></tr>` : ""}
+            ${groomerNotes ? `<tr><td style="color: #A4AA93;">Groomer Notes:</td><td style="color: #FAF0E2; font-style: italic;">${groomerNotes}</td></tr>` : ""}
+          </table>
+        </div>
+
+        <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 18px;">
+          <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">✂️ Itemized Service & Pricing</h3>
+          <table style="width: 100%; font-size: 13px; line-height: 1.8;">
+            <tr><td style="color: #FAF0E2; font-weight: 600;">${packageName}</td><td style="color: #FAF0E2; text-align: right; font-weight: 700;">Base Service</td></tr>
+            ${addons && addons.length > 0 ? addons.map((add: string) => `<tr><td style="color: #A4AA93; padding-left: 12px;">+ ${add}</td><td style="color: #AA8B63; text-align: right;">Upgrade</td></tr>`).join("") : ""}
+            <tr style="border-top: 1px solid rgba(250, 240, 226, 0.1);"><td style="color: #AA8B63; font-weight: 700; font-size: 15px; padding-top: 10px;">Estimated Total Due:</td><td style="color: #AA8B63; text-align: right; font-weight: 800; font-size: 18px; padding-top: 10px;">$${estimatedTotal}.00 USD</td></tr>
+          </table>
+          <p style="color: #A4AA93; font-size: 11px; margin: 10px 0 0 0; font-style: italic;">Payment collected at doorstep upon service completion via Cash, Check, Credit Card or Zelle.</p>
+        </div>
+
+        <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 22px;">
+          <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">📍 Doorstep Destination</h3>
+          <p style="margin: 4px 0; font-size: 13px;"><strong>Parent:</strong> ${ownerName}</p>
+          <p style="margin: 4px 0; font-size: 13px;"><strong>Phone:</strong> ${phone} · <strong>Email:</strong> ${email}</p>
+          <p style="margin: 4px 0; font-size: 13px;"><strong>Address:</strong> ${address}</p>
+          ${parkingNotes ? `<p style="margin: 4px 0; font-size: 13px;"><strong>Parking:</strong> ${parkingNotes}</p>` : ""}
+        </div>
+
+        <div style="background-color: rgba(170, 139, 99, 0.08); border: 1px dashed rgba(170, 139, 99, 0.4); border-radius: 12px; padding: 14px; text-align: center; margin-bottom: 24px;">
+          <span style="color: #AA8B63; font-size: 11px; font-weight: 700; text-transform: uppercase;">📎 Official PDF Invoice Attached</span>
+          <p style="color: #A4AA93; font-size: 11px; margin: 4px 0 0 0;">Your detailed invoice with signed service agreement is attached to this email.</p>
+        </div>
+
+        <div style="text-align: center; color: #A4AA93; font-size: 11px; border-top: 1px solid rgba(250, 240, 226, 0.1); padding-top: 18px; line-height: 1.6;">
+          <p style="margin: 0; font-weight: 600; color: #FAF0E2;">SOUVA Mobile Pet Grooming LLC</p>
+          <p style="margin: 2px 0;">San Francisco Bay Area & Select East Bay Area CA</p>
+          <p style="margin: 4px 0 0 0;">Concierge / WhatsApp: +1 (850) 960-0034</p>
+        </div>
+      </div>
+    `;
+
+    const resendResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: toRecipients.length > 0 ? toRecipients : ["souvamobilepetgrooming@gmail.com"],
+        subject: `✨ SOUVA Invoice & Booking Confirmed: ${petName} on ${scheduledDate}`,
+        html: htmlContent,
+        attachments: [
+          {
+            filename: pdfFileName,
+            content: pdfBase64,
+          },
+        ],
+      }),
+    });
+
+    const resendData = await resendResponse.json();
+    console.log("Resend confirmation email response status:", resendResponse.status, resendData);
+
+    const emailSent = resendResponse.ok;
+    let hint = null;
+    if (!resendResponse.ok && resendData?.message?.includes("testing emails")) {
+      hint = "Notice: Resend test domain (onboarding@resend.dev) only allows sending to the email registered on your Resend account. To send to any client, verify your domain in Resend Dashboard (resend.com/domains) and set RESEND_FROM_EMAIL in Vercel.";
+    }
+
+    // 3. Schedule 30-minute reminder email with Resend
+    if (email && scheduledDate && scheduledTime) {
+      try {
+        const appointmentDate = parseAppointmentTime(scheduledDate, scheduledTime);
+        if (appointmentDate) {
+          const reminderTime = new Date(appointmentDate.getTime() - 30 * 60 * 1000);
+          const now = new Date();
+          const maxSchedule = new Date(now.getTime() + 71 * 60 * 60 * 1000);
+
+          if (reminderTime > now && reminderTime <= maxSchedule) {
+            const reminderHtml = `
+              <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #14160E; color: #FAF0E2; padding: 32px 24px; border-radius: 18px; border: 1px solid rgba(250, 240, 226, 0.15);">
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <h1 style="color: #AA8B63; font-size: 24px; margin: 0; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">SOUVA</h1>
+                  <p style="color: #A4AA93; font-size: 11px; margin: 4px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">Elevated Mobile Pet Grooming · Bay Area Fleet</p>
                 </div>
-              `;
 
-              await fetch("https://api.resend.com/emails", {
-                method: "POST",
-                headers: {
-                  "Authorization": `Bearer ${apiKey}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  from: process.env.RESEND_FROM_EMAIL || "Souva Mobile Grooming <onboarding@resend.dev>",
-                  to: [email],
-                  subject: `🚐 SOUVA Alert: We're Arriving in 30 Minutes for ${petName}!`,
-                  scheduled_at: reminderTime.toISOString(),
-                  html: reminderHtml,
-                }),
-              });
-            }
+                <div style="background-color: #1B1E15; border: 1px solid #AA8B63; border-radius: 14px; padding: 22px; margin-bottom: 22px; text-align: center;">
+                  <div style="display: inline-block; padding: 4px 14px; background: rgba(170, 139, 99, 0.2); border: 1px solid #AA8B63; border-radius: 9999px; margin-bottom: 10px;">
+                    <span style="color: #AA8B63; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">🚐 Van En Route · 30-Minute Arrival Notice</span>
+                  </div>
+                  <h2 style="color: #FAF0E2; font-size: 21px; margin: 4px 0 8px 0;">We're Arriving Soon for ${petName}!</h2>
+                  <p style="color: #A4AA93; font-size: 13px; margin: 0; line-height: 1.5;">
+                    Our mobile grooming spa van is heading your way and will arrive at your doorstep in approximately <strong>30 minutes</strong> for your scheduled window (<strong>${scheduledTime}</strong>).
+                  </p>
+                </div>
+
+                <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 22px;">
+                  <h3 style="color: #AA8B63; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 14px 0; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">
+                    📋 Quick Arrival Checklist
+                  </h3>
+                  <ul style="margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.8; color: #FAF0E2;">
+                    <li><strong>Potty Break:</strong> Please take ${petName} on a quick bathroom break before our stylist arrives.</li>
+                    <li><strong>Parking Space:</strong> Please ensure our van has approximately 2 car lengths available (${parkingNotes || "Driveway or curbside"}).</li>
+                    <li><strong>Keep Phone Nearby:</strong> Our stylist may text or call you at <strong>${phone}</strong> upon arrival at ${address}.</li>
+                    <li><strong>Doorstep Payment:</strong> Payment of <strong>$${estimatedTotal}.00 USD</strong> is collected at your doorstep (Cash, Check, Credit Card, or Zelle).</li>
+                  </ul>
+                </div>
+
+                <div style="text-align: center; color: #A4AA93; font-size: 11px; border-top: 1px solid rgba(250, 240, 226, 0.1); padding-top: 18px; line-height: 1.6;">
+                  <p style="margin: 0;">Need immediate assistance? Call or text our Concierge at <strong style="color: #FAF0E2;">+1 (850) 960-0034</strong></p>
+                  <p style="margin: 4px 0 0 0;">SOUVA Mobile Pet Grooming LLC · San Francisco Bay Area & Select East Bay CA</p>
+                </div>
+              </div>
+            `;
+
+            await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: fromEmail,
+                to: [email],
+                subject: `🚐 SOUVA Alert: We're Arriving in 30 Minutes for ${petName}!`,
+                scheduled_at: reminderTime.toISOString(),
+                html: reminderHtml,
+              }),
+            });
           }
-        } catch (schedErr) {
-          console.warn("Could not auto-schedule 30-min reminder email via Resend:", schedErr);
         }
+      } catch (schedErr) {
+        console.warn("Could not auto-schedule 30-min reminder email via Resend:", schedErr);
       }
     }
 
     // Return the generated PDF base64 so client can download it directly as well
     return res.status(200).json({
       success: true,
+      emailSent,
+      resendStatus: resendResponse.status,
+      resendError: resendResponse.ok ? null : resendData,
+      hint,
       fileName: pdfFileName,
       pdfBase64,
     });

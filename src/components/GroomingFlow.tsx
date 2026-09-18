@@ -245,6 +245,7 @@ export function GroomingFlow({
   const [justArmed, setJustArmed] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [invoicePdf, setInvoicePdf] = useState<{ base64: string; fileName: string } | null>(null);
+  const [emailNotice, setEmailNotice] = useState<{ type: "success" | "warning"; message: string } | null>(null);
 
   const [data, setData] = useState<GroomingFlowState>({
     size: "small",
@@ -285,6 +286,7 @@ export function GroomingFlow({
     setCompleted(false);
     setIsDescExpanded(false);
     setInvoicePdf(null);
+    setEmailNotice(null);
     setData({
       size: "small",
       packageId: "",
@@ -431,10 +433,27 @@ export function GroomingFlow({
       })
         .then((res) => res.json())
         .then((resData) => {
+          console.log("Resend API response:", resData);
           if (resData?.pdfBase64) {
             setInvoicePdf({
               base64: resData.pdfBase64,
               fileName: resData.fileName || "SOUVA-Invoice.pdf",
+            });
+          }
+          if (resData?.emailSent) {
+            setEmailNotice({
+              type: "success",
+              message: `Official invoice & confirmation sent to ${data.email}!`,
+            });
+          } else if (resData?.hint) {
+            setEmailNotice({
+              type: "warning",
+              message: resData.hint,
+            });
+          } else if (resData?.message) {
+            setEmailNotice({
+              type: "warning",
+              message: resData.message,
             });
           }
         })
@@ -512,7 +531,12 @@ export function GroomingFlow({
           data-dir={dir}
         >
           {completed ? (
-            <BookingSummaryView data={data} invoicePdf={invoicePdf} onReset={reset} />
+            <BookingSummaryView
+              data={data}
+              invoicePdf={invoicePdf}
+              emailNotice={emailNotice}
+              onReset={reset}
+            />
           ) : step === 0 ? (
             <StepPetSize data={data} setData={setData} />
           ) : step === 1 ? (
@@ -1261,10 +1285,32 @@ function StepClientInfo({
   setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
 }) {
   const [isLocating, setIsLocating] = useState(false);
+  const [locateProgress, setLocateProgress] = useState(0);
+  const [locateError, setLocateError] = useState("");
 
   const handleUseMyLocation = () => {
-    if (!navigator.geolocation) return;
     setIsLocating(true);
+    setLocateProgress(10);
+    setLocateError("");
+
+    const interval = setInterval(() => {
+      setLocateProgress((prev) => {
+        if (prev >= 90) {
+          clearInterval(interval);
+          return 90;
+        }
+        return prev + 15;
+      });
+    }, 250);
+
+    if (!navigator.geolocation) {
+      clearInterval(interval);
+      setLocateProgress(100);
+      setLocateError("Geolocation is not supported by your browser");
+      setTimeout(() => setIsLocating(false), 800);
+      return;
+    }
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
@@ -1292,24 +1338,37 @@ function StepClientInfo({
             result.display_name ||
             `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
 
-          setData((prev) => ({
-            ...prev,
-            latitude,
-            longitude,
-            address: cleanAddr,
-          }));
+          clearInterval(interval);
+          setLocateProgress(100);
+          setTimeout(() => {
+            setData((prev) => ({
+              ...prev,
+              latitude,
+              longitude,
+              address: cleanAddr,
+            }));
+            setIsLocating(false);
+          }, 500);
         } catch {
-          setData((prev) => ({
-            ...prev,
-            latitude,
-            longitude,
-            address: `GPS Doorstep (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
-          }));
-        } finally {
-          setIsLocating(false);
+          clearInterval(interval);
+          setLocateProgress(100);
+          setTimeout(() => {
+            setData((prev) => ({
+              ...prev,
+              latitude,
+              longitude,
+              address: `GPS Doorstep (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
+            }));
+            setIsLocating(false);
+          }, 500);
         }
       },
-      () => setIsLocating(false),
+      (error) => {
+        clearInterval(interval);
+        setLocateProgress(100);
+        setLocateError(error.message || "Failed to locate");
+        setTimeout(() => setIsLocating(false), 1000);
+      },
       { enableHighAccuracy: true, timeout: 8000 }
     );
   };
@@ -1404,32 +1463,52 @@ function StepClientInfo({
           </div>
         </div>
 
-        {/* Address & GPS locate button */}
+        {/* Address & GPS */}
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider">
-              Doorstep Service Address (Dirección)
-            </label>
-            <button
-              type="button"
-              onClick={handleUseMyLocation}
-              disabled={isLocating}
-              className="text-[10px] font-mono text-[#AA8B63] hover:text-[#FAF0E2] flex items-center gap-1 cursor-pointer"
-            >
-              <MapPin className="h-3 w-3" />
-              <span>{isLocating ? "Locating..." : "Use My GPS"}</span>
-            </button>
-          </div>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+            Doorstep Street Address (Dirección)
+          </label>
           <div className="relative">
-            <MapPin className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
+            <MapPin className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
             <input
               type="text"
               value={data.address}
               onChange={(e) => setData({ ...data, address: e.target.value })}
-              placeholder="e.g. 2450 Pacific Ave, San Francisco, CA"
-              className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+              placeholder="Street, number, apt (SF Bay Area & East Bay)"
+              className="w-full pl-10 pr-28 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
             />
+            <button
+              type="button"
+              disabled={isLocating}
+              onClick={handleUseMyLocation}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[9px] font-bold font-mono tracking-wide text-[#AA8B63] border border-[#AA8B63]/30 hover:border-[#AA8B63] hover:bg-[#AA8B63]/10 rounded-lg transition-all cursor-pointer select-none disabled:opacity-50"
+            >
+              {isLocating ? "LOCATING..." : "GPS LOCATE"}
+            </button>
           </div>
+
+          {isLocating && (
+            <div className="mt-1.5 space-y-1">
+              <div className="flex justify-between text-[9.5px] text-[#AA8B63] font-mono font-bold uppercase tracking-wide animate-pulse">
+                <span>SYNCING SATELLITES...</span>
+                <span>{locateProgress}%</span>
+              </div>
+              <div className="energy-bar-wrap">
+                <div className="energy-bar-track">
+                  <div
+                    className="energy-bar-fill animate-pulse"
+                    style={{ width: `${locateProgress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {locateError && (
+            <div className="text-[10px] text-red-400 font-mono font-bold uppercase tracking-wide mt-1">
+              ERROR: {locateError}
+            </div>
+          )}
         </div>
 
         {/* Parking Notes (Nota sobre parking) */}
@@ -1786,10 +1865,12 @@ function SignaturePad({
 function BookingSummaryView({
   data,
   invoicePdf,
+  emailNotice,
   onReset,
 }: {
   data: GroomingFlowState;
   invoicePdf: { base64: string; fileName: string } | null;
+  emailNotice: { type: "success" | "warning"; message: string } | null;
   onReset: () => void;
 }) {
   const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId);
@@ -1881,6 +1962,35 @@ function BookingSummaryView({
           30-Minute Arrival Window · Solar Van Dispatched Directly to Your Doorstep
         </p>
       </div>
+
+      {/* Email Delivery Notification Banner */}
+      {emailNotice && (
+        <div
+          className={cn(
+            "p-3 rounded-2xl border text-xs flex items-start gap-2.5",
+            emailNotice.type === "success"
+              ? "bg-[#1B2317] border-[#AA8B63]/60 text-[#FAF0E2]"
+              : "bg-[#252219] border-[#E5A86D]/50 text-[#FAF0E2]"
+          )}
+        >
+          <Mail
+            className={cn(
+              "h-4 w-4 shrink-0 mt-0.5",
+              emailNotice.type === "success" ? "text-[#AA8B63]" : "text-[#E5A86D]"
+            )}
+          />
+          <div className="space-y-0.5 min-w-0 flex-1">
+            <span className="font-bold block text-[11px] font-mono uppercase tracking-wider">
+              {emailNotice.type === "success"
+                ? "Confirmation Email Sent"
+                : "Email Notification Notice"}
+            </span>
+            <p className="text-[11px] text-[#A4AA93] leading-relaxed">
+              {emailNotice.message}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Grid of details */}
       <div className="grid sm:grid-cols-2 gap-3 text-xs">
