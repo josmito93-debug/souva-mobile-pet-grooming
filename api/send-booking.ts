@@ -163,6 +163,35 @@ export default async function handler(req: any, res: any) {
       </div>
     `;
 
+    const plainTextContent = `Hello ${ownerName},
+
+Your doorstep grooming appointment with SOUVA Mobile Pet Grooming has been confirmed!
+
+📅 APPOINTMENT DETAILS:
+• Date: ${scheduledDate}
+• Time Window: ${scheduledTime} (30-Minute Arrival Window)
+
+🐾 PET COMPANION:
+• Pet: ${petName} (${breed})
+• Size: ${String(size).toUpperCase()} · Gender: ${String(gender).toUpperCase()} · Age: ${petAge}
+• Condition: ${petCondition}
+• Rabies Vaccine: ${vaccinated === "yes" ? "Up to Date" : "In Progress"}
+
+✂️ SERVICE & INVOICE:
+• Package: ${packageName}
+${addons && addons.length > 0 ? `• Spa Upgrades: ${addons.join(", ")}\n` : ""}• Estimated Total Due: $${estimatedTotal}.00 USD (Payable at doorstep via Cash, Check, Credit Card, or Zelle)
+
+📍 DOORSTEP LOCATION:
+• Address: ${address}
+${parkingNotes ? `• Parking Instructions: ${parkingNotes}\n` : ""}
+Attached to this email is your official SOUVA Service Agreement and Itemized Invoice in PDF.
+
+Warm regards,
+SOUVA Mobile Pet Grooming LLC
+SF Bay Area & Select East Bay CA
+Concierge / WhatsApp: +1 (850) 960-0034
+info@souvagrooming.com`;
+
     const resendResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -172,7 +201,9 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify({
         from: fromEmail,
         to: toRecipients.length > 0 ? toRecipients : ["souvamobilepetgrooming@gmail.com"],
-        subject: `✨ SOUVA Invoice & Booking Confirmed: ${petName} on ${scheduledDate}`,
+        reply_to: "info@souvagrooming.com",
+        subject: `Your SOUVA Booking Confirmation & Invoice: ${petName} on ${scheduledDate}`,
+        text: plainTextContent,
         html: htmlContent,
         attachments: [
           {
