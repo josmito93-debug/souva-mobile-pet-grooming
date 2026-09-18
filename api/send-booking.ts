@@ -1,4 +1,6 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import fs from "fs";
+import path from "path";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
@@ -41,13 +43,28 @@ export default async function handler(req: any, res: any) {
       petName = "Pet",
       breed = "Canine",
       size = "medium",
+      sizeLabel = "Medium",
+      sizeWeight = "16–35 lb",
       gender = "N/A",
-      petAge = "Adult",
-      petCondition = "Healthy",
+      petAge = "Adult (1–7 yrs)",
+      petCondition = "Healthy & Well-Maintained",
       vaccinated = "yes",
       medicalConditions = "None / Healthy",
       groomerNotes = "",
       packageName = "Signature Grooming",
+      packageDescription = "Our elevated grooming experience for longer styles, customized finishes and more detailed coat work.",
+      packageDuration = "90 - 115 min",
+      packageIncludes = [
+        "Hydro-massage bath",
+        "Blow-dry & coat brush",
+        "Ear cleaning & flush",
+        "Nail trim & grind",
+        "Custom signature haircut",
+        "Finishing fragrance mist",
+        "Souva bandana",
+        "Complimentary treat",
+      ],
+      basePrice = 125,
       addons = [],
       estimatedTotal = 125,
       scheduledDate = "Upcoming Date",
@@ -55,7 +72,7 @@ export default async function handler(req: any, res: any) {
       signature = null,
     } = booking;
 
-    // 1. Generate the luxury branded PDF invoice with SOUVA brand colors
+    // 1. Generate the luxury branded PDF invoice with SOUVA brand colors and logo
     const pdfBase64 = await generateBrandInvoicePdf({
       ...booking,
       ownerName,
@@ -66,6 +83,8 @@ export default async function handler(req: any, res: any) {
       petName,
       breed,
       size,
+      sizeLabel,
+      sizeWeight,
       gender,
       petAge,
       petCondition,
@@ -73,6 +92,10 @@ export default async function handler(req: any, res: any) {
       medicalConditions,
       groomerNotes,
       packageName,
+      packageDescription,
+      packageDuration,
+      packageIncludes,
+      basePrice,
       addons,
       estimatedTotal,
       scheduledDate,
@@ -94,7 +117,7 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // 2. Send confirmation email with attached branded PDF invoice
+    // 2. Send confirmation email with SOUVA Logo, exhaustive modal info, and attached branded PDF invoice
     const toRecipients = [email].filter(Boolean);
     if (process.env.ADMIN_NOTIFICATION_EMAIL) {
       toRecipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
@@ -102,95 +125,186 @@ export default async function handler(req: any, res: any) {
 
     const fromEmail = process.env.RESEND_FROM_EMAIL || "Souva Mobile Grooming <info@souvagrooming.com>";
 
+    const plainTextContent = `Hello ${ownerName},
+
+Thank you for choosing SOUVA Mobile Pet Grooming! Your luxury doorstep appointment has been confirmed.
+
+📅 SCHEDULED DOORSTEP APPOINTMENT:
+• Date: ${scheduledDate}
+• Time Window: ${scheduledTime} (30-Minute Arrival Window)
+• Unit: Self-Contained Solar Powered Mobile Van Fleet
+
+🐾 PET COMPANION PROFILE:
+• Pet Name: ${petName}
+• Breed: ${breed}
+• Size Bracket: ${sizeLabel} (${sizeWeight})
+• Gender: ${gender === "male" ? "Male (Macho)" : "Female (Hembra)"}
+• Age Bracket: ${petAge}
+• Coat & Temperament: ${petCondition}
+• Rabies Vaccine Status: ${vaccinated === "yes" ? "Up to Date (Compliant)" : "In Progress"}
+• Medical Conditions: ${medicalConditions}
+• Stylist Notes: ${groomerNotes || "Standard luxury handling"}
+
+✂️ SERVICE & TREATMENT BREAKDOWN:
+• Package: ${packageName} (Est. ${packageDuration})
+• Overview: ${packageDescription}
+• Inclusions: ${packageIncludes.join(", ")}
+${addons && addons.length > 0 ? `• Spa Upgrades: ${addons.join(", ")}\n` : ""}• Estimated Total Due: $${estimatedTotal}.00 USD
+• Payment Terms: Collected upon service completion at your doorstep via Cash, Check, Credit Card, or Zelle.
+
+📍 DOORSTEP DESTINATION:
+• Pet Parent: ${ownerName}
+• Mobile Phone: ${phone}
+• Email: ${email}
+• Address: ${address}
+• Van Parking Instructions: ${parkingNotes || "Driveway or curbside available"}
+
+📝 SIGNED SERVICE AGREEMENT:
+• Digitally Authorized by ${ownerName}
+• Date: ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+• Status: Legally Binding Pet Care Agreement Verified
+
+Attached to this email is your official SOUVA Service Agreement & Itemized Invoice in PDF.
+
+Warm regards,
+SOUVA Mobile Pet Grooming LLC
+San Francisco Bay Area & Select East Bay Area CA
+Concierge / WhatsApp: +1 (850) 960-0034 · info@souvagrooming.com`;
+
     const htmlContent = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; background-color: #14160E; color: #FAF0E2; padding: 36px 28px; border-radius: 20px; border: 1px solid rgba(250, 240, 226, 0.12);">
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 640px; margin: 0 auto; background-color: #14160E; color: #FAF0E2; padding: 36px 26px; border-radius: 20px; border: 1px solid rgba(250, 240, 226, 0.12); box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
         
-        <div style="text-align: center; margin-bottom: 28px; border-bottom: 1px solid rgba(250, 240, 226, 0.1); padding-bottom: 20px;">
-          <div style="display: inline-block; padding: 6px 14px; background: rgba(170, 139, 99, 0.15); border: 1px solid #AA8B63; border-radius: 9999px; margin-bottom: 12px;">
-            <span style="color: #AA8B63; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">Official Service Invoice & Agreement</span>
-          </div>
-          <h1 style="color: #AA8B63; font-size: 28px; margin: 0; text-transform: uppercase; letter-spacing: 3px; font-weight: 800;">SOUVA</h1>
+        <!-- Header with SOUVA Logo -->
+        <div style="text-align: center; margin-bottom: 28px; border-bottom: 1px solid rgba(250, 240, 226, 0.1); padding-bottom: 24px;">
+          <img
+            src="https://souva-mobile-pet-grooming.vercel.app/assets/souva-badge-circle-transparent.png"
+            alt="SOUVA Mobile Pet Grooming"
+            width="84"
+            height="84"
+            style="display: block; margin: 0 auto 12px auto; border-radius: 50%; filter: drop-shadow(0 0 16px rgba(170,139,99,0.55));"
+          />
+          <h1 style="color: #AA8B63; font-size: 26px; margin: 0; text-transform: uppercase; letter-spacing: 3px; font-weight: 800;">SOUVA</h1>
           <p style="color: #A4AA93; font-size: 11px; margin: 6px 0 0 0; text-transform: uppercase; letter-spacing: 1.5px;">The Bay Area's Elevated Mobile Pet Grooming Experience</p>
+          <div style="margin-top: 10px;">
+            <span style="color: #AA8B63; background: rgba(170,139,99,0.15); border: 1px solid #AA8B63; padding: 4px 14px; border-radius: 9999px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+              Official Booking Confirmation & Invoice
+            </span>
+          </div>
         </div>
 
-        <div style="background-color: #1B1E15; border: 1px solid #AA8B63; border-radius: 14px; padding: 22px; margin-bottom: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <!-- Appointment Card -->
+        <div style="background-color: #1B1E15; border: 1px solid #AA8B63; border-radius: 14px; padding: 22px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
           <span style="color: #AA8B63; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">CONFIRMED DOORSTEP APPOINTMENT</span>
-          <h2 style="color: #FAF0E2; font-size: 20px; margin: 0 0 6px 0;">📅 ${scheduledDate} · ${scheduledTime}</h2>
-          <p style="color: #A4AA93; font-size: 12px; margin: 0;">30-Minute Doorstep Arrival Window · Luxury Solar Van Dispatched</p>
+          <h2 style="color: #FAF0E2; font-size: 21px; margin: 0 0 6px 0;">📅 ${scheduledDate} · ${scheduledTime}</h2>
+          <p style="color: #A4AA93; font-size: 12px; margin: 0; line-height: 1.5;">
+            30-Minute Doorstep Arrival Window · Self-Contained Solar Spa Van Dispatched
+          </p>
         </div>
 
+        <!-- Pet Companion Profile Card -->
         <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 18px;">
-          <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">🐾 Pet Companion Profile</h3>
+          <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">
+            🐾 Pet Companion Profile
+          </h3>
           <table style="width: 100%; font-size: 13px; line-height: 1.8;">
-            <tr><td style="color: #A4AA93; width: 35%;">Name:</td><td style="color: #FAF0E2; font-weight: 700;">${petName}</td></tr>
-            <tr><td style="color: #A4AA93;">Breed:</td><td style="color: #FAF0E2;">${breed}</td></tr>
-            <tr><td style="color: #A4AA93;">Size & Gender:</td><td style="color: #FAF0E2;">${size.toUpperCase()} · ${gender.toUpperCase()} · ${petAge}</td></tr>
-            <tr><td style="color: #A4AA93;">Condition:</td><td style="color: #FAF0E2;">${petCondition}</td></tr>
-            <tr><td style="color: #A4AA93;">Rabies Vaccine:</td><td style="color: #FAF0E2;">${vaccinated === "yes" ? "Up to Date (Compliant)" : "In Progress"}</td></tr>
-            ${medicalConditions ? `<tr><td style="color: #A4AA93;">Medical Notes:</td><td style="color: #FAF0E2;">${medicalConditions}</td></tr>` : ""}
+            <tr><td style="color: #A4AA93; width: 35%;">Dog's Name:</td><td style="color: #FAF0E2; font-weight: 700;">${petName}</td></tr>
+            <tr><td style="color: #A4AA93;">Breed / Mix:</td><td style="color: #FAF0E2;">${breed}</td></tr>
+            <tr><td style="color: #A4AA93;">Size & Weight:</td><td style="color: #FAF0E2;">${sizeLabel} (${sizeWeight})</td></tr>
+            <tr><td style="color: #A4AA93;">Gender & Age:</td><td style="color: #FAF0E2;">${gender === "male" ? "♂ Male (Macho)" : "♀ Female (Hembra)"} · ${petAge}</td></tr>
+            <tr><td style="color: #A4AA93;">Coat & Condition:</td><td style="color: #FAF0E2;">${petCondition}</td></tr>
+            <tr><td style="color: #A4AA93;">Rabies Vaccine:</td><td style="color: #FAF0E2;">${vaccinated === "yes" ? "✓ Up to Date (Compliant)" : "In Progress"}</td></tr>
+            <tr><td style="color: #A4AA93;">Medical Conditions:</td><td style="color: #FAF0E2;">${medicalConditions}</td></tr>
             ${groomerNotes ? `<tr><td style="color: #A4AA93;">Groomer Notes:</td><td style="color: #FAF0E2; font-style: italic;">${groomerNotes}</td></tr>` : ""}
           </table>
         </div>
 
+        <!-- Service Package & Inclusions Card -->
         <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 18px;">
-          <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">✂️ Itemized Service & Pricing</h3>
+          <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">
+            ✂️ Grooming Service & Inclusions
+          </h3>
+          <div style="margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <strong style="color: #FAF0E2; font-size: 15px;">${packageName}</strong>
+              <span style="color: #AA8B63; font-size: 11px; font-weight: 600;">Est. ${packageDuration}</span>
+            </div>
+            <p style="color: #A4AA93; font-size: 12px; margin: 6px 0 10px 0; line-height: 1.5;">${packageDescription}</p>
+          </div>
+
+          <div style="background: rgba(20,22,14,0.6); padding: 12px; border-radius: 10px; border: 1px solid rgba(250,240,226,0.06); margin-bottom: 14px;">
+            <span style="color: #AA8B63; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 6px; font-weight: 700;">Included Treatments:</span>
+            <p style="color: #FAF0E2; font-size: 12px; margin: 0; line-height: 1.6;">
+              ${packageIncludes.join(" · ")}
+            </p>
+          </div>
+
+          ${addons && addons.length > 0 ? `
+            <div style="border-top: 1px solid rgba(250, 240, 226, 0.08); padding-top: 10px;">
+              <span style="color: #AA8B63; font-size: 11px; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 6px;">Selected Spa Upgrades:</span>
+              ${addons.map((add: string) => `<p style="margin: 2px 0; font-size: 12px; color: #FAF0E2;">✨ ${add} (+$15.00)</p>`).join("")}
+            </div>
+          ` : ""}
+        </div>
+
+        <!-- Client & Doorstep Destination Card -->
+        <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 18px;">
+          <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">
+            📍 Client Contact & Doorstep Address
+          </h3>
+          <p style="margin: 4px 0; font-size: 13px;"><strong>Pet Parent:</strong> ${ownerName}</p>
+          <p style="margin: 4px 0; font-size: 13px;"><strong>Mobile Phone:</strong> ${phone}</p>
+          <p style="margin: 4px 0; font-size: 13px;"><strong>Email:</strong> ${email}</p>
+          <p style="margin: 4px 0; font-size: 13px;"><strong>Service Address:</strong> ${address}</p>
+          <p style="margin: 6px 0 0 0; font-size: 12.5px; color: #AA8B63;"><strong>Van Parking:</strong> ${parkingNotes || "Driveway or curbside space available"}</p>
+        </div>
+
+        <!-- Invoice Pricing Summary Card -->
+        <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">
+            💵 Itemized Invoice & Doorstep Payment
+          </h3>
           <table style="width: 100%; font-size: 13px; line-height: 1.8;">
-            <tr><td style="color: #FAF0E2; font-weight: 600;">${packageName}</td><td style="color: #FAF0E2; text-align: right; font-weight: 700;">Base Service</td></tr>
-            ${addons && addons.length > 0 ? addons.map((add: string) => `<tr><td style="color: #A4AA93; padding-left: 12px;">+ ${add}</td><td style="color: #AA8B63; text-align: right;">Upgrade</td></tr>`).join("") : ""}
-            <tr style="border-top: 1px solid rgba(250, 240, 226, 0.1);"><td style="color: #AA8B63; font-weight: 700; font-size: 15px; padding-top: 10px;">Estimated Total Due:</td><td style="color: #AA8B63; text-align: right; font-weight: 800; font-size: 18px; padding-top: 10px;">$${estimatedTotal}.00 USD</td></tr>
+            <tr><td style="color: #FAF0E2;">${packageName} (${sizeLabel})</td><td style="color: #FAF0E2; text-align: right; font-weight: 700;">$${basePrice}.00</td></tr>
+            ${addons && addons.length > 0 ? addons.map((add: string) => `<tr><td style="color: #A4AA93; padding-left: 10px;">+ ${add}</td><td style="color: #AA8B63; text-align: right;">$15.00</td></tr>`).join("") : ""}
+            <tr><td style="color: #A4AA93; font-size: 12px;">Doorstep Solar Travel Fee</td><td style="color: #AA8B63; text-align: right; font-size: 12px;">FREE ($0.00)</td></tr>
+            <tr style="border-top: 1px solid rgba(250, 240, 226, 0.12);"><td style="color: #AA8B63; font-weight: 700; font-size: 15px; padding-top: 10px;">TOTAL ESTIMATED DUE:</td><td style="color: #AA8B63; text-align: right; font-weight: 800; font-size: 18px; padding-top: 10px;">$${estimatedTotal}.00 USD</td></tr>
           </table>
-          <p style="color: #A4AA93; font-size: 11px; margin: 10px 0 0 0; font-style: italic;">Payment collected at doorstep upon service completion via Cash, Check, Credit Card or Zelle.</p>
+          <p style="color: #A4AA93; font-size: 11px; margin: 10px 0 0 0; font-style: italic;">
+            Payment is collected upon service completion at your doorstep via Cash, Check, Credit Card, or Zelle.
+          </p>
         </div>
 
-        <div style="background-color: #1B1E15; border: 1px solid rgba(250, 240, 226, 0.1); border-radius: 14px; padding: 20px; margin-bottom: 22px;">
-          <h3 style="color: #AA8B63; font-size: 12px; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">📍 Doorstep Destination</h3>
-          <p style="margin: 4px 0; font-size: 13px;"><strong>Parent:</strong> ${ownerName}</p>
-          <p style="margin: 4px 0; font-size: 13px;"><strong>Phone:</strong> ${phone} · <strong>Email:</strong> ${email}</p>
-          <p style="margin: 4px 0; font-size: 13px;"><strong>Address:</strong> ${address}</p>
-          ${parkingNotes ? `<p style="margin: 4px 0; font-size: 13px;"><strong>Parking:</strong> ${parkingNotes}</p>` : ""}
+        <!-- Service Agreement Confirmation & Signature Status -->
+        <div style="background-color: rgba(170, 139, 99, 0.08); border: 1px dashed rgba(170, 139, 99, 0.4); border-radius: 14px; padding: 16px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <span style="color: #AA8B63; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+              ✓ Signed Service Agreement Verified
+            </span>
+            <span style="color: #A4AA93; font-size: 10px;">Accepted by ${ownerName}</span>
+          </div>
+          <p style="color: #A4AA93; font-size: 11px; margin: 0; line-height: 1.5;">
+            All pet care policies, pre-existing condition acknowledgments, emergency veterinary authorizations, and doorstep service terms have been digitally signed and archived.
+          </p>
         </div>
 
-        <div style="background-color: rgba(170, 139, 99, 0.08); border: 1px dashed rgba(170, 139, 99, 0.4); border-radius: 12px; padding: 14px; text-align: center; margin-bottom: 24px;">
-          <span style="color: #AA8B63; font-size: 11px; font-weight: 700; text-transform: uppercase;">📎 Official PDF Invoice Attached</span>
-          <p style="color: #A4AA93; font-size: 11px; margin: 4px 0 0 0;">Your detailed invoice with signed service agreement is attached to this email.</p>
+        <!-- Attached PDF Banner -->
+        <div style="background: #1B1E15; border: 1px solid #AA8B63; border-radius: 12px; padding: 14px; text-align: center; margin-bottom: 24px;">
+          <span style="color: #AA8B63; font-size: 12px; font-weight: 700; text-transform: uppercase;">
+            📎 Official PDF Invoice & Receipt Attached
+          </span>
+          <p style="color: #A4AA93; font-size: 11px; margin: 4px 0 0 0;">
+            Download and keep the attached PDF for your household records and tax receipts.
+          </p>
         </div>
 
-        <div style="text-align: center; color: #A4AA93; font-size: 11px; border-top: 1px solid rgba(250, 240, 226, 0.1); padding-top: 18px; line-height: 1.6;">
-          <p style="margin: 0; font-weight: 600; color: #FAF0E2;">SOUVA Mobile Pet Grooming LLC</p>
+        <!-- Footer -->
+        <div style="text-align: center; color: #A4AA93; font-size: 11px; border-top: 1px solid rgba(250, 240, 226, 0.1); padding-top: 20px; line-height: 1.6;">
+          <p style="margin: 0; font-weight: 700; color: #FAF0E2;">SOUVA Mobile Pet Grooming LLC</p>
           <p style="margin: 2px 0;">San Francisco Bay Area & Select East Bay Area CA</p>
-          <p style="margin: 4px 0 0 0;">Concierge / WhatsApp: +1 (850) 960-0034</p>
+          <p style="margin: 4px 0 0 0;">Concierge / WhatsApp: <strong style="color: #FAF0E2;">+1 (850) 960-0034</strong> · info@souvagrooming.com</p>
         </div>
       </div>
     `;
-
-    const plainTextContent = `Hello ${ownerName},
-
-Your doorstep grooming appointment with SOUVA Mobile Pet Grooming has been confirmed!
-
-📅 APPOINTMENT DETAILS:
-• Date: ${scheduledDate}
-• Time Window: ${scheduledTime} (30-Minute Arrival Window)
-
-🐾 PET COMPANION:
-• Pet: ${petName} (${breed})
-• Size: ${String(size).toUpperCase()} · Gender: ${String(gender).toUpperCase()} · Age: ${petAge}
-• Condition: ${petCondition}
-• Rabies Vaccine: ${vaccinated === "yes" ? "Up to Date" : "In Progress"}
-
-✂️ SERVICE & INVOICE:
-• Package: ${packageName}
-${addons && addons.length > 0 ? `• Spa Upgrades: ${addons.join(", ")}\n` : ""}• Estimated Total Due: $${estimatedTotal}.00 USD (Payable at doorstep via Cash, Check, Credit Card, or Zelle)
-
-📍 DOORSTEP LOCATION:
-• Address: ${address}
-${parkingNotes ? `• Parking Instructions: ${parkingNotes}\n` : ""}
-Attached to this email is your official SOUVA Service Agreement and Itemized Invoice in PDF.
-
-Warm regards,
-SOUVA Mobile Pet Grooming LLC
-SF Bay Area & Select East Bay CA
-Concierge / WhatsApp: +1 (850) 960-0034
-info@souvagrooming.com`;
 
     const resendResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -265,6 +379,13 @@ info@souvagrooming.com`;
             const reminderHtml = `
               <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #14160E; color: #FAF0E2; padding: 32px 24px; border-radius: 18px; border: 1px solid rgba(250, 240, 226, 0.15);">
                 <div style="text-align: center; margin-bottom: 24px;">
+                  <img
+                    src="https://souva-mobile-pet-grooming.vercel.app/assets/souva-badge-circle-transparent.png"
+                    alt="SOUVA"
+                    width="70"
+                    height="70"
+                    style="display: block; margin: 0 auto 10px auto; border-radius: 50%;"
+                  />
                   <h1 style="color: #AA8B63; font-size: 24px; margin: 0; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">SOUVA</h1>
                   <p style="color: #A4AA93; font-size: 11px; margin: 4px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">Elevated Mobile Pet Grooming · Bay Area Fleet</p>
                 </div>
@@ -381,17 +502,17 @@ function parseAppointmentTime(scheduledDate: string, scheduledTime: string): Dat
   }
 }
 
-/* -------------------- BRANDED PDF INVOICE GENERATOR -------------------- */
+/* -------------------- BRANDED PDF INVOICE GENERATOR (EXHAUSTIVE MODAL DATA + LOGO) -------------------- */
 async function generateBrandInvoicePdf(b: any): Promise<string> {
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([595.28, 841.89]); // Standard A4 (595.28 x 841.89 pt)
+  const page = pdfDoc.addPage([595.28, 841.89]); // Standard A4
   const { width, height } = page.getSize();
 
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontOblique = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
 
-  // SOUVA Brand Color Palette
+  // SOUVA Luxury Brand Color Palette
   const cDarkBg = rgb(0.078, 0.086, 0.059);     // #14160E
   const cCardBg = rgb(0.106, 0.118, 0.082);     // #1B1E15
   const cCardDark = rgb(0.09, 0.10, 0.07);      // #171912
@@ -419,30 +540,58 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
     color: cGold,
   });
 
-  const margin = 40;
+  const margin = 38;
   const contentWidth = width - margin * 2;
+
+  // Try to embed SOUVA Badge Logo
+  let textLeftX = margin;
+  try {
+    let logoBytes: Uint8Array | null = null;
+    const localLogoPath = path.join(process.cwd(), "public", "assets", "souva-badge-circle-transparent.png");
+    if (fs.existsSync(localLogoPath)) {
+      logoBytes = fs.readFileSync(localLogoPath);
+    } else {
+      const logoRes = await fetch("https://souva-mobile-pet-grooming.vercel.app/assets/souva-badge-circle-transparent.png");
+      if (logoRes.ok) {
+        logoBytes = new Uint8Array(await logoRes.arrayBuffer());
+      }
+    }
+
+    if (logoBytes) {
+      const logoImg = await pdfDoc.embedPng(logoBytes);
+      page.drawImage(logoImg, {
+        x: margin,
+        y: height - 74,
+        width: 44,
+        height: 44,
+      });
+      textLeftX = margin + 52;
+    }
+  } catch (err) {
+    console.warn("Logo embedding skipped:", err);
+  }
 
   // Header Brand Info
   page.drawText("SOUVA", {
-    x: margin,
-    y: height - 44,
-    size: 20,
+    x: textLeftX,
+    y: height - 42,
+    size: 19,
     font: fontBold,
     color: cGold,
   });
 
   page.drawText("ELEVATED MOBILE PET GROOMING · SOLAR VAN FLEET", {
-    x: margin,
-    y: height - 58,
-    size: 7.5,
+    x: textLeftX,
+    y: height - 55,
+    size: 7.2,
     font: fontBold,
     color: cCream,
   });
 
   page.drawText("San Francisco Bay Area & Select East Bay CA · +1 (850) 960-0034", {
-    x: margin,
-    y: height - 70,
-    size: 7,
+    x: textLeftX,
+    y: height - 67,
+    size: 6.8,
     font: fontRegular,
     color: cMuted,
   });
@@ -450,80 +599,80 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
   // Invoice Number & Meta on Right Header
   const invoiceNum = `INVOICE #SOU-${Date.now().toString().slice(-6)}`;
   page.drawText(invoiceNum, {
-    x: width - margin - 150,
-    y: height - 44,
-    size: 11,
+    x: width - margin - 155,
+    y: height - 42,
+    size: 10.5,
     font: fontBold,
     color: cCream,
   });
 
   const todayStr = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   page.drawText(`Issue Date: ${todayStr}`, {
-    x: width - margin - 150,
-    y: height - 58,
-    size: 8,
+    x: width - margin - 155,
+    y: height - 55,
+    size: 7.5,
     font: fontRegular,
     color: cMuted,
   });
 
   page.drawText("STATUS: CONFIRMED · DUE AT SERVICE", {
-    x: width - margin - 150,
-    y: height - 70,
-    size: 7,
+    x: width - margin - 155,
+    y: height - 67,
+    size: 6.8,
     font: fontBold,
     color: cGold,
   });
 
   // Top Divider
   page.drawLine({
-    start: { x: margin, y: height - 82 },
-    end: { x: width - margin, y: height - 82 },
+    start: { x: margin, y: height - 80 },
+    end: { x: width - margin, y: height - 80 },
     thickness: 1,
     color: cBorder,
   });
 
-  let curY = height - 100;
+  let curY = height - 96;
 
   // ─── BANNER: SCHEDULED APPOINTMENT ───
   page.drawRectangle({
     x: margin,
-    y: curY - 42,
+    y: curY - 38,
     width: contentWidth,
-    height: 48,
+    height: 44,
     color: cCardBg,
     borderColor: cGold,
     borderWidth: 1,
   });
 
   page.drawText("CONFIRMED DOORSTEP APPOINTMENT WINDOW", {
-    x: margin + 14,
+    x: margin + 12,
     y: curY - 10,
-    size: 7.5,
+    size: 7,
     font: fontBold,
     color: cGold,
   });
 
   page.drawText(`${b.scheduledDate || "Scheduled Date"}  ·  ${b.scheduledTime || "Arrival Window"}`, {
-    x: margin + 14,
-    y: curY - 26,
-    size: 13,
+    x: margin + 12,
+    y: curY - 24,
+    size: 12,
     font: fontBold,
     color: cCream,
   });
 
-  page.drawText("30-Minute Doorstep Arrival Window · Self-Sufficient Solar Power · Stress-Free One-on-One Care", {
-    x: margin + 14,
-    y: curY - 38,
-    size: 7,
+  page.drawText("30-Minute Doorstep Arrival Window · Self-Sustaining Solar Van Fleet · One-on-One Stress-Free Care", {
+    x: margin + 12,
+    y: curY - 34,
+    size: 6.5,
     font: fontRegular,
     color: cMuted,
   });
 
-  curY -= 60;
+  curY -= 54;
 
   // ─── TWO-COLUMN DOSSIER: CLIENT & PET ───
-  const boxWidth = (contentWidth - 12) / 2;
-  const boxHeight = 100;
+  const boxWidth = (contentWidth - 10) / 2;
+  const boxHeight = 105;
 
   // Left Box: Client Location
   page.drawRectangle({
@@ -537,57 +686,63 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
   });
 
   page.drawText("CLIENT & DOORSTEP DESTINATION", {
-    x: margin + 12,
-    y: curY - 14,
-    size: 7.5,
+    x: margin + 10,
+    y: curY - 13,
+    size: 7,
     font: fontBold,
     color: cGold,
   });
 
-  page.drawText(`Parent: ${b.ownerName}`, {
-    x: margin + 12,
-    y: curY - 30,
-    size: 8.5,
+  page.drawText(`Pet Parent: ${b.ownerName}`, {
+    x: margin + 10,
+    y: curY - 27,
+    size: 8,
     font: fontBold,
     color: cCream,
   });
 
-  page.drawText(`Phone: ${b.phone}`, {
-    x: margin + 12,
-    y: curY - 44,
-    size: 8,
+  page.drawText(`Mobile Phone: ${b.phone}`, {
+    x: margin + 10,
+    y: curY - 40,
+    size: 7.5,
     font: fontRegular,
     color: cCream,
   });
 
   page.drawText(`Email: ${b.email || "N/A"}`, {
-    x: margin + 12,
-    y: curY - 56,
-    size: 7.5,
+    x: margin + 10,
+    y: curY - 52,
+    size: 7.2,
     font: fontRegular,
     color: cMuted,
   });
 
   page.drawText(`Address: ${b.address}`, {
-    x: margin + 12,
-    y: curY - 70,
-    size: 7.5,
+    x: margin + 10,
+    y: curY - 65,
+    size: 7.2,
     font: fontRegular,
     color: cCream,
   });
 
-  if (b.parkingNotes) {
-    page.drawText(`Parking: ${b.parkingNotes}`, {
-      x: margin + 12,
-      y: curY - 84,
-      size: 7,
-      font: fontOblique,
-      color: cGoldLight,
-    });
-  }
+  page.drawText(`Van Parking: ${b.parkingNotes || "Driveway or curbside available"}`, {
+    x: margin + 10,
+    y: curY - 80,
+    size: 7,
+    font: fontOblique,
+    color: cGoldLight,
+  });
+
+  page.drawText("Solar van needs ~2 car lengths parking space.", {
+    x: margin + 10,
+    y: curY - 94,
+    size: 6.5,
+    font: fontRegular,
+    color: cMuted,
+  });
 
   // Right Box: Pet Profile
-  const rightBoxX = margin + boxWidth + 12;
+  const rightBoxX = margin + boxWidth + 10;
   page.drawRectangle({
     x: rightBoxX,
     y: curY - boxHeight,
@@ -598,104 +753,120 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
     borderWidth: 0.8,
   });
 
-  page.drawText("PET COMPANION PROFILE", {
-    x: rightBoxX + 12,
-    y: curY - 14,
-    size: 7.5,
+  page.drawText("PET COMPANION DOSSIER", {
+    x: rightBoxX + 10,
+    y: curY - 13,
+    size: 7,
     font: fontBold,
     color: cGold,
   });
 
   page.drawText(`Dog: ${b.petName}  (${b.breed})`, {
-    x: rightBoxX + 12,
-    y: curY - 30,
-    size: 8.5,
+    x: rightBoxX + 10,
+    y: curY - 27,
+    size: 8,
     font: fontBold,
     color: cCream,
   });
 
-  page.drawText(`Size: ${(b.size || "N/A").toUpperCase()}  ·  Gender: ${(b.gender || "N/A").toUpperCase()}  ·  ${b.petAge}`, {
-    x: rightBoxX + 12,
-    y: curY - 44,
-    size: 7.5,
+  page.drawText(`Size: ${b.sizeLabel || (b.size || "N/A").toUpperCase()} (${b.sizeWeight || ""}) · Gender: ${b.gender === "male" ? "Macho (Male)" : "Hembra (Female)"}`, {
+    x: rightBoxX + 10,
+    y: curY - 40,
+    size: 7.2,
     font: fontRegular,
     color: cMuted,
   });
 
-  page.drawText(`Coat Condition: ${b.petCondition}`, {
-    x: rightBoxX + 12,
-    y: curY - 56,
-    size: 7.5,
+  page.drawText(`Age Bracket: ${b.petAge}  ·  Condition: ${b.petCondition}`, {
+    x: rightBoxX + 10,
+    y: curY - 52,
+    size: 7.2,
     font: fontRegular,
     color: cCream,
   });
 
   page.drawText(`Rabies Vaccine: ${b.vaccinated === "yes" ? "Up to Date (Compliant)" : "In Progress"}`, {
-    x: rightBoxX + 12,
-    y: curY - 70,
-    size: 7.5,
+    x: rightBoxX + 10,
+    y: curY - 65,
+    size: 7.2,
     font: fontRegular,
     color: cCream,
   });
 
-  if (b.medicalConditions && b.medicalConditions !== "None / Healthy") {
-    page.drawText(`Medical: ${b.medicalConditions}`, {
-      x: rightBoxX + 12,
-      y: curY - 84,
-      size: 7,
+  page.drawText(`Medical Notes: ${b.medicalConditions || "None / Healthy"}`, {
+    x: rightBoxX + 10,
+    y: curY - 78,
+    size: 6.8,
+    font: fontOblique,
+    color: cCream,
+  });
+
+  if (b.groomerNotes) {
+    page.drawText(`Stylist Notes: ${b.groomerNotes}`, {
+      x: rightBoxX + 10,
+      y: curY - 92,
+      size: 6.8,
       font: fontOblique,
-      color: cCream,
+      color: cGoldLight,
+    });
+  } else {
+    page.drawText("Stylist Notes: Standard luxury styling & grooming handling.", {
+      x: rightBoxX + 10,
+      y: curY - 92,
+      size: 6.5,
+      font: fontRegular,
+      color: cMuted,
     });
   }
 
-  curY -= boxHeight + 18;
+  curY -= boxHeight + 14;
 
   // ─── ITEMIZED INVOICE TABLE ───
-  page.drawText("SERVICE & TREATMENT BREAKDOWN", {
+  page.drawText("ITEMIZED SERVICE & TREATMENT SPECIFICATION", {
     x: margin,
     y: curY,
-    size: 8.5,
+    size: 8,
     font: fontBold,
     color: cGold,
   });
-  curY -= 8;
+  curY -= 6;
 
   // Table Header Row
   page.drawRectangle({
     x: margin,
-    y: curY - 18,
+    y: curY - 16,
     width: contentWidth,
-    height: 20,
+    height: 18,
     color: cCardDark,
     borderColor: cBorder,
     borderWidth: 0.8,
   });
 
   page.drawText("ITEM DESCRIPTION / SPECIFICATION", {
-    x: margin + 10,
-    y: curY - 13,
-    size: 7.5,
+    x: margin + 8,
+    y: curY - 12,
+    size: 7,
     font: fontBold,
     color: cMuted,
   });
 
   page.drawText("CATEGORY", {
-    x: margin + 320,
-    y: curY - 13,
-    size: 7.5,
+    x: margin + 310,
+    y: curY - 12,
+    size: 7,
     font: fontBold,
     color: cMuted,
   });
 
   page.drawText("AMOUNT (USD)", {
-    x: width - margin - 80,
-    y: curY - 13,
-    size: 7.5,
+    x: width - margin - 75,
+    y: curY - 12,
+    size: 7,
     font: fontBold,
     color: cMuted,
   });
 
-  curY -= 20;
+  curY -= 18;
 
   // Row 1: Primary Package
   const pkgRowHeight = 36;
@@ -709,39 +880,36 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
     borderWidth: 0.5,
   });
 
-  page.drawText(b.packageName || "Signature Grooming Experience", {
-    x: margin + 10,
-    y: curY - 14,
-    size: 8.5,
+  page.drawText(`${b.packageName || "Signature Grooming"} (${b.sizeLabel || (b.size || "M").toUpperCase()}) - Est. ${b.packageDuration || "60-90 min"}`, {
+    x: margin + 8,
+    y: curY - 13,
+    size: 8,
     font: fontBold,
     color: cCream,
   });
 
-  page.drawText("Hydro-massage bath, blow-dry, ear cleaning, nail trim & precision styling", {
-    x: margin + 10,
-    y: curY - 26,
-    size: 7,
+  const inclSummary = Array.isArray(b.packageIncludes) ? b.packageIncludes.slice(0, 7).join(" · ") : "Bath, blow-dry, ear cleaning, nail trim, sanitary trim, styling";
+  page.drawText(inclSummary, {
+    x: margin + 8,
+    y: curY - 25,
+    size: 6.5,
     font: fontRegular,
     color: cMuted,
   });
 
-  page.drawText("Primary Service", {
-    x: margin + 320,
-    y: curY - 14,
-    size: 7.5,
+  page.drawText("Primary Package", {
+    x: margin + 310,
+    y: curY - 13,
+    size: 7.2,
     font: fontRegular,
     color: cCream,
   });
 
-  const totalCost = Number(b.estimatedTotal) || 125;
-  const upgradesCount = Array.isArray(b.addons) ? b.addons.length : 0;
-  const approxUpgradesCost = upgradesCount * 15;
-  const basePrice = Math.max(50, totalCost - approxUpgradesCost);
-
-  page.drawText(`$${basePrice}.00`, {
-    x: width - margin - 75,
-    y: curY - 14,
-    size: 8.5,
+  const basePriceNum = Number(b.basePrice) || Math.max(65, (Number(b.estimatedTotal) || 125) - (Array.isArray(b.addons) ? b.addons.length * 15 : 0));
+  page.drawText(`$${basePriceNum}.00`, {
+    x: width - margin - 70,
+    y: curY - 13,
+    size: 8,
     font: fontBold,
     color: cCream,
   });
@@ -751,7 +919,7 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
   // Rows for Addons
   if (Array.isArray(b.addons) && b.addons.length > 0) {
     for (const addon of b.addons) {
-      const addRowHeight = 22;
+      const addRowHeight = 18;
       page.drawRectangle({
         x: margin,
         y: curY - addRowHeight,
@@ -763,25 +931,25 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
       });
 
       page.drawText(`+ ${addon}`, {
-        x: margin + 14,
-        y: curY - 14,
-        size: 8,
+        x: margin + 12,
+        y: curY - 12,
+        size: 7.5,
         font: fontRegular,
         color: cCream,
       });
 
       page.drawText("Spa Upgrade", {
-        x: margin + 320,
-        y: curY - 14,
-        size: 7.5,
+        x: margin + 310,
+        y: curY - 12,
+        size: 7,
         font: fontRegular,
         color: cGoldLight,
       });
 
       page.drawText("$15.00", {
-        x: width - margin - 75,
-        y: curY - 14,
-        size: 8,
+        x: width - margin - 70,
+        y: curY - 12,
+        size: 7.5,
         font: fontRegular,
         color: cGoldLight,
       });
@@ -791,7 +959,7 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
   }
 
   // Complimentary Solar Travel Row
-  const feeRowHeight = 20;
+  const feeRowHeight = 18;
   page.drawRectangle({
     x: margin,
     y: curY - feeRowHeight,
@@ -803,25 +971,25 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
   });
 
   page.drawText("Doorstep Travel & Clean Solar Energy Power", {
-    x: margin + 10,
-    y: curY - 13,
-    size: 7.5,
+    x: margin + 8,
+    y: curY - 12,
+    size: 7,
     font: fontRegular,
     color: cMuted,
   });
 
   page.drawText("Fleet Logistics", {
-    x: margin + 320,
-    y: curY - 13,
-    size: 7.5,
+    x: margin + 310,
+    y: curY - 12,
+    size: 7,
     font: fontRegular,
     color: cMuted,
   });
 
   page.drawText("FREE ($0.00)", {
-    x: width - margin - 75,
-    y: curY - 13,
-    size: 7.5,
+    x: width - margin - 70,
+    y: curY - 12,
+    size: 7,
     font: fontBold,
     color: cGold,
   });
@@ -829,7 +997,7 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
   curY -= feeRowHeight;
 
   // Total Summary Box
-  const totalBoxHeight = 36;
+  const totalBoxHeight = 32;
   page.drawRectangle({
     x: margin,
     y: curY - totalBoxHeight,
@@ -841,43 +1009,44 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
   });
 
   page.drawText("TOTAL ESTIMATED DUE AT DOORSTEP:", {
-    x: margin + 12,
-    y: curY - 15,
-    size: 8.5,
+    x: margin + 10,
+    y: curY - 13,
+    size: 8,
     font: fontBold,
     color: cCream,
   });
 
-  page.drawText("Payment collected upon service completion: Cash, Check, Credit Card or Zelle", {
-    x: margin + 12,
-    y: curY - 27,
-    size: 7,
+  page.drawText("Payable at doorstep upon completion: Cash, Check, Credit Card or Zelle", {
+    x: margin + 10,
+    y: curY - 24,
+    size: 6.5,
     font: fontRegular,
     color: cMuted,
   });
 
+  const totalCost = Number(b.estimatedTotal) || 125;
   page.drawText(`$${totalCost}.00 USD`, {
-    x: width - margin - 105,
-    y: curY - 22,
-    size: 13,
+    x: width - margin - 95,
+    y: curY - 20,
+    size: 12,
     font: fontBold,
     color: cGold,
   });
 
-  curY -= totalBoxHeight + 16;
+  curY -= totalBoxHeight + 14;
 
   // ─── SERVICE AGREEMENT & SIGNATURE SECTION ───
-  page.drawText("SIGNED PET CARE SERVICE AGREEMENT", {
+  page.drawText("SIGNED PET CARE SERVICE AGREEMENT & LIABILITY RELEASE", {
     x: margin,
     y: curY,
-    size: 8.5,
+    size: 8,
     font: fontBold,
     color: cGold,
   });
   curY -= 6;
 
   // Agreement Terms Text Box
-  const agreeHeight = 74;
+  const agreeHeight = 65;
   page.drawRectangle({
     x: margin,
     y: curY - agreeHeight,
@@ -896,22 +1065,22 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
     "• Payment is to be made at time of service via Cash, Check, Credit Card or Zelle.",
   ];
 
-  let lineY = curY - 14;
+  let lineY = curY - 12;
   for (const line of legalLines) {
     page.drawText(line, {
-      x: margin + 10,
+      x: margin + 8,
       y: lineY,
-      size: 6.8,
+      size: 6.5,
       font: fontRegular,
       color: cMuted,
     });
-    lineY -= 11.5;
+    lineY -= 10.5;
   }
 
-  curY -= agreeHeight + 8;
+  curY -= agreeHeight + 6;
 
   // Signature Block
-  const sigBoxHeight = 52;
+  const sigBoxHeight = 48;
   page.drawRectangle({
     x: margin,
     y: curY - sigBoxHeight,
@@ -922,26 +1091,26 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
     borderWidth: 0.8,
   });
 
-  page.drawText("DIGITAL SIGNATURE ACCEPTANCE", {
-    x: margin + 12,
-    y: curY - 14,
-    size: 7.5,
+  page.drawText("DIGITAL SIGNATURE VERIFICATION", {
+    x: margin + 10,
+    y: curY - 12,
+    size: 7,
     font: fontBold,
     color: cGold,
   });
 
   page.drawText(`Authorized by: ${b.ownerName}`, {
-    x: margin + 12,
-    y: curY - 26,
-    size: 8.5,
+    x: margin + 10,
+    y: curY - 24,
+    size: 8,
     font: fontBold,
     color: cCream,
   });
 
   page.drawText(`Timestamp: ${new Date().toLocaleString("en-US")} · IP Doorstep Record Verified`, {
-    x: margin + 12,
-    y: curY - 38,
-    size: 6.8,
+    x: margin + 10,
+    y: curY - 35,
+    size: 6.5,
     font: fontRegular,
     color: cMuted,
   });
@@ -953,25 +1122,25 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
       const imageBytes = Buffer.from(base64Data, "base64");
       const sigImage = await pdfDoc.embedPng(imageBytes);
       page.drawImage(sigImage, {
-        x: width - margin - 150,
-        y: curY - 46,
-        width: 130,
-        height: 40,
+        x: width - margin - 140,
+        y: curY - 42,
+        width: 120,
+        height: 36,
       });
     } catch (e) {
       page.drawText("[Digitally Signed by Owner]", {
-        x: width - margin - 140,
-        y: curY - 28,
-        size: 8,
+        x: width - margin - 130,
+        y: curY - 25,
+        size: 7.5,
         font: fontBold,
         color: cGold,
       });
     }
   } else {
     page.drawText("[Digitally Signed by Owner]", {
-      x: width - margin - 140,
-      y: curY - 28,
-      size: 8,
+      x: width - margin - 130,
+      y: curY - 25,
+      size: 7.5,
       font: fontBold,
       color: cGold,
     });
@@ -979,16 +1148,16 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
 
   // Bottom Footer
   page.drawLine({
-    start: { x: margin, y: 32 },
-    end: { x: width - margin, y: 32 },
+    start: { x: margin, y: 28 },
+    end: { x: width - margin, y: 28 },
     thickness: 0.8,
     color: cBorder,
   });
 
-  page.drawText("SOUVA MOBILE PET GROOMING LLC · Official Doorstep Care Invoice & Service Receipt · Page 1 of 1", {
-    x: margin + 35,
-    y: 18,
-    size: 6.8,
+  page.drawText("SOUVA MOBILE PET GROOMING LLC · Official Doorstep Care Invoice & Service Receipt · Page 1 of 1 · www.souvapetgrooming.com", {
+    x: margin + 20,
+    y: 16,
+    size: 6.5,
     font: fontRegular,
     color: cMuted,
   });
