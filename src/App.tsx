@@ -15,7 +15,6 @@ import {
   Facebook,
   ChevronRight,
   Droplets,
-  ShoppingBag,
   Zap,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
@@ -23,10 +22,7 @@ import { InteractiveTile } from "@/components/InteractiveTile";
 import { GroomingFlow } from "@/components/GroomingFlow";
 import { StepCard } from "@/components/StepCard";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
-import { StoreSection } from "@/components/StoreSection";
-import { CartDrawer } from "@/components/CartDrawer";
 import { AdminDashboard } from "@/components/AdminDashboard";
-import { CartProvider, useCart } from "@/lib/cartContext";
 import {
   SOUVA_PACKAGES,
   SPA_UPGRADES,
@@ -38,11 +34,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export default function App() {
-  return (
-    <CartProvider>
-      <AppContent />
-    </CartProvider>
-  );
+  return <AppContent />;
 }
 
 function AppContent() {
@@ -267,9 +259,6 @@ function AppContent() {
         </div>
       )}
 
-      {/* Cart Drawer */}
-      <CartDrawer />
-
       {/* Header */}
       <Header onBookClick={scrollToHero} />
 
@@ -421,9 +410,6 @@ function AppContent() {
             </div>
           </div>
         </section>
-
-        {/* E-COMMERCE BOUTIQUE & COSMETICS LINE */}
-        <StoreSection />
 
         {/* SERVICES & PRICING SECTION */}
         <section id="services" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 bg-[#191C13]/75 relative">
@@ -820,8 +806,6 @@ function AppContent() {
 
 /* -------------------- HEADER COMPONENT -------------------- */
 function Header({ onBookClick }: { onBookClick: () => void }) {
-  const { totalItems, setIsOpen } = useCart();
-
   return (
     <header className="app-header sticky top-0 z-40 flex items-center justify-between px-4 py-3 md:px-8">
       <div className="flex items-center gap-3">
@@ -829,18 +813,14 @@ function Header({ onBookClick }: { onBookClick: () => void }) {
       </div>
 
       <nav className="hidden lg:flex items-center gap-6 text-xs font-medium text-[#FAF0E2]/80">
-        <a href="#store" className="hover:text-[#AA8B63] transition-colors flex items-center gap-1">
-          <Sparkles className="h-3 w-3 text-[#AA8B63]" />
-          <span>Boutique & Products</span>
-        </a>
         <a href="#services" className="hover:text-[#AA8B63] transition-colors">
-          Services
+          Services & Pricing
         </a>
         <a href="#before-after" className="hover:text-[#AA8B63] transition-colors">
           Before & After
         </a>
         <a href="#gallery" className="hover:text-[#AA8B63] transition-colors">
-          The Van
+          The Solar Van
         </a>
         <a href="#reviews" className="hover:text-[#AA8B63] transition-colors">
           Reviews
@@ -848,21 +828,6 @@ function Header({ onBookClick }: { onBookClick: () => void }) {
       </nav>
 
       <div className="flex items-center gap-3">
-        {/* Shopping Bag Button */}
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="relative p-2 rounded-full bg-[#25281D] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:border-[#AA8B63] transition-colors cursor-pointer shadow-sm"
-          aria-label="Open Shopping Bag"
-        >
-          <ShoppingBag className="h-4 w-4 text-[#AA8B63]" />
-          {totalItems > 0 && (
-            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-[#AA8B63] text-[#161811] text-[9.5px] font-bold flex items-center justify-center shadow-md">
-              {totalItems}
-            </span>
-          )}
-        </button>
-
         <a
           href="tel:+18509600034"
           className="hidden sm:inline-flex items-center gap-2 rounded-full border border-[#FAF0E2]/15 bg-[#25281D] px-3.5 py-1.5 text-xs font-mono font-bold text-[#FAF0E2] hover:border-[#AA8B63]/60 transition-colors"
@@ -925,7 +890,7 @@ function Footer({ onOpenAdmin }: { onOpenAdmin: () => void }) {
             <span className="text-[9.5px] uppercase tracking-wider text-[#AA8B63] font-bold">
               OPERATING HOURS
             </span>
-            <span className="text-[#FAF0E2]">Monday – Saturday: 8:00 AM – 7:00 PM</span>
+            <span className="text-[#FAF0E2]">Monday – Sunday (7 Days): 8:30 AM – 7:00 PM</span>
           </div>
 
           <div className="flex flex-col gap-1">

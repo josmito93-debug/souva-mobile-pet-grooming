@@ -20,6 +20,7 @@ export interface DispatchRequest {
   petName: string;
   breed: string;
   size: PetSize;
+  gender?: string;
   petAge?: string;
   vaccinated?: string;
   medicalConditions?: string;
@@ -29,6 +30,10 @@ export interface DispatchRequest {
   packageName: string;
   addons: string[];
   coatCondition?: string;
+  groomerNotes?: string;
+  parkingNotes?: string;
+  signature?: string | null;
+  estimatedTotal?: number;
   preferredTime: string;
   scheduledDate?: string;
   scheduledTime?: string;
