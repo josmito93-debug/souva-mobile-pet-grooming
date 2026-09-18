@@ -100,7 +100,7 @@ export default async function handler(req: any, res: any) {
       toRecipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
     }
 
-    const fromEmail = process.env.RESEND_FROM_EMAIL || "Souva Mobile Grooming <onboarding@resend.dev>";
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "Souva Mobile Grooming <info@souvagrooming.com>";
 
     const htmlContent = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; background-color: #14160E; color: #FAF0E2; padding: 36px 28px; border-radius: 20px; border: 1px solid rgba(250, 240, 226, 0.12);">

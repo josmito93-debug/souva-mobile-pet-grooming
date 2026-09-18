@@ -67,7 +67,7 @@ export default async function handler(req: any, res: any) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || "Souva Mobile Grooming <onboarding@resend.dev>",
+        from: process.env.RESEND_FROM_EMAIL || "Souva Mobile Grooming <info@souvagrooming.com>",
         to: [email],
         subject: `🚐 SOUVA Alert: We're Arriving in 30 Minutes for ${petName}!`,
         html: htmlContent,

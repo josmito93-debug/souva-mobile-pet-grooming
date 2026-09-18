@@ -15,7 +15,7 @@ export default async function handler(req: any, res: any) {
   }
 
   const maskedKey = `${apiKey.slice(0, 6)}...${apiKey.slice(-4)}`;
-  const fromEmail = process.env.RESEND_FROM_EMAIL || "Souva Mobile Grooming <onboarding@resend.dev>";
+  const fromEmail = process.env.RESEND_FROM_EMAIL || "Souva Mobile Grooming <info@souvagrooming.com>";
   const toEmail = (req.query?.to as string) || "souvamobilepetgrooming@gmail.com";
 
   try {
