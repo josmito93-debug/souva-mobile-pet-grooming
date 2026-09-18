@@ -13,6 +13,7 @@ import {
   Plus,
   Minus,
   Lock,
+  Mail,
 } from "lucide-react";
 import {
   DispatchRequest,
@@ -80,9 +81,50 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
     refreshData();
   };
 
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
+
   const handleStatusChange = (id: string, newStatus: RequestStatus) => {
     updateRequestStatus(id, newStatus);
     refreshData();
+
+    if (newStatus === "en_route") {
+      const targetReq = requests.find((r) => r.id === id);
+      if (targetReq && targetReq.email) {
+        handleSendArrivalEmail(targetReq, true);
+      }
+    }
+  };
+
+  const handleSendArrivalEmail = async (req: DispatchRequest, silent = false) => {
+    if (!req.email) {
+      if (!silent) alert("No email address registered for this customer.");
+      return;
+    }
+    setSendingEmailId(req.id);
+    try {
+      const res = await fetch("/api/send-reminder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ownerName: req.customerName,
+          email: req.email,
+          phone: req.phone,
+          address: req.address,
+          parkingNotes: req.parkingNotes || "",
+          petName: req.petName,
+          estimatedTotal: req.estimatedTotal || 125,
+          scheduledTime: req.scheduledTime || req.preferredTime,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && !silent) {
+        alert(`30-Minute Arrival Alert successfully sent to ${req.email}!`);
+      }
+    } catch {
+      if (!silent) alert("Error sending arrival reminder email.");
+    } finally {
+      setSendingEmailId(null);
+    }
   };
 
   const handleNotifyClientWhatsApp = (req: DispatchRequest) => {
@@ -413,14 +455,32 @@ Our mobile stylist has prepared the warm ozonated water and organic botanical sh
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleNotifyClientWhatsApp(req)}
-                        className="px-2.5 py-1.5 rounded-lg bg-[#25D366]/20 border border-[#25D366]/50 text-[#25D366] text-[11px] font-mono font-bold flex items-center gap-1.5 hover:bg-[#25D366] hover:text-[#071F10] transition-colors cursor-pointer"
-                      >
-                        <MessageCircle className="h-3.5 w-3.5" />
-                        <span>Update ETA via WhatsApp</span>
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleNotifyClientWhatsApp(req)}
+                          className="px-2.5 py-1.5 rounded-lg bg-[#25D366]/20 border border-[#25D366]/50 text-[#25D366] text-[11px] font-mono font-bold flex items-center gap-1.5 hover:bg-[#25D366] hover:text-[#071F10] transition-colors cursor-pointer"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                          <span>WhatsApp ETA</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={sendingEmailId === req.id || !req.email}
+                          onClick={() => handleSendArrivalEmail(req)}
+                          className={cn(
+                            "px-2.5 py-1.5 rounded-lg border text-[11px] font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer",
+                            req.email
+                              ? "bg-[#AA8B63]/20 border-[#AA8B63]/50 text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811]"
+                              : "bg-[#25281D] border-transparent text-[#A4AA93]/50 cursor-not-allowed"
+                          )}
+                          title={req.email ? `Send 30-min arrival alert to ${req.email}` : "No email available"}
+                        >
+                          <Mail className="h-3.5 w-3.5 text-[#AA8B63]" />
+                          <span>{sendingEmailId === req.id ? "Sending..." : "Email 30-Min Alert"}</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );

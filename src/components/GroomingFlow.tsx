@@ -23,6 +23,7 @@ import {
   Car,
   FileCheck,
   CheckCircle2,
+  FileDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PetBlueprint } from "@/components/PetBlueprint";
@@ -243,6 +244,7 @@ export function GroomingFlow({
   const [completed, setCompleted] = useState(false);
   const [justArmed, setJustArmed] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const [invoicePdf, setInvoicePdf] = useState<{ base64: string; fileName: string } | null>(null);
 
   const [data, setData] = useState<GroomingFlowState>({
     size: "small",
@@ -282,6 +284,7 @@ export function GroomingFlow({
     setDir("back");
     setCompleted(false);
     setIsDescExpanded(false);
+    setInvoicePdf(null);
     setData({
       size: "small",
       packageId: "",
@@ -423,10 +426,21 @@ export function GroomingFlow({
           estimatedTotal: currentEstimatedTotal,
           scheduledDate: data.scheduledDate,
           scheduledTime: data.scheduledTime,
+          signature: data.signature,
         }),
-      }).catch((err) => {
-        console.warn("Resend email notification queued/sent with local fallback:", err);
-      });
+      })
+        .then((res) => res.json())
+        .then((resData) => {
+          if (resData?.pdfBase64) {
+            setInvoicePdf({
+              base64: resData.pdfBase64,
+              fileName: resData.fileName || "SOUVA-Invoice.pdf",
+            });
+          }
+        })
+        .catch((err) => {
+          console.warn("Resend email notification queued/sent with local fallback:", err);
+        });
 
       setDir("fwd");
       setCompleted(true);
@@ -498,7 +512,7 @@ export function GroomingFlow({
           data-dir={dir}
         >
           {completed ? (
-            <BookingSummaryView data={data} onReset={reset} />
+            <BookingSummaryView data={data} invoicePdf={invoicePdf} onReset={reset} />
           ) : step === 0 ? (
             <StepPetSize data={data} setData={setData} />
           ) : step === 1 ? (
@@ -1771,9 +1785,11 @@ function SignaturePad({
 /* -------------------- FINAL COMPLETED VIEW: BOOKING SUMMARY (NO ETA) -------------------- */
 function BookingSummaryView({
   data,
+  invoicePdf,
   onReset,
 }: {
   data: GroomingFlowState;
+  invoicePdf: { base64: string; fileName: string } | null;
   onReset: () => void;
 }) {
   const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId);
@@ -1786,6 +1802,16 @@ function BookingSummaryView({
   const total = baseServicePrice + addonsCost;
   const sizeObj = SIZE_GUIDE.find((s) => s.id === data.size);
   const resolvedOwner = data.ownerName || `${data.firstName} ${data.lastName}`.trim();
+
+  const handleDownloadInvoice = () => {
+    if (!invoicePdf?.base64) return;
+    const link = document.createElement("a");
+    link.href = `data:application/pdf;base64,${invoicePdf.base64}`;
+    link.download = invoicePdf.fileName || `SOUVA-Invoice-${data.petName || "Pet"}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const mapsLink =
     data.latitude && data.longitude
@@ -2047,7 +2073,7 @@ function BookingSummaryView({
       )}
 
       {/* Action Buttons */}
-      <div className="pt-2 space-y-2">
+      <div className="pt-2 space-y-2.5">
         <a
           href={waUrl}
           target="_blank"
@@ -2057,6 +2083,21 @@ function BookingSummaryView({
           <span>Send Booking Confirmation via WhatsApp</span>
           <ArrowRight className="h-4 w-4" />
         </a>
+
+        {invoicePdf ? (
+          <button
+            type="button"
+            onClick={handleDownloadInvoice}
+            className="w-full py-3.5 rounded-full bg-[#1B1E15] border border-[#AA8B63] text-[#FAF0E2] font-bold text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#AA8B63] hover:text-[#161811] transition-all cursor-pointer shadow-md group"
+          >
+            <FileDown className="h-4 w-4 text-[#AA8B63] group-hover:text-[#161811]" />
+            <span>Download Official PDF Invoice & Receipt</span>
+          </button>
+        ) : (
+          <div className="py-2.5 px-3 rounded-xl bg-[#14160F] border border-[#FAF0E2]/10 text-center text-[10.5px] font-mono text-[#A4AA93]">
+            <span>📄 Official PDF Invoice & Signed Agreement emailed to {data.email || "you"}</span>
+          </div>
+        )}
 
         <button
           type="button"
