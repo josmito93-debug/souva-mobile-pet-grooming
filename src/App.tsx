@@ -21,6 +21,8 @@ import { SouvaLogo } from "@/components/SouvaLogo";
 import { Header } from "@/components/Header";
 import { AboutSection } from "@/components/AboutSection";
 import { CoverageSection } from "@/components/CoverageSection";
+import { TrustPillars } from "@/components/TrustPillars";
+import { SolarEcoFeature } from "@/components/SolarEcoBadge";
 import { InteractiveTile } from "@/components/InteractiveTile";
 import { GroomingFlow } from "@/components/GroomingFlow";
 import { StepCard } from "@/components/StepCard";
@@ -317,40 +319,12 @@ function AppContent() {
                     personalized care and beautifully tailored results directly to your doorstep.
                   </p>
 
-                  {/* Quick Feature Callout */}
-                  <div className="mt-5 flex items-center gap-3 p-3 rounded-2xl bg-[#1E2217]/70 border border-[#FAF0E2]/10 max-w-md shadow-lg">
-                    <img
-                      src="/assets/souva-hero-dog.png"
-                      alt="Golden Retriever inside SOUVA Van"
-                      className="h-16 w-20 object-cover rounded-xl border border-[#FAF0E2]/15 shrink-0"
-                    />
-                    <div className="text-xs">
-                      <div className="font-display font-bold text-[#FAF0E2] flex items-center gap-1.5">
-                        <span>100% Solar-Powered & Autonomous</span>
-                        <Zap className="h-3 w-3 text-[#AA8B63] fill-[#AA8B63]" />
-                      </div>
-                      <p className="text-[11px] text-[#A4AA93] mt-0.5 leading-snug">
-                        Zero electrical or water hookups required from your home. Completely self-contained luxury.
-                      </p>
-                    </div>
-                  </div>
+                  {/* Solar Panels & Eco-Friendly Feature Callouts */}
+                  <SolarEcoFeature className="mt-5" />
                 </div>
 
-                {/* 3 Core Mandated Trust Badges */}
-                <div className="pt-5 border-t border-[#FAF0E2]/10 flex flex-wrap items-center justify-between gap-3 text-xs font-medium text-[#FAF0E2]">
-                  <span className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full dot-success" />
-                    <span className="font-semibold">Convenient Doorstep Service</span>
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <Clock className="h-3.5 w-3.5 text-[#AA8B63]" />
-                    <span className="font-semibold">No Cages, No Waiting</span>
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <Heart className="h-3.5 w-3.5 text-[#AA8B63]" />
-                    <span className="font-semibold">Private One-on-One Care</span>
-                  </span>
-                </div>
+                {/* 3 Core Animated Trust Pillars (GSAP) */}
+                <TrustPillars />
               </div>
 
               {/* Right Side: The Interactive Cockpit Card */}
