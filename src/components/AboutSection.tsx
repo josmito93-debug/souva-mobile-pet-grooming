@@ -85,15 +85,22 @@ export function AboutSection({ onBookClick }: { onBookClick: () => void }) {
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-[#1D2116] border border-[#FAF0E2]/10">
-                <div className="h-8 w-8 rounded-xl bg-[#252A1C] text-[#AA8B63] flex items-center justify-center mb-2">
-                  <Sparkles className="h-4 w-4" />
+              <div className="p-4 rounded-2xl bg-[#1D2116] border border-[#FAF0E2]/10 relative group">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="h-8 w-8 rounded-xl bg-[#252A1C] text-[#AA8B63] flex items-center justify-center">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <img
+                    src="/assets/shampoo-logo-white.png"
+                    alt="Official Shampoo Brand Partner"
+                    className="h-8 w-auto object-contain opacity-85 group-hover:opacity-100 transition-opacity filter drop-shadow-[0_0_6px_rgba(255,255,255,0.35)]"
+                  />
                 </div>
                 <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
                   Cosmética Botánica
                 </h4>
                 <p className="text-[11px] text-[#A4AA93] mt-1 leading-relaxed">
-                  Champús de avena coloidal, mascarillas de arándano y bálsamos de karité sin sulfatos ni parabenos.
+                  Champús de avena coloidal, mascarillas de arándano y bálsamos de karité sin sulfatos ni parabenos. Formulado con nuestra marca oficial de spa canino.
                 </p>
               </div>
 

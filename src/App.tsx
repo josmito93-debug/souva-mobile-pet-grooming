@@ -321,6 +321,18 @@ function AppContent() {
 
                   {/* Solar Panels & Eco-Friendly Feature Callouts */}
                   <SolarEcoFeature className="mt-5" />
+
+                  {/* Official Shampoo Brand Partner Badge (White Logo) */}
+                  <div className="mt-3 p-2.5 rounded-2xl bg-[#1A1E14]/80 border border-[#FAF0E2]/15 flex items-center justify-between gap-3 max-w-md shadow-md">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#A4AA93]">
+                      Official Luxury Spa Shampoo Partner:
+                    </span>
+                    <img
+                      src="/assets/shampoo-logo-white.png"
+                      alt="Official Shampoo Brand Logo"
+                      className="h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                    />
+                  </div>
                 </div>
 
                 {/* 3 Core Animated Trust Pillars (GSAP) */}
@@ -669,9 +681,16 @@ function AppContent() {
                   />
                 </div>
                 <div className="p-5">
-                  <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
-                    Artisan Botanical Product Line
-                  </h4>
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
+                      Artisan Botanical Product Line
+                    </h4>
+                    <img
+                      src="/assets/shampoo-logo-white.png"
+                      alt="Official Shampoo Brand"
+                      className="h-7 w-auto object-contain opacity-90 filter drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]"
+                    />
+                  </div>
                   <p className="text-xs text-[#A4AA93] mt-1.5 leading-relaxed">
                     Colloidal oat shampoos, silk detanglers, and healing paw butter formulated without parabens, sulfates, or artificial fragrances.
                   </p>
@@ -781,6 +800,32 @@ function AppContent() {
         </section>
       </main>
 
+      {/* Floating WhatsApp Quick Concierge Button */}
+      <a
+        href="https://wa.me/18509600034?text=Hello%20SOUVA%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
+        target="_blank"
+        rel="noreferrer"
+        className="fixed bottom-5 right-5 z-40 p-3.5 rounded-full bg-[#25D366] text-black shadow-[0_0_25px_rgba(37,211,102,0.5)] hover:bg-[#20bd5a] hover:scale-108 active:scale-95 transition-all flex items-center gap-2 group cursor-pointer"
+        aria-label="Chat with SOUVA on WhatsApp"
+      >
+        <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 text-xs font-mono font-bold text-black px-0 group-hover:px-1">
+          WhatsApp +1 (850) 960-0034
+        </span>
+        <svg
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+          stroke="currentColor"
+          strokeWidth="2"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-6 w-6 fill-black stroke-black"
+        >
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+        </svg>
+      </a>
+
       {/* Footer */}
       <Footer onOpenAdmin={navigateToAdmin} />
     </div>
@@ -820,8 +865,13 @@ function Footer({ onOpenAdmin }: { onOpenAdmin: () => void }) {
             <span className="text-[9.5px] uppercase tracking-wider text-[#AA8B63] font-bold">
               CONCIERGE / WHATSAPP
             </span>
-            <a href="tel:+18509600034" className="text-[#FAF0E2] hover:text-[#AA8B63] transition-colors">
-              +1 (850) 960-0034
+            <a
+              href="https://wa.me/18509600034?text=Hello%20SOUVA%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
+              target="_blank"
+              rel="noreferrer"
+              className="text-[#FAF0E2] hover:text-[#25D366] transition-colors font-bold flex items-center gap-1"
+            >
+              <span>+1 (850) 960-0034</span>
             </a>
           </div>
 
