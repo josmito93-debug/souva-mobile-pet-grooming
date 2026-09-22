@@ -57,31 +57,45 @@ export function Header({ onBookClick }: HeaderProps) {
 
   return (
     <>
-      {/* ── TOP ANNOUNCEMENT BAR ─────────────────────────────────────── */}
-      <div className="bg-[#10120B] border-b border-[#FAF0E2]/10 py-1.5 px-4 text-[11px] font-mono text-[#A4AA93] flex items-center justify-between relative z-50 overflow-x-auto scrollbar-none">
-        <div className="flex items-center gap-2 sm:gap-3 mx-auto max-w-7xl w-full justify-between">
-          {/* Promo Pill */}
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#AA8B63]/20 border border-[#AA8B63]/40 text-[#FAF0E2] text-[10px] font-bold uppercase tracking-wider shrink-0">
-              <Sparkles className="h-3 w-3 text-[#AA8B63]" />
-              <span>Descuento 20%</span>
+      {/* ── TOP PROMO MARQUEE (GREEN VIBRANT PET-FRIENDLY STYLE) ──────── */}
+      <div className="bg-gradient-to-r from-[#0F5132] via-[#15803D] to-[#166534] border-b-2 border-emerald-400/50 py-2 px-3 sm:px-6 text-white relative z-50 shadow-md">
+        <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-2.5">
+          {/* Main Pet-Friendly Promo Offer */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            {/* Promo Tag Badge */}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-300 text-stone-950 text-[10.5px] font-sans font-black uppercase tracking-wide shadow-sm shrink-0">
+              <span className="text-sm">🐾</span>
+              <span>PROMO 20% OFF</span>
             </span>
-            <span className="text-[#FAF0E2] font-medium truncate">
-              20% de descuento en el segundo perro · 2 Dogs Special Offer
-            </span>
+
+            {/* Friendly Headline */}
+            <div className="font-sans font-bold text-xs sm:text-sm text-white flex items-center gap-1.5 truncate">
+              <span className="truncate">
+                ¿Tienes 2 perros? <strong className="text-yellow-200 underline decoration-yellow-300 font-black">20% de Descuento</strong> en el segundo peludito
+              </span>
+              <span className="hidden lg:inline-block text-emerald-200 font-medium">
+                · ¡Van móvil de spa a tu puerta en SF & Península!
+              </span>
+            </div>
           </div>
 
-          {/* Location & Direct Phone */}
-          <div className="flex items-center gap-4 text-[10.5px] shrink-0">
-            <span className="hidden md:inline-flex items-center gap-1 text-[#A4AA93]">
-              <MapPin className="h-3 w-3 text-[#AA8B63]" />
-              <span>San Francisco Bay Area & Peninsula</span>
-            </span>
+          {/* Action CTAs */}
+          <div className="flex items-center gap-2.5 text-xs shrink-0 ml-auto">
+            <button
+              type="button"
+              onClick={onBookClick}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white text-emerald-950 hover:bg-yellow-300 hover:text-stone-950 font-sans font-black text-[11px] uppercase tracking-wide transition-all shadow-md cursor-pointer"
+            >
+              <span>🐶 Reclamar 20% OFF</span>
+              <ArrowRight className="h-3 w-3" />
+            </button>
+
             <a
               href="tel:+18509600034"
-              className="inline-flex items-center gap-1.5 text-[#AA8B63] hover:text-[#FAF0E2] font-bold font-mono transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/70 hover:bg-emerald-950 border border-emerald-300/40 text-white font-sans font-bold text-[11px] transition-colors shadow-sm"
+              title="Llamar a SOUVA"
             >
-              <Phone className="h-3 w-3" />
+              <Phone className="h-3 w-3 text-yellow-300" />
               <span>+1 (850) 960-0034</span>
             </a>
           </div>
@@ -189,17 +203,33 @@ export function Header({ onBookClick }: HeaderProps) {
 
             {/* Drawer Body (Scrollable) */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {/* Promo Banner */}
-              <div className="p-3.5 rounded-2xl bg-[#202418] border border-[#AA8B63]/40 shadow-inner">
-                <div className="flex items-center gap-2 mb-1">
-                  <Sparkles className="h-4 w-4 text-[#AA8B63]" />
-                  <span className="font-display font-bold text-xs text-[#FAF0E2]">
-                    Descuento de 20% en 2 Perros
+              {/* Promo Banner (Vibrant Green Pet-Friendly Style) */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-[#0F5132] to-[#166534] border-2 border-emerald-400/60 shadow-lg text-white space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base">🐾</span>
+                    <span className="font-sans font-black text-xs text-yellow-300 uppercase tracking-wide">
+                      ¡Promo 20% de Descuento!
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-yellow-300 text-stone-950 text-[9px] font-sans font-black uppercase">
+                    2 Perros
                   </span>
                 </div>
-                <p className="text-[11px] text-[#A4AA93] leading-relaxed">
-                  ¿Tienes dos compañeros caninos? Recibe un 20% de descuento en el servicio de tu segundo perro al reservar juntos.
+                <p className="text-xs font-sans text-emerald-100 leading-snug">
+                  ¿Tienes dos compañeros caninos? Recibe automáticamente un <strong className="text-yellow-200">20% de descuento</strong> en el servicio de tu segundo perro al reservar juntos.
                 </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onBookClick();
+                  }}
+                  className="mt-1 w-full py-2.5 rounded-xl bg-white text-emerald-950 font-sans font-black text-xs uppercase tracking-wide hover:bg-yellow-300 transition-colors flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                >
+                  <span>🐶 Aprovechar 20% OFF Ahora</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
               </div>
 
               {/* Location Badge */}

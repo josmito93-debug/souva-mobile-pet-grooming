@@ -929,28 +929,38 @@ export function GroomingFlow({
 
         {/* Primary Action Button (Steps 0 - 6) */}
         {!completed && step < STEPS_TOTAL - 1 && (
-          <button
-            type="button"
-            disabled={!canNext}
-            onClick={handleNext}
-            className={cn(
-              "mt-4 w-full py-4 text-sm font-bold btn-luxury relative z-10 flex items-center justify-center gap-2",
-              justArmed && "just-armed"
+          <>
+            <button
+              type="button"
+              disabled={!canNext}
+              onClick={handleNext}
+              className={cn(
+                "mt-4 w-full py-4 text-sm font-bold btn-luxury relative z-10 flex items-center justify-center gap-2",
+                justArmed && "just-armed"
+              )}
+            >
+              {step === 1 ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Calendar className="h-4.5 w-4.5" />
+                  <span>Agendar Ahora · Check Coverage</span>
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <span>Continue</span>
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              )}
+            </button>
+
+            {/* Warning if on Step 2 (Location) with non-covered ZIP */}
+            {step === 2 && data.zipCode.length === 5 && !isCoveredZip && (
+              <div className="mt-2 text-center text-xs font-mono font-bold text-red-400 bg-red-950/60 border border-red-500/50 p-2.5 rounded-xl animate-pulse flex items-center justify-center gap-1.5 shadow-md">
+                <AlertCircle className="h-4 w-4 text-red-400 shrink-0" />
+                <span>Ingresa un ZIP cubierto (SF o Península) para habilitar el botón de continuar</span>
+              </div>
             )}
-          >
-            {step === 1 ? (
-              <span className="flex items-center justify-center gap-2">
-                <Calendar className="h-4.5 w-4.5" />
-                <span>Agendar Ahora · Check Coverage</span>
-                <ArrowRight className="h-4 w-4" />
-              </span>
-            ) : (
-              <span className="flex items-center justify-center gap-2">
-                <span>Continue</span>
-                <ArrowRight className="h-4 w-4" />
-              </span>
-            )}
-          </button>
+          </>
         )}
       </div>
     </div>
@@ -1356,26 +1366,64 @@ function StepLocationCoverage({
             }}
             placeholder="e.g. 94122, 94010, 94401..."
             className={cn(
-              "w-full px-3 h-10 bg-[#1B1E15] border rounded-xl text-xs font-mono font-bold tracking-wider placeholder:text-[#FAF0E2]/30 focus:outline-none transition-colors",
+              "w-full px-3 h-11 bg-[#1B1E15] border rounded-xl text-xs font-mono font-bold tracking-wider placeholder:text-[#FAF0E2]/30 focus:outline-none transition-all shadow-inner",
               data.zipCode.length === 5 && coverage.covered
-                ? "border-emerald-500/80 text-emerald-300"
+                ? "border-emerald-500 bg-emerald-950/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
                 : data.zipCode.length === 5 && !coverage.covered
-                ? "border-red-500 text-red-400"
+                ? "border-red-500 bg-red-950/25 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-pulse"
                 : "border-[#FAF0E2]/15 text-[#FAF0E2] focus:border-[#AA8B63]"
             )}
           />
         </div>
 
+        {/* GREEN CONFIRMATION BADGE IF COVERED */}
         {data.zipCode.length === 5 && coverage.covered && (
-          <div className="p-3 rounded-2xl bg-emerald-950/40 border border-emerald-500/60 flex items-start gap-2.5 animate-in fade-in duration-200">
-            <CheckCircle2 className="h-4.5 w-4.5 text-emerald-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-2xl bg-emerald-950/50 border border-emerald-500/80 flex items-start gap-3 shadow-[0_0_20px_rgba(16,185,129,0.2)] animate-in fade-in duration-200">
+            <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
             <div className="space-y-0.5">
               <span className="text-xs font-bold text-emerald-300 block">
-                ✓ Great news! We service your area in {coverage.cityArea} ({coverage.zone})
+                ✓ ¡Excelente noticia! Cubrimos tu área en {coverage.cityArea} ({coverage.zone})
               </span>
-              <p className="text-[11px] text-emerald-200/80 leading-snug">
-                Our luxury solar van delivers direct doorstep grooming to ZIP {coverage.zipCode}.
+              <p className="text-[11.5px] text-emerald-200/90 leading-snug">
+                Nuestra van solar autónoma llega directamente a la puerta de tu hogar en el ZIP {coverage.zipCode}.
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* ── RED ALERT MESSAGE IF ZIP CODE IS OUT OF COVERAGE ────────── */}
+        {data.zipCode.length === 5 && !coverage.covered && (
+          <div className="p-4 rounded-2xl bg-red-950/60 border-2 border-red-500 text-red-100 flex items-start gap-3.5 shadow-[0_0_30px_rgba(239,68,68,0.35)] animate-in fade-in slide-in-from-top-2 duration-200">
+            <AlertCircle className="h-6 w-6 text-red-400 shrink-0 mt-0.5 animate-bounce" />
+            <div className="space-y-1.5 flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-red-200 uppercase font-mono tracking-wider">
+                  ⚠️ Área Fuera de Cobertura (ZIP {data.zipCode})
+                </span>
+                <span className="text-[9px] font-mono bg-red-900/60 text-red-300 px-2 py-0.5 rounded-full border border-red-500/40 shrink-0 font-bold">
+                  No Disponible Aún
+                </span>
+              </div>
+              <p className="text-[11.5px] text-red-200/90 leading-relaxed">
+                Lo sentimos, actualmente nuestro servicio opera exclusivamente en <strong>San Francisco (zonas selectas)</strong> y la <strong>Península</strong> (de Daly City a Mountain View y Half Moon Bay). Aún no cubrimos el código postal <strong>{data.zipCode}</strong>.
+              </p>
+              <div className="pt-1.5 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCoverageModal(true)}
+                  className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[11px] font-mono font-bold tracking-wider uppercase transition-colors cursor-pointer shadow-md flex items-center gap-1"
+                >
+                  <span>Unirse a Lista de Espera</span>
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setData({ ...data, zipCode: "" })}
+                  className="px-3 py-1.5 rounded-xl bg-[#25281D] hover:bg-[#333827] text-red-300 hover:text-white text-[11px] font-mono font-bold transition-colors cursor-pointer border border-red-500/30"
+                >
+                  Ingresar Otro Código Postal
+                </button>
+              </div>
             </div>
           </div>
         )}
