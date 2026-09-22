@@ -15,6 +15,8 @@ export interface DispatchRequest {
   email?: string;
   phone: string;
   address: string;
+  zipCode?: string;
+  dogCount?: number;
   lat: number;
   lng: number;
   petName: string;

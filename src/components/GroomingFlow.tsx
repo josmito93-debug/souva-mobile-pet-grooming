@@ -24,47 +24,91 @@ import {
   FileCheck,
   CheckCircle2,
   FileDown,
+  AlertCircle,
+  X,
+  Search,
+  Users,
+  PlusCircle,
+  RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PetBlueprint } from "@/components/PetBlueprint";
 import breedsList from "@/data/breeds.json";
 import { SOUVA_PACKAGES, SPA_UPGRADES, SIZE_GUIDE, type PetSize } from "@/data/services";
+import { checkCoverage, SOUVA_COVERAGE_ZONES, SUGGESTED_AREAS } from "@/data/coverage";
 import { addDispatchRequest } from "@/lib/dispatchStore";
+import { createAirtableBooking } from "@/lib/airtable";
 
-export interface GroomingFlowState {
-  size: PetSize;
-  packageId: string;
-  addons: string[];
-  // Info Perro - Paso 1:
+export interface CompletedPet {
+  id: string;
   petName: string;
+  size: PetSize;
   breed: string;
   petAge: string;
   gender: "male" | "female";
-  // Info Perro - Paso 2:
+  packageId: string;
+  packageName: string;
+  addons: string[];
   petCondition: string;
+  temperament: string;
   vaccinated: "yes" | "no";
   medicalConditions: string;
   groomerNotes: string;
   petPhoto: string | null;
-  // Info Cliente - Paso 3:
+  basePrice: number;
+  addonsCost: number;
+  discount: number;
+  totalPrice: number;
+}
+
+export interface GroomingFlowState {
+  // Paso 1: Tamaño del perro
+  size: PetSize;
+
+  // Paso 2: Servicio & Upgrades ("Know your price")
+  packageId: string;
+  addons: string[];
+
+  // Paso 3: Locación & Cobertura & Parking
+  address: string;
+  zipCode: string;
+  parkingNotes: string;
+  latitude: number | null;
+  longitude: number | null;
+
+  // Paso 4: Información del cliente
   firstName: string;
   lastName: string;
   ownerName: string;
   email: string;
   phone: string;
-  address: string;
-  parkingNotes: string;
-  latitude: number | null;
-  longitude: number | null;
-  // Calendario - Paso 4:
+
+  // Paso 5: Información del perro
+  dogCount: number;
+  petName: string;
+  breed: string;
+  petAge: string;
+  gender: "male" | "female";
+
+  // Paso 6: Condición del perro
+  petCondition: string;
+  temperament: string;
+  vaccinated: "yes" | "no";
+  medicalConditions: string;
+  groomerNotes: string;
+  petPhoto: string | null;
+
+  // Paso 7: Calendario de disponibilidad
   scheduledDate: string;
   scheduledTime: string;
-  // Disclaimer con firma - Paso 5:
+
+  // Paso 8: Disclaimer (botón de confirmación directa + firma opcional)
   signature: string | null;
   agreedToTerms: boolean;
 }
 
-const STEPS_TOTAL = 7;
+const STEPS_TOTAL = 8;
+const STORAGE_KEY = "souva_booking_draft_v3";
 
 // Dynamic Helper for next 14 days
 export interface AvailableDate {
@@ -72,7 +116,7 @@ export interface AvailableDate {
   month: string;
   dayNum: number;
   fullDate: string;
-  dayOfWeek: number; // 0=Sun, 1=Mon, ..., 6=Sat
+  dayOfWeek: number;
 }
 
 export function getAvailableDates(): AvailableDate[] {
@@ -91,7 +135,6 @@ export function getAvailableDates(): AvailableDate[] {
   return dates;
 }
 
-// Operating Hours / Arrival Windows per Day of Week
 export interface TimeSlot {
   id: string;
   period: string;
@@ -99,45 +142,38 @@ export interface TimeSlot {
 }
 
 export const SCHEDULE_BY_DAY: Record<number, TimeSlot[]> = {
-  // Lunes (Monday = 1)
   1: [
     { id: "mon-930am", period: "Morning", time: "9:30 AM" },
     { id: "mon-1230pm", period: "Midday", time: "12:30 PM" },
     { id: "mon-330pm", period: "Afternoon", time: "3:30 PM" },
     { id: "mon-630pm", period: "Evening", time: "6:30 PM" },
   ],
-  // Martes (Tuesday = 2)
   2: [
     { id: "tue-330pm", period: "Afternoon", time: "3:30 PM" },
     { id: "tue-630pm", period: "Evening", time: "6:30 PM" },
   ],
-  // Miércoles (Wednesday = 3)
   3: [
     { id: "wed-330pm", period: "Afternoon", time: "3:30 PM" },
     { id: "wed-630pm", period: "Evening", time: "6:30 PM" },
   ],
-  // Jueves (Thursday = 4)
   4: [
     { id: "thu-930am", period: "Morning", time: "9:30 AM" },
     { id: "thu-1230pm", period: "Midday", time: "12:30 PM" },
     { id: "thu-330pm", period: "Afternoon", time: "3:30 PM" },
     { id: "thu-630pm", period: "Evening", time: "6:30 PM" },
   ],
-  // Viernes (Friday = 5)
   5: [
     { id: "fri-930am", period: "Morning", time: "9:30 AM" },
     { id: "fri-1230pm", period: "Midday", time: "12:30 PM" },
     { id: "fri-330pm", period: "Afternoon", time: "3:30 PM" },
     { id: "fri-630pm", period: "Evening", time: "6:30 PM" },
   ],
-  // Sábado (Saturday = 6)
   6: [
     { id: "sat-830am", period: "Morning", time: "8:30 AM" },
     { id: "sat-1130am", period: "Midday", time: "11:30 AM" },
     { id: "sat-230pm", period: "Afternoon", time: "2:30 PM" },
     { id: "sat-530pm", period: "Evening", time: "5:30 PM" },
   ],
-  // Domingo (Sunday = 0)
   0: [
     { id: "sun-830am", period: "Morning", time: "8:30 AM" },
     { id: "sun-1130am", period: "Midday", time: "11:30 AM" },
@@ -146,14 +182,15 @@ export const SCHEDULE_BY_DAY: Record<number, TimeSlot[]> = {
   ],
 };
 
-/* -------------------- Status LED Grid Tracker (7 Steps) -------------------- */
+/* -------------------- Status LED Grid Tracker (8 Steps) -------------------- */
 function StatusLedGrid({ activeIndex, hot }: { activeIndex: number; hot: boolean }) {
   const steps = [
     { icon: Sparkles, label: "Size" },
     { icon: Scissors, label: "Service" },
+    { icon: MapPin, label: "Location" },
+    { icon: User, label: "Client" },
     { icon: Heart, label: "Dog" },
     { icon: ShieldCheck, label: "Care" },
-    { icon: User, label: "Client" },
     { icon: Calendar, label: "Schedule" },
     { icon: FileCheck, label: "Agreement" },
   ];
@@ -161,7 +198,7 @@ function StatusLedGrid({ activeIndex, hot }: { activeIndex: number; hot: boolean
   return (
     <div
       className="ledgrid__track mb-6 select-none"
-      style={{ "--cols": 7 } as React.CSSProperties}
+      style={{ "--cols": 8 } as React.CSSProperties}
     >
       <div className="lg-row">
         {steps.map((st, i) => {
@@ -175,7 +212,7 @@ function StatusLedGrid({ activeIndex, hot }: { activeIndex: number; hot: boolean
             >
               <div
                 className={cn(
-                  "lg-cell relative flex flex-col justify-center gap-1 cursor-help h-full",
+                  "lg-cell relative flex flex-col justify-center gap-1 cursor-help h-full py-1",
                   isOn && "is-on",
                   isOn && hot && "is-hot"
                 )}
@@ -188,8 +225,8 @@ function StatusLedGrid({ activeIndex, hot }: { activeIndex: number; hot: boolean
                     <span className="lg-corner lg-corner--br" />
                   </>
                 )}
-                <IconComp className="h-4 w-4 relative z-10" />
-                <span className="hidden sm:inline text-[7.5px] uppercase tracking-wider font-mono font-extrabold relative z-10">
+                <IconComp className="h-3.5 w-3.5 relative z-10" />
+                <span className="hidden sm:inline text-[7px] uppercase tracking-wider font-mono font-extrabold relative z-10 truncate max-w-full px-0.5">
                   {st.label}
                 </span>
               </div>
@@ -239,96 +276,142 @@ export function GroomingFlow({
   const initialDate = availableDates[1] || availableDates[0];
   const initialSlots = SCHEDULE_BY_DAY[initialDate?.dayOfWeek ?? 1] || [];
 
-  const [step, setStep] = useState(0);
+  const flowTopRef = useRef<HTMLDivElement>(null);
+
+  // 1. REHYDRATE FROM LOCALSTORAGE IF EXISTS
+  const initialDataState: GroomingFlowState = {
+    size: "small",
+    packageId: "",
+    addons: [],
+    address: "",
+    zipCode: "",
+    parkingNotes: "Driveway available",
+    latitude: null,
+    longitude: null,
+    firstName: "",
+    lastName: "",
+    ownerName: "",
+    email: "",
+    phone: "",
+    dogCount: 1,
+    petName: "",
+    breed: "",
+    petAge: "Adult (1–7 yrs)",
+    gender: "male",
+    petCondition: "Healthy & Well-Maintained",
+    temperament: "Amigable (Friendly)",
+    vaccinated: "yes",
+    medicalConditions: "None / Healthy",
+    groomerNotes: "",
+    petPhoto: null,
+    scheduledDate: initialDate?.fullDate || "Tomorrow",
+    scheduledTime: initialSlots[0]?.time || "9:30 AM",
+    signature: null,
+    agreedToTerms: true,
+  };
+
+  const [data, setData] = useState<GroomingFlowState>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.data) return { ...initialDataState, ...parsed.data };
+      }
+    } catch (e) {
+      console.warn("Draft restore error", e);
+    }
+    return initialDataState;
+  });
+
+  const [step, setStep] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed?.step === "number" && parsed.step >= 0 && parsed.step < STEPS_TOTAL) {
+          return parsed.step;
+        }
+      }
+    } catch (e) {}
+    return 0;
+  });
+
+  const [savedPets, setSavedPets] = useState<CompletedPet[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed?.savedPets)) return parsed.savedPets;
+      }
+    } catch (e) {}
+    return [];
+  });
+
   const [dir, setDir] = useState<"fwd" | "back">("fwd");
   const [completed, setCompleted] = useState(false);
   const [justArmed, setJustArmed] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [invoicePdf, setInvoicePdf] = useState<{ base64: string; fileName: string } | null>(null);
   const [emailNotice, setEmailNotice] = useState<{ type: "success" | "warning"; message: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [data, setData] = useState<GroomingFlowState>({
-    size: "small",
-    packageId: "",
-    addons: [],
-    // Info Perro - Paso 1:
-    petName: "",
-    breed: "",
-    petAge: "Adult (1–7 yrs)",
-    gender: "male",
-    // Info Perro - Paso 2:
-    petCondition: "Healthy & Well-Maintained",
-    vaccinated: "yes",
-    medicalConditions: "None / Healthy",
-    groomerNotes: "",
-    petPhoto: null,
-    // Info Cliente - Paso 3:
-    firstName: "",
-    lastName: "",
-    ownerName: "",
-    email: "",
-    phone: "",
-    address: "",
-    parkingNotes: "Driveway available",
-    latitude: null,
-    longitude: null,
-    // Calendario - Paso 4:
-    scheduledDate: initialDate?.fullDate || "Tomorrow",
-    scheduledTime: initialSlots[0]?.time || "9:30 AM",
-    // Disclaimer con firma - Paso 5:
-    signature: null,
-    agreedToTerms: true,
-  });
+  // 2. PERSIST DRAFT TO LOCALSTORAGE ON EVERY CHANGE
+  useEffect(() => {
+    if (!completed) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, step, savedPets }));
+      } catch (e) {
+        console.warn("Failed to persist booking session draft", e);
+      }
+    }
+  }, [data, step, savedPets, completed]);
+
+  // 3. AUTO-SCROLL TO TOP OF MODAL/COCKPIT ON EVERY STEP CHANGE
+  const scrollToTop = useCallback(() => {
+    if (flowTopRef.current) {
+      const yOffset = -75; // accounts for sticky header
+      const y = flowTopRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    }
+  }, []);
+
+  useEffect(() => {
+    scrollToTop();
+  }, [step, completed, scrollToTop]);
 
   const reset = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {}
     setStep(0);
     setDir("back");
     setCompleted(false);
     setIsDescExpanded(false);
     setInvoicePdf(null);
     setEmailNotice(null);
-    setData({
-      size: "small",
-      packageId: "",
-      addons: [],
-      petName: "",
-      breed: "",
-      petAge: "Adult (1–7 yrs)",
-      gender: "male",
-      petCondition: "Healthy & Well-Maintained",
-      vaccinated: "yes",
-      medicalConditions: "None / Healthy",
-      groomerNotes: "",
-      petPhoto: null,
-      firstName: "",
-      lastName: "",
-      ownerName: "",
-      email: "",
-      phone: "",
-      address: "",
-      parkingNotes: "Driveway available",
-      latitude: null,
-      longitude: null,
-      scheduledDate: initialDate?.fullDate || "Tomorrow",
-      scheduledTime: initialSlots[0]?.time || "9:30 AM",
-      signature: null,
-      agreedToTerms: true,
-    });
+    setSavedPets([]);
+    setData(initialDataState);
   };
 
   // Step Completion Validation Rules
+  const isCoveredZip = checkCoverage(data.zipCode).covered;
+
   const canNext = Boolean(
     (step === 0 && Boolean(data.size)) ||
-      (step === 1 && Boolean(data.packageId)) ||
-      (step === 2 && data.petName.trim().length >= 1 && data.breed.trim().length >= 2 && Boolean(data.gender)) ||
-      (step === 3 && Boolean(data.petCondition) && Boolean(data.vaccinated)) ||
-      (step === 4 &&
-        (data.firstName.trim().length >= 1 || data.ownerName.trim().length >= 2) &&
-        data.email.includes("@") &&
-        data.phone.trim().length >= 6 &&
-        data.address.trim().length >= 4) ||
-      (step === 5 && Boolean(data.scheduledDate) && Boolean(data.scheduledTime)) ||
-      (step === 6 && Boolean(data.signature) && data.agreedToTerms)
+    (step === 1 && Boolean(data.packageId)) ||
+    (step === 2 && data.address.trim().length >= 4 && isCoveredZip) ||
+    (step === 3 &&
+      (data.firstName.trim().length >= 1 || data.ownerName.trim().length >= 2) &&
+      data.email.includes("@") &&
+      data.phone.trim().length >= 7) ||
+    (step === 4 &&
+      data.petName.trim().length >= 1 &&
+      data.breed.trim().length >= 2 &&
+      Boolean(data.gender) &&
+      Boolean(data.petAge)) ||
+    (step === 5 && Boolean(data.vaccinated) && Boolean(data.temperament)) ||
+    (step === 6 && Boolean(data.scheduledDate) && Boolean(data.scheduledTime)) ||
+    (step === 7 && data.agreedToTerms)
   );
 
   useEffect(() => {
@@ -345,148 +428,299 @@ export function GroomingFlow({
     prevCanNext.current = canNext;
   }, [canNext]);
 
-  const activeIndex = completed ? 6 : step;
+  const activeIndex = completed ? 7 : step;
 
-  // Pricing calculations
+  // Pricing calculations for current dog
   const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId);
-  const baseServicePrice = selectedPkg?.prices[data.size as PetSize] || 0;
-  const addonsCost = data.addons.reduce((sum, addId) => {
+  const currentBasePrice = selectedPkg?.prices[data.size as PetSize] || 0;
+  const currentAddonsCost = data.addons.reduce((sum, addId) => {
     const item = SPA_UPGRADES.find((u) => u.id === addId);
     if (!item) return sum;
     const num = parseInt(item.price.replace(/[^0-9]/g, ""), 10) || 0;
     return sum + num;
   }, 0);
-  const currentEstimatedTotal = baseServicePrice + addonsCost;
-  const currentSizeObj = SIZE_GUIDE.find((s) => s.id === data.size);
-  const selectedPkgName = selectedPkg ? selectedPkg.name : "Select a service";
+
+  // Determine if this current dog gets 20% discount (if it is Dog #2)
+  const isSecondDog = savedPets.length === 1;
+  const currentDogDiscount = isSecondDog ? Math.round(currentBasePrice * 0.2) : 0;
+  const currentDogTotal = currentBasePrice - currentDogDiscount + currentAddonsCost;
+
+  // Aggregate with previously saved dogs
+  const savedPetsCost = savedPets.reduce((sum, p) => sum + p.totalPrice, 0);
+  const grandEstimatedTotal = savedPetsCost + (data.packageId ? currentDogTotal : 0);
+
+  const totalDogsCount = savedPets.length + (data.petName.trim() ? 1 : 0);
+
+  // 4. ACTION: ADD ANOTHER DOG LOOP
+  const handleAddAnotherDog = () => {
+    if (!data.packageId || !data.petName.trim()) {
+      alert("Por favor completa los datos y el servicio de este perro antes de agregar otro.");
+      return;
+    }
+
+    const newSavedPet: CompletedPet = {
+      id: `pet-${Date.now()}`,
+      petName: data.petName,
+      size: data.size,
+      breed: data.breed || "Mix",
+      petAge: data.petAge,
+      gender: data.gender,
+      packageId: data.packageId,
+      packageName: selectedPkg?.name || "Signature Grooming",
+      addons: [...data.addons],
+      petCondition: data.petCondition,
+      temperament: data.temperament,
+      vaccinated: data.vaccinated,
+      medicalConditions: data.medicalConditions,
+      groomerNotes: data.groomerNotes,
+      petPhoto: data.petPhoto,
+      basePrice: currentBasePrice,
+      addonsCost: currentAddonsCost,
+      discount: currentDogDiscount,
+      totalPrice: currentDogTotal,
+    };
+
+    const updatedPets = [...savedPets, newSavedPet];
+    setSavedPets(updatedPets);
+
+    // Reset pet-specific fields only, KEEP client info, address and date!
+    setData((prev) => ({
+      ...prev,
+      dogCount: updatedPets.length + 1,
+      size: "small",
+      packageId: "",
+      addons: [],
+      petName: "",
+      breed: "",
+      petAge: "Adult (1–7 yrs)",
+      gender: "male",
+      petCondition: "Healthy & Well-Maintained",
+      temperament: "Amigable (Friendly)",
+      vaccinated: "yes",
+      medicalConditions: "None / Healthy",
+      groomerNotes: "",
+      petPhoto: null,
+    }));
+
+    // Return to Step 0 (Size of the next dog!)
+    setStep(0);
+    setDir("back");
+    scrollToTop();
+  };
+
+  // 5. ACTION: FINALIZE ALL DOGS BOOKING
+  const handleFinalizeBooking = async () => {
+    setIsSubmitting(true);
+
+    // Build the complete list of pets (saved pets + current active pet if completed)
+    let allPets: CompletedPet[] = [...savedPets];
+    if (data.packageId && data.petName.trim()) {
+      allPets.push({
+        id: `pet-${Date.now()}`,
+        petName: data.petName,
+        size: data.size,
+        breed: data.breed || "Mix",
+        petAge: data.petAge,
+        gender: data.gender,
+        packageId: data.packageId,
+        packageName: selectedPkg?.name || "Signature Grooming",
+        addons: [...data.addons],
+        petCondition: data.petCondition,
+        temperament: data.temperament,
+        vaccinated: data.vaccinated,
+        medicalConditions: data.medicalConditions,
+        groomerNotes: data.groomerNotes,
+        petPhoto: data.petPhoto,
+        basePrice: currentBasePrice,
+        addonsCost: currentAddonsCost,
+        discount: currentDogDiscount,
+        totalPrice: currentDogTotal,
+      });
+    }
+
+    const resolvedOwnerName = data.ownerName || `${data.firstName} ${data.lastName}`.trim();
+    const finalDogNames = allPets.map((p) => p.petName).join(" & ") || data.petName;
+    const finalBreeds = allPets.map((p) => p.breed).join(" · ") || data.breed;
+    const finalSizes = allPets.map((p) => p.size);
+    const finalAges = allPets.map((p) => p.petAge).join(" · ");
+    const finalGenders = allPets.map((p) => (p.gender === "male" ? "Macho" : "Hembra")).join(" · ");
+    const finalPackages = allPets.map((p) => p.packageName).join(" + ");
+    const finalAddons = allPets.flatMap((p) => p.addons);
+    const totalMultiDiscount = allPets.reduce((sum, p) => sum + p.discount, 0);
+    const finalTotal = allPets.reduce((sum, p) => sum + p.totalPrice, 0);
+
+    const bookingId = `SOU-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    // Save to Dispatch Admin Store
+    addDispatchRequest({
+      customerName: resolvedOwnerName,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      zipCode: data.zipCode,
+      dogCount: allPets.length,
+      lat: data.latitude || 37.7749 + (Math.random() - 0.5) * 0.08,
+      lng: data.longitude || -122.4194 + (Math.random() - 0.5) * 0.08,
+      petName: finalDogNames,
+      breed: finalBreeds,
+      size: data.size,
+      gender: data.gender,
+      petAge: data.petAge,
+      vaccinated: data.vaccinated,
+      medicalConditions: data.medicalConditions,
+      temperament: allPets.map((p) => `${p.petName}: ${p.temperament}`).join(" | "),
+      groomerNotes: data.groomerNotes,
+      parkingNotes: data.parkingNotes,
+      petPhoto: data.petPhoto,
+      packageId: data.packageId || "signature-grooming",
+      packageName: finalPackages,
+      addons: finalAddons,
+      estimatedTotal: finalTotal,
+      preferredTime: `${data.scheduledDate} at ${data.scheduledTime}`,
+      scheduledDate: data.scheduledDate,
+      scheduledTime: data.scheduledTime,
+      etaMinutes: 20,
+      vanId: "VAN-01",
+      vanName: "Van 01 (SF & Peninsula Mobile Fleet)",
+      status: "pending",
+      signature: data.signature,
+      notes: `Booked for ${data.scheduledDate} @ ${data.scheduledTime}. Dogs (${allPets.length}): ${finalDogNames}. Parking: ${data.parkingNotes}.`,
+    });
+
+    // 6. SAVE RECORD DIRECTLY TO AIRTABLE
+    try {
+      const coverage = checkCoverage(data.zipCode);
+      await createAirtableBooking({
+        bookingId,
+        customerName: resolvedOwnerName,
+        phone: data.phone,
+        email: data.email,
+        address: data.address,
+        zipCode: data.zipCode,
+        serviceZone: coverage.zone,
+        parkingNotes: data.parkingNotes,
+        scheduledDate: data.scheduledDate,
+        scheduledTime: data.scheduledTime,
+        dogCount: allPets.length,
+        dogNames: finalDogNames,
+        breeds: finalBreeds,
+        dogSizes: finalSizes,
+        dogAges: finalAges,
+        genders: finalGenders,
+        vaccinated: data.vaccinated,
+        temperament: allPets.map((p) => p.temperament),
+        medicalConditions: allPets.map((p) => `${p.petName}: ${p.medicalConditions}`).join(" | "),
+        groomerNotes: allPets.map((p) => `${p.petName}: ${p.groomerNotes}`).filter(Boolean).join(" | "),
+        servicePackage: allPets[0]?.packageName || "Signature Grooming",
+        spaUpgrades: finalAddons,
+        basePrice: allPets.reduce((s, p) => s + p.basePrice, 0),
+        addonsTotal: allPets.reduce((s, p) => s + p.addonsCost, 0),
+        multiDogDiscount: totalMultiDiscount,
+        estimatedTotal: finalTotal,
+        paymentStatus: "Pendiente en Puerta",
+        agreementAccepted: true,
+        signatureUrl: data.signature,
+      });
+    } catch (err) {
+      console.warn("Airtable sync note:", err);
+    }
+
+    // 7. SEND EMAIL & PDF INVOICE VIA VERCEL SERVERLESS
+    fetch("/api/send-booking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bookingId,
+        ownerName: resolvedOwnerName,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        zipCode: data.zipCode,
+        dogCount: allPets.length,
+        parkingNotes: data.parkingNotes,
+        petName: finalDogNames,
+        breed: finalBreeds,
+        size: data.size,
+        gender: data.gender,
+        petAge: data.petAge,
+        petCondition: allPets.map((p) => `${p.petName}: ${p.temperament}`).join(" | "),
+        vaccinated: data.vaccinated,
+        medicalConditions: data.medicalConditions,
+        groomerNotes: data.groomerNotes,
+        packageName: finalPackages,
+        packageDescription: selectedPkg?.tagline || "",
+        packageDuration: selectedPkg?.duration || "",
+        packageIncludes: selectedPkg?.includes || [],
+        basePrice: allPets.reduce((s, p) => s + p.basePrice, 0),
+        multiDogDiscount: totalMultiDiscount,
+        addonsCost: allPets.reduce((s, p) => s + p.addonsCost, 0),
+        addons: finalAddons,
+        sizeLabel: SIZE_GUIDE.find((s) => s.id === data.size)?.label || data.size,
+        sizeWeight: SIZE_GUIDE.find((s) => s.id === data.size)?.weight || "",
+        estimatedTotal: finalTotal,
+        scheduledDate: data.scheduledDate,
+        scheduledTime: data.scheduledTime,
+        signature: data.signature,
+        allPets,
+      }),
+    })
+      .then((res) => res.json())
+      .then((resData) => {
+        if (resData?.pdfBase64) {
+          setInvoicePdf({
+            base64: resData.pdfBase64,
+            fileName: resData.fileName || `SOUVA-Invoice-${finalDogNames}.pdf`,
+          });
+        }
+        if (resData?.emailSent) {
+          setEmailNotice({
+            type: "success",
+            message: `Official invoice & confirmation sent to ${data.email}!`,
+          });
+        }
+      })
+      .catch((err) => {
+        console.warn("Notification fallback:", err);
+      });
+
+    // Clear local storage draft after successful booking
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {}
+
+    setIsSubmitting(false);
+    setDir("fwd");
+    setCompleted(true);
+    scrollToTop();
+  };
 
   const handleNext = () => {
     if (step < STEPS_TOTAL - 1) {
       setDir("fwd");
       setStep(step + 1);
+      scrollToTop();
     } else {
-      // Step 6 completed: Finalize booking!
-      const pkg = selectedPkg?.name || "Signature Grooming";
-      const addonsText = data.addons.length > 0 ? data.addons.join(", ") : "None";
-      const resolvedOwnerName = data.ownerName || `${data.firstName} ${data.lastName}`.trim();
+      handleFinalizeBooking();
+    }
+  };
 
-      // Save to Dispatch Admin Store
-      addDispatchRequest({
-        customerName: resolvedOwnerName,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        lat: data.latitude || 37.7749 + (Math.random() - 0.5) * 0.08,
-        lng: data.longitude || -122.4194 + (Math.random() - 0.5) * 0.08,
-        petName: data.petName,
-        breed: data.breed,
-        size: data.size,
-        gender: data.gender,
-        petAge: data.petAge,
-        vaccinated: data.vaccinated,
-        medicalConditions: data.medicalConditions,
-        temperament: data.petCondition,
-        groomerNotes: data.groomerNotes,
-        parkingNotes: data.parkingNotes,
-        petPhoto: data.petPhoto,
-        packageId: data.packageId || "signature-grooming",
-        packageName: pkg,
-        addons: data.addons,
-        estimatedTotal: currentEstimatedTotal,
-        preferredTime: `${data.scheduledDate} at ${data.scheduledTime}`,
-        scheduledDate: data.scheduledDate,
-        scheduledTime: data.scheduledTime,
-        etaMinutes: 20,
-        vanId: "VAN-01",
-        vanName: "Van 01 (SF Bay Area Mobile Fleet)",
-        status: "pending",
-        signature: data.signature,
-        notes: `Booked for ${data.scheduledDate} @ ${data.scheduledTime}. Parking: ${data.parkingNotes}. Medical: ${data.medicalConditions}. Groomer: ${data.groomerNotes}`,
-      });
-
-      // Asynchronously trigger Resend email via Vercel serverless function
-      fetch("/api/send-booking", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ownerName: resolvedOwnerName,
-          email: data.email,
-          phone: data.phone,
-          address: data.address,
-          parkingNotes: data.parkingNotes,
-          petName: data.petName,
-          breed: data.breed,
-          size: data.size,
-          gender: data.gender,
-          petAge: data.petAge,
-          petCondition: data.petCondition,
-          vaccinated: data.vaccinated,
-          medicalConditions: data.medicalConditions,
-          groomerNotes: data.groomerNotes,
-          packageName: pkg,
-          packageDescription: selectedPkg?.tagline || "",
-          packageDuration: selectedPkg?.duration || "",
-          packageIncludes: selectedPkg?.includes || [],
-          basePrice: baseServicePrice,
-          addonsCost: addonsCost,
-          addons: data.addons,
-          sizeLabel: currentSizeObj?.label || data.size,
-          sizeWeight: currentSizeObj?.weight || "",
-          estimatedTotal: currentEstimatedTotal,
-          scheduledDate: data.scheduledDate,
-          scheduledTime: data.scheduledTime,
-          signature: data.signature,
-        }),
-      })
-        .then((res) => res.json())
-        .then((resData) => {
-          console.log("Resend API response:", resData);
-          if (resData?.pdfBase64) {
-            setInvoicePdf({
-              base64: resData.pdfBase64,
-              fileName: resData.fileName || "SOUVA-Invoice.pdf",
-            });
-          }
-          if (resData?.emailSent) {
-            setEmailNotice({
-              type: "success",
-              message: `Official invoice & confirmation sent to ${data.email}!`,
-            });
-          } else if (resData?.hint) {
-            setEmailNotice({
-              type: "warning",
-              message: resData.hint,
-            });
-          } else if (resData?.message) {
-            setEmailNotice({
-              type: "warning",
-              message: resData.message,
-            });
-          }
-        })
-        .catch((err) => {
-          console.warn("Resend email notification queued/sent with local fallback:", err);
-        });
-
-      setDir("fwd");
-      setCompleted(true);
+  const handleBack = () => {
+    if (step > 0 && !completed) {
+      setDir("back");
+      setStep(step - 1);
+      scrollToTop();
     }
   };
 
   return (
-    <div className="w-full">
+    <div ref={flowTopRef} className="w-full">
       <StatusLedGrid activeIndex={activeIndex} hot={completed} />
 
-      {/* Header controls */}
+      {/* Header controls with multi-dog notification */}
       <div className="flex items-center justify-between pb-3">
         <button
           type="button"
-          onClick={() => {
-            if (step > 0 && !completed) {
-              setDir("back");
-              setStep(step - 1);
-            }
-          }}
+          onClick={handleBack}
           disabled={step === 0 || completed}
           className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#FAF0E2]/15 bg-[#1B1E15] text-[#A4AA93] hover:text-[#FAF0E2] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
           aria-label="Back"
@@ -494,14 +728,34 @@ export function GroomingFlow({
           <ChevronLeft className="h-4 w-4" />
         </button>
 
-        <div className="text-xs font-semibold text-[#AA8B63] font-mono tracking-wider">
-          {completed ? "BOOKING SUMMARY" : `STEP ${step + 1} OF ${STEPS_TOTAL}`}
+        <div className="text-center">
+          <div className="text-xs font-semibold text-[#AA8B63] font-mono tracking-wider">
+            {completed ? "BOOKING SUMMARY" : `STEP ${step + 1} OF ${STEPS_TOTAL}`}
+          </div>
+          {savedPets.length > 0 && !completed && (
+            <div className="text-[10px] font-mono text-emerald-300 font-bold">
+              Configurando Perro #{savedPets.length + 1} · ({savedPets.length} guardado{savedPets.length > 1 ? "s" : ""})
+            </div>
+          )}
         </div>
 
-        <div className="w-9" />
+        {/* Clear draft option if user wants to reset */}
+        {!completed && (step > 0 || savedPets.length > 0) ? (
+          <button
+            type="button"
+            onClick={reset}
+            className="text-[10px] font-mono text-[#A4AA93]/60 hover:text-red-400 transition-colors cursor-pointer flex items-center gap-1"
+            title="Borrar borrador y reiniciar"
+          >
+            <RotateCcw className="h-3 w-3" />
+            <span className="hidden sm:inline">Reset</span>
+          </button>
+        ) : (
+          <div className="w-9" />
+        )}
       </div>
 
-      {/* Progress Bar */}
+      {/* Progress Bar (8 Steps) */}
       {!completed && (
         <div className="mt-1 mb-4 energy-bar-wrap">
           <div className="energy-bar-track">
@@ -530,41 +784,72 @@ export function GroomingFlow({
         </div>
       )}
 
+      {/* Multi-dog banner if dogs have been saved */}
+      {savedPets.length > 0 && !completed && (
+        <div className="mb-3 p-2.5 rounded-2xl bg-[#1C2216] border border-[#AA8B63]/40 flex items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
+            <span className="text-[10px] font-mono uppercase text-[#AA8B63] font-bold shrink-0">
+              Perros en esta cita:
+            </span>
+            {savedPets.map((p, idx) => (
+              <span
+                key={p.id}
+                className="px-2 py-0.5 rounded-md bg-[#252C1D] border border-[#AA8B63]/30 text-[#FAF0E2] text-[10.5px] font-medium shrink-0 flex items-center gap-1"
+              >
+                <span>🐶 #{idx + 1} {p.petName}</span>
+                <span className="text-[#AA8B63] font-mono font-bold">${p.totalPrice}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Main Dynamic Step View */}
       <div className="pb-3 pt-1">
         <div
-          key={completed ? "completed" : `step-${step}`}
+          key={completed ? "completed" : `step-${step}-${savedPets.length}`}
           className="flow-view relative z-20"
           data-dir={dir}
         >
           {completed ? (
             <BookingSummaryView
               data={data}
+              savedPets={savedPets}
               invoicePdf={invoicePdf}
               emailNotice={emailNotice}
               onReset={reset}
             />
           ) : step === 0 ? (
-            <StepPetSize data={data} setData={setData} />
+            <StepPetSize data={data} setData={setData} petNumber={savedPets.length + 1} />
           ) : step === 1 ? (
-            <StepServicePackage data={data} setData={setData} />
+            <StepServicePackage data={data} setData={setData} isSecondDog={isSecondDog} />
           ) : step === 2 ? (
-            <StepDogBasics data={data} setData={setData} />
+            <StepLocationCoverage data={data} setData={setData} />
           ) : step === 3 ? (
-            <StepDogHealthCare data={data} setData={setData} />
-          ) : step === 4 ? (
             <StepClientInfo data={data} setData={setData} />
+          ) : step === 4 ? (
+            <StepDogInfo data={data} setData={setData} petNumber={savedPets.length + 1} />
           ) : step === 5 ? (
+            <StepDogCareCondition data={data} setData={setData} petNumber={savedPets.length + 1} />
+          ) : step === 6 ? (
             <StepBookingCalendar data={data} setData={setData} dates={availableDates} />
           ) : (
-            <StepServiceAgreement data={data} setData={setData} />
+            <StepDisclaimerConfirm
+              data={data}
+              setData={setData}
+              savedPets={savedPets}
+              currentDogTotal={currentDogTotal}
+              grandTotal={grandEstimatedTotal}
+              onAddAnotherDog={handleAddAnotherDog}
+              onFinalize={handleFinalizeBooking}
+              isSubmitting={isSubmitting}
+            />
           )}
         </div>
 
-        {/* PERSISTENT LIVE SUMMARY BAR & PRICE COUNTER WITH EXPANDABLE SERVICE DETAILS */}
+        {/* PERSISTENT LIVE SUMMARY BAR & KNOW YOUR PRICE */}
         {!completed && (
           <div className="mt-4 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-md overflow-hidden transition-all">
-            {/* Summary Top Row */}
             <div className="p-3 flex items-center justify-between gap-3 text-xs select-none">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="h-8 w-8 rounded-xl bg-[#25281D] border border-[#AA8B63]/40 flex items-center justify-center shrink-0">
@@ -573,36 +858,36 @@ export function GroomingFlow({
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 truncate">
                     <span className="font-bold text-[#FAF0E2] truncate">
-                      {data.petName.trim() ? data.petName : "Your Dog"}
+                      {data.petName.trim() ? data.petName : `Perro #${savedPets.length + 1}`}
                     </span>
                     <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-[#25281D] text-[#AA8B63] font-bold uppercase shrink-0">
-                      {currentSizeObj?.label || data.size}
+                      {SIZE_GUIDE.find((s) => s.id === data.size)?.label || data.size}
                     </span>
-                    {data.gender && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#1C1F15] text-[#A4AA93] capitalize shrink-0">
-                        {data.gender}
+                    {isSecondDog && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-bold shrink-0">
+                        20% OFF 2do Perro
                       </span>
                     )}
                   </div>
                   <div className="text-[11px] text-[#A4AA93] truncate">
-                    {selectedPkgName}
-                    {data.addons.length > 0 ? ` · +${data.addons.length} upgrade${data.addons.length > 1 ? "s" : ""}` : ""}
+                    {selectedPkg ? selectedPkg.name : "Select a service"}
+                    {savedPets.length > 0 ? ` · (+${savedPets.length} perro anterior)` : ""}
                   </div>
                 </div>
               </div>
 
               <div className="text-right shrink-0">
                 <span className="text-[9px] font-mono text-[#A4AA93] uppercase block">
-                  Estimated Total
+                  {savedPets.length > 0 ? `Total (${savedPets.length + 1} Perros)` : "Know Your Price"}
                 </span>
                 <span className="font-display font-extrabold text-lg text-[#AA8B63]">
-                  {data.packageId ? `$${currentEstimatedTotal}` : "—"}
+                  ${grandEstimatedTotal}
                 </span>
               </div>
             </div>
 
-            {/* Expandable Service Inclusions Dropdown */}
-            {selectedPkg ? (
+            {/* Expandable inclusions */}
+            {selectedPkg && (
               <div className="border-t border-[#FAF0E2]/10 bg-[#181B12]/80 px-3 py-2">
                 <button
                   type="button"
@@ -612,7 +897,7 @@ export function GroomingFlow({
                   <span className="flex items-center gap-1.5 truncate">
                     <Info className="h-3.5 w-3.5 shrink-0" />
                     <span className="truncate">
-                      {isDescExpanded ? "Hide" : "View"} {selectedPkg.name} description & what's included
+                      {isDescExpanded ? "Hide" : "View"} {selectedPkg.name} description & inclusions
                     </span>
                   </span>
                   {isDescExpanded ? (
@@ -623,67 +908,27 @@ export function GroomingFlow({
                 </button>
 
                 {isDescExpanded && (
-                  <div className="mt-2.5 pt-2.5 border-t border-[#FAF0E2]/10 space-y-3 text-xs animate-in fade-in duration-200">
-                    <div>
-                      <div className="flex items-center justify-between text-[10px] font-mono text-[#A4AA93] uppercase tracking-wider mb-1">
-                        <span>About this service</span>
-                        <span className="text-[#AA8B63] flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>Est. {selectedPkg.duration}</span>
-                        </span>
-                      </div>
-                      <p className="text-[#FAF0E2]/90 leading-relaxed text-[11.5px]">
-                        {selectedPkg.tagline}
-                      </p>
-                    </div>
-
-                    <div>
-                      <span className="text-[10px] font-mono text-[#A4AA93] uppercase tracking-wider block mb-1.5">
-                        What's included ({selectedPkg.includes.length} treatments):
-                      </span>
-                      <div className="grid grid-cols-2 gap-1.5">
-                        {selectedPkg.includes.map((inc) => (
-                          <div key={inc} className="flex items-center gap-1.5 text-[11px] text-[#FAF0E2]/85">
-                            <Check className="h-3 w-3 text-[#AA8B63] shrink-0" />
-                            <span className="truncate">{inc}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {data.addons.length > 0 && (
-                      <div className="pt-2 border-t border-[#FAF0E2]/10">
-                        <span className="text-[10px] font-mono text-[#AA8B63] uppercase tracking-wider block mb-1">
-                          Selected Spa Upgrades ({data.addons.length}):
-                        </span>
-                        <div className="space-y-1">
-                          {data.addons.map((addId) => {
-                            const addObj = SPA_UPGRADES.find((u) => u.id === addId);
-                            if (!addObj) return null;
-                            return (
-                              <div key={addId} className="flex items-center justify-between text-[11px]">
-                                <span className="text-[#FAF0E2]/90 font-medium">✨ {addObj.name}</span>
-                                <span className="font-mono text-[#AA8B63] font-bold">{addObj.price}</span>
-                              </div>
-                            );
-                          })}
+                  <div className="mt-2.5 pt-2.5 border-t border-[#FAF0E2]/10 space-y-2 text-xs">
+                    <p className="text-[#FAF0E2]/90 leading-relaxed text-[11.5px]">
+                      {selectedPkg.tagline}
+                    </p>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {selectedPkg.includes.map((inc) => (
+                        <div key={inc} className="flex items-center gap-1.5 text-[11px] text-[#FAF0E2]/85">
+                          <Check className="h-3 w-3 text-[#AA8B63] shrink-0" />
+                          <span className="truncate">{inc}</span>
                         </div>
-                      </div>
-                    )}
+                      ))}
+                    </div>
                   </div>
                 )}
-              </div>
-            ) : (
-              <div className="border-t border-[#FAF0E2]/5 bg-[#181B12]/40 px-3 py-2 text-[10.5px] font-mono text-[#A4AA93]/70 flex items-center gap-1.5">
-                <Info className="h-3.5 w-3.5 text-[#AA8B63]/70 shrink-0" />
-                <span>Select a service above to review its full description and treatment inclusions.</span>
               </div>
             )}
           </div>
         )}
 
-        {/* Main Action Button */}
-        {!completed && (
+        {/* Primary Action Button (Steps 0 - 6) */}
+        {!completed && step < STEPS_TOTAL - 1 && (
           <button
             type="button"
             disabled={!canNext}
@@ -696,13 +941,8 @@ export function GroomingFlow({
             {step === 1 ? (
               <span className="flex items-center justify-center gap-2">
                 <Calendar className="h-4.5 w-4.5" />
-                <span>Schedule Now · Book Appointment</span>
+                <span>Agendar Ahora · Check Coverage</span>
                 <ArrowRight className="h-4 w-4" />
-              </span>
-            ) : step === STEPS_TOTAL - 1 ? (
-              <span className="flex items-center justify-center gap-2">
-                <CheckCircle2 className="h-4.5 w-4.5" />
-                <span>Confirm Booking</span>
               </span>
             ) : (
               <span className="flex items-center justify-center gap-2">
@@ -717,18 +957,20 @@ export function GroomingFlow({
   );
 }
 
-/* -------------------- STEP 0: TAMAÑO DEL PERRO -------------------- */
+/* -------------------- STEP 1: TAMAÑO DEL PERRO (PASO 1) -------------------- */
 function StepPetSize({
   data,
   setData,
+  petNumber,
 }: {
   data: GroomingFlowState;
   setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
+  petNumber: number;
 }) {
   return (
     <div>
       <StepHeader
-        eyebrow="Step 1 · Dog Size"
+        eyebrow={`Paso 1 · Tamaño del perro ${petNumber > 1 ? `(#${petNumber})` : ""}`}
         title="Choose Your Pet's Size"
         subtitle="View the 3D model of each size to ensure custom space and suite preparation inside our solar van."
       />
@@ -742,13 +984,15 @@ function StepPetSize({
   );
 }
 
-/* -------------------- STEP 1: SERVICIO (2x2 GRID + SPA UPGRADES) -------------------- */
+/* -------------------- STEP 2: SERVICIO (PASO 2) -------------------- */
 function StepServicePackage({
   data,
   setData,
+  isSecondDog,
 }: {
   data: GroomingFlowState;
   setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
+  isSecondDog: boolean;
 }) {
   const toggleAddon = (addonId: string) => {
     let next = [...data.addons];
@@ -765,41 +1009,49 @@ function StepServicePackage({
       id: "bath-refresh",
       title: "Bath & Brush",
       subtitle: "Bath, dry, nails, ears",
-      price: SOUVA_PACKAGES.find((p) => p.id === "bath-refresh")?.prices[data.size as PetSize] || 65,
+      rawPrice: SOUVA_PACKAGES.find((p) => p.id === "bath-refresh")?.prices[data.size as PetSize] || 65,
     },
     {
       id: "bath-tidy",
       title: "Bath & Tidy",
       subtitle: "+ sanitary, paw & face trim",
-      price: SOUVA_PACKAGES.find((p) => p.id === "bath-tidy")?.prices[data.size as PetSize] || 80,
+      rawPrice: SOUVA_PACKAGES.find((p) => p.id === "bath-tidy")?.prices[data.size as PetSize] || 80,
     },
     {
       id: "essential-full-groom",
       title: "Full Groom",
       subtitle: "Short haircut / shave-down",
-      price: SOUVA_PACKAGES.find((p) => p.id === "essential-full-groom")?.prices[data.size as PetSize] || 110,
+      rawPrice: SOUVA_PACKAGES.find((p) => p.id === "essential-full-groom")?.prices[data.size as PetSize] || 110,
     },
     {
       id: "signature-grooming",
       title: "Signature Grooming",
       subtitle: 'Longer style ½"+ · Scissor finish',
-      price: SOUVA_PACKAGES.find((p) => p.id === "signature-grooming")?.prices[data.size as PetSize] || 125,
+      rawPrice: SOUVA_PACKAGES.find((p) => p.id === "signature-grooming")?.prices[data.size as PetSize] || 125,
     },
   ];
 
   return (
     <div>
       <StepHeader
-        eyebrow="Step 2 · Service"
+        eyebrow="Paso 2 · Servicio & Know Your Price"
         title="Select Your Grooming Service"
-        subtitle="Choose the service that fits your pet's styling and maintenance needs."
+        subtitle="Upfront pricing calibrated for your dog's size. Select any luxury spa upgrades."
       />
+
+      {isSecondDog && (
+        <div className="mt-3 p-2.5 rounded-2xl bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 text-xs flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-emerald-400 shrink-0" />
+          <span>¡Segundo perro detectado! Aplicaremos automáticamente un <strong>20% de descuento</strong> en el servicio base.</span>
+        </div>
+      )}
 
       {/* 2x2 Segmented Grid */}
       <div className="mt-4 p-2 rounded-3xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-inner">
         <div className="grid grid-cols-2 gap-2">
           {services2x2.map((item) => {
             const isSelected = data.packageId === item.id;
+            const finalPrice = isSecondDog ? Math.round(item.rawPrice * 0.8) : item.rawPrice;
             return (
               <button
                 key={item.id}
@@ -838,16 +1090,21 @@ function StepServicePackage({
                       isSelected ? "text-[#161811]/70" : "text-[#A4AA93]"
                     )}
                   >
-                    From
+                    {isSecondDog ? "-20% OFF" : "From"}
                   </span>
-                  <span
-                    className={cn(
-                      "font-mono font-extrabold text-sm",
-                      isSelected ? "text-[#161811]" : "text-[#AA8B63]"
+                  <div className="flex items-center gap-1.5">
+                    {isSecondDog && (
+                      <span className="line-through opacity-50 text-[10px] font-mono">${item.rawPrice}</span>
                     )}
-                  >
-                    ${item.price}
-                  </span>
+                    <span
+                      className={cn(
+                        "font-mono font-extrabold text-sm",
+                        isSelected ? "text-[#161811]" : "text-[#AA8B63]"
+                      )}
+                    >
+                      ${finalPrice}
+                    </span>
+                  </div>
                 </div>
               </button>
             );
@@ -855,13 +1112,7 @@ function StepServicePackage({
         </div>
       </div>
 
-      {!data.packageId && (
-        <div className="mt-2 text-center text-[10.5px] font-mono text-[#AA8B63] animate-pulse">
-          Please select one of the 4 services above to continue
-        </div>
-      )}
-
-      {/* Spa Upgrades / Add-ons */}
+      {/* Spa Upgrades */}
       <div className="mt-4 pt-3 border-t border-[#FAF0E2]/10">
         <div className="flex items-center justify-between mb-2">
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider">
@@ -900,13 +1151,456 @@ function StepServicePackage({
   );
 }
 
-/* -------------------- STEP 2: INFO PERRO (PASO 1) -------------------- */
-function StepDogBasics({
+/* -------------------- STEP 3: LOCACIÓN & COBERTURA (PASO 3) -------------------- */
+function StepLocationCoverage({
   data,
   setData,
 }: {
   data: GroomingFlowState;
   setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
+}) {
+  const [isLocating, setIsLocating] = useState(false);
+  const [locateProgress, setLocateProgress] = useState(0);
+  const [locateError, setLocateError] = useState("");
+  const [showAddressDropdown, setShowAddressDropdown] = useState(false);
+  const [showCoverageModal, setShowCoverageModal] = useState(false);
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistJoined, setWaitlistJoined] = useState(false);
+  const [showZonesList, setShowZonesList] = useState(false);
+
+  const coverage = checkCoverage(data.zipCode);
+
+  useEffect(() => {
+    if (data.zipCode.length === 5) {
+      if (!coverage.covered) {
+        setShowCoverageModal(true);
+      } else {
+        setShowCoverageModal(false);
+      }
+    }
+  }, [data.zipCode, coverage.covered]);
+
+  const handleAddressChange = (address: string) => {
+    const zipMatch = address.match(/\b(9\d{4})\b/);
+    if (zipMatch && zipMatch[1]) {
+      setData((prev) => ({ ...prev, address, zipCode: zipMatch[1] }));
+    } else {
+      setData((prev) => ({ ...prev, address }));
+    }
+    setShowAddressDropdown(true);
+  };
+
+  const filteredSuggestions = useMemo(() => {
+    if (!data.address.trim()) return SUGGESTED_AREAS.slice(0, 5);
+    const q = data.address.toLowerCase();
+    return SUGGESTED_AREAS.filter(
+      (s) => s.city.toLowerCase().includes(q) || s.area.toLowerCase().includes(q) || s.zip.includes(q)
+    ).slice(0, 5);
+  }, [data.address]);
+
+  const handleUseMyLocation = () => {
+    setIsLocating(true);
+    setLocateProgress(10);
+    setLocateError("");
+
+    const interval = setInterval(() => {
+      setLocateProgress((prev) => (prev >= 90 ? 90 : prev + 15));
+    }, 250);
+
+    if (!navigator.geolocation) {
+      clearInterval(interval);
+      setLocateError("Geolocation not supported by your browser");
+      setIsLocating(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          const result = await response.json();
+          const addrObj = result.address || {};
+          const street = addrObj.road || addrObj.suburb || "";
+          const houseNumber = addrObj.house_number || "";
+          const city = addrObj.city || addrObj.town || addrObj.village || "San Francisco";
+          const state = addrObj.state || "CA";
+          const postcode = (addrObj.postcode || "").slice(0, 5);
+
+          const cleanAddr =
+            [houseNumber && street ? `${houseNumber} ${street}` : street, city, state, postcode]
+              .filter(Boolean)
+              .join(", ") || result.display_name;
+
+          clearInterval(interval);
+          setLocateProgress(100);
+          setTimeout(() => {
+            setData((prev) => ({
+              ...prev,
+              latitude,
+              longitude,
+              address: cleanAddr,
+              zipCode: postcode,
+            }));
+            setIsLocating(false);
+          }, 400);
+        } catch {
+          clearInterval(interval);
+          setLocateProgress(100);
+          setTimeout(() => {
+            setData((prev) => ({
+              ...prev,
+              latitude,
+              longitude,
+              address: `GPS Pin (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
+            }));
+            setIsLocating(false);
+          }, 400);
+        }
+      },
+      (error) => {
+        clearInterval(interval);
+        setLocateError(error.message || "Failed to locate");
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
+
+  const parkingOptions = [
+    "🏡 Private Driveway",
+    "🚗 Curbside Street Parking",
+    "🅿️ Dedicated Assigned Space",
+    "🔒 Gated Community (Code Provided)",
+  ];
+
+  return (
+    <div>
+      <StepHeader
+        eyebrow="Paso 3 · Locación & Cobertura"
+        title="Check Service Coverage & Address"
+        subtitle="We service San Francisco (Select zones) and Peninsula. Verify if our solar van covers your doorstep."
+      />
+
+      <div className="mt-4 space-y-3.5">
+        <div className="relative">
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+            Doorstep Address (Dirección)
+          </label>
+          <div className="relative">
+            <MapPin className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
+            <input
+              type="text"
+              value={data.address}
+              onChange={(e) => handleAddressChange(e.target.value)}
+              onFocus={() => setShowAddressDropdown(true)}
+              placeholder="e.g. 1420 19th Ave, San Francisco, CA"
+              className="w-full pl-9 pr-28 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+            />
+            <button
+              type="button"
+              disabled={isLocating}
+              onClick={handleUseMyLocation}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[9px] font-bold font-mono tracking-wide text-[#AA8B63] border border-[#AA8B63]/30 hover:border-[#AA8B63] hover:bg-[#AA8B63]/10 rounded-lg transition-all cursor-pointer select-none disabled:opacity-50"
+            >
+              {isLocating ? "SYNCING..." : "GPS LOCATE"}
+            </button>
+          </div>
+
+          {showAddressDropdown && filteredSuggestions.length > 0 && (
+            <div className="absolute z-50 left-0 right-0 mt-1 rounded-xl border border-[#FAF0E2]/15 bg-[#1C1F16]/95 backdrop-blur-md p-1.5 shadow-2xl space-y-1">
+              <span className="text-[9.5px] font-mono text-[#AA8B63] px-2 block uppercase font-bold">
+                Covered Peninsula & SF Presets:
+              </span>
+              {filteredSuggestions.map((item) => (
+                <button
+                  key={item.zip + item.area}
+                  type="button"
+                  onClick={() => {
+                    setData((prev) => ({
+                      ...prev,
+                      address: `${item.area}, ${item.city}, CA ${item.zip}`,
+                      zipCode: item.zip,
+                    }));
+                    setShowAddressDropdown(false);
+                  }}
+                  className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs text-[#FAF0E2] hover:bg-[#AA8B63]/20 flex items-center justify-between transition-colors cursor-pointer"
+                >
+                  <span className="truncate">{item.city} ({item.area})</span>
+                  <span className="font-mono text-[10px] text-[#AA8B63] font-bold">{item.zip}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider">
+              ZIP Code (Código Postal de 5 dígitos)
+            </label>
+            <span className="text-[10px] font-mono text-[#AA8B63]">
+              {coverage.covered ? "✓ Area Covered" : "Instant Verification"}
+            </span>
+          </div>
+
+          <input
+            type="text"
+            maxLength={5}
+            value={data.zipCode}
+            onChange={(e) => {
+              const zipCode = e.target.value.replace(/[^0-9]/g, "").slice(0, 5);
+              setData({ ...data, zipCode });
+            }}
+            placeholder="e.g. 94122, 94010, 94401..."
+            className={cn(
+              "w-full px-3 h-10 bg-[#1B1E15] border rounded-xl text-xs font-mono font-bold tracking-wider placeholder:text-[#FAF0E2]/30 focus:outline-none transition-colors",
+              data.zipCode.length === 5 && coverage.covered
+                ? "border-emerald-500/80 text-emerald-300"
+                : data.zipCode.length === 5 && !coverage.covered
+                ? "border-red-500 text-red-400"
+                : "border-[#FAF0E2]/15 text-[#FAF0E2] focus:border-[#AA8B63]"
+            )}
+          />
+        </div>
+
+        {data.zipCode.length === 5 && coverage.covered && (
+          <div className="p-3 rounded-2xl bg-emerald-950/40 border border-emerald-500/60 flex items-start gap-2.5 animate-in fade-in duration-200">
+            <CheckCircle2 className="h-4.5 w-4.5 text-emerald-400 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <span className="text-xs font-bold text-emerald-300 block">
+                ✓ Great news! We service your area in {coverage.cityArea} ({coverage.zone})
+              </span>
+              <p className="text-[11px] text-emerald-200/80 leading-snug">
+                Our luxury solar van delivers direct doorstep grooming to ZIP {coverage.zipCode}.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1.5">
+            <Car className="h-3.5 w-3.5 text-[#AA8B63]" />
+            <span>Parking Notes for Solar Van (Nota de parking)</span>
+          </label>
+
+          <div className="grid grid-cols-2 gap-1.5 mb-2">
+            {parkingOptions.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setData({ ...data, parkingNotes: opt.replace(/^[^\w]+/, "").trim() })}
+                className={cn(
+                  "p-2 rounded-xl border text-left text-[11px] font-medium transition-all cursor-pointer truncate",
+                  data.parkingNotes.toLowerCase().includes(opt.split(" ")[1]?.toLowerCase() || "")
+                    ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2]"
+                    : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+                )}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+
+          <input
+            type="text"
+            value={data.parkingNotes}
+            onChange={(e) => setData({ ...data, parkingNotes: e.target.value })}
+            placeholder="e.g. Park on right driveway, gate code #4821, van needs 2 car lengths..."
+            className="w-full px-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+          />
+        </div>
+      </div>
+
+      {showCoverageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-[#161811] border-2 border-red-500/80 rounded-3xl shadow-[0_0_50px_rgba(239,68,68,0.3)] p-6 space-y-4 relative animate-in zoom-in-95 duration-200">
+            <button
+              type="button"
+              onClick={() => setShowCoverageModal(false)}
+              className="absolute top-4 right-4 h-8 w-8 rounded-full bg-red-950/40 border border-red-500/30 flex items-center justify-center text-red-300 hover:text-white cursor-pointer"
+              aria-label="Close modal"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="h-11 w-11 rounded-2xl bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 shrink-0">
+                <AlertCircle className="h-6 w-6" />
+              </div>
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-red-400 block">
+                  Aviso de Cobertura · Out of Route
+                </span>
+                <h4 className="font-display font-bold text-lg text-white">
+                  Aún no cubrimos el ZIP {data.zipCode}
+                </h4>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#FAF0E2]/90 leading-relaxed">
+              Actualmente operamos en <strong className="text-[#AA8B63]">San Francisco (zonas selectas)</strong> y en la <strong className="text-[#AA8B63]">Península</strong>.
+            </p>
+
+            <div className="p-3.5 rounded-2xl bg-[#1D2116] border border-[#FAF0E2]/15 space-y-2">
+              <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-[#AA8B63] block">
+                Lista de Espera
+              </span>
+              {!waitlistJoined ? (
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={waitlistEmail}
+                    onChange={(e) => setWaitlistEmail(e.target.value)}
+                    placeholder="tucorreo@ejemplo.com"
+                    className="flex-1 px-3 h-9 bg-[#14160F] border border-[#FAF0E2]/20 rounded-xl text-xs text-[#FAF0E2]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (waitlistEmail.includes("@")) setWaitlistJoined(true);
+                    }}
+                    className="px-3 h-9 rounded-xl bg-red-500 text-white text-[11px] font-mono font-bold uppercase tracking-wider hover:bg-red-400 cursor-pointer"
+                  >
+                    Notificarme
+                  </button>
+                </div>
+              ) : (
+                <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center gap-1.5">
+                  <Check className="h-4 w-4" />
+                  <span>¡Anotado! Te avisaremos cuando lleguemos al {data.zipCode}.</span>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowCoverageModal(false);
+                setData((prev) => ({ ...prev, zipCode: "" }));
+              }}
+              className="w-full py-3 rounded-xl bg-[#25281D] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] text-xs font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              Probar Otra Dirección o ZIP Code
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* -------------------- STEP 4: INFO CLIENTE (PASO 4) -------------------- */
+function StepClientInfo({
+  data,
+  setData,
+}: {
+  data: GroomingFlowState;
+  setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
+}) {
+  return (
+    <div>
+      <StepHeader
+        eyebrow="Paso 4 · Información del cliente"
+        title="Pet Parent Contact Information"
+        subtitle="We will coordinate doorstep arrival, send appointment reminders, and deliver your invoice to these details."
+      />
+
+      <div className="mt-4 space-y-3.5">
+        <div className="grid sm:grid-cols-2 gap-2.5">
+          <div>
+            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+              First Name (Nombre)
+            </label>
+            <div className="relative">
+              <User className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
+              <input
+                type="text"
+                value={data.firstName}
+                onChange={(e) => {
+                  const firstName = e.target.value;
+                  setData({
+                    ...data,
+                    firstName,
+                    ownerName: `${firstName} ${data.lastName}`.trim(),
+                  });
+                }}
+                placeholder="e.g. Jessica"
+                className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+              Last Name (Apellido)
+            </label>
+            <input
+              type="text"
+              value={data.lastName}
+              onChange={(e) => {
+                const lastName = e.target.value;
+                setData({
+                  ...data,
+                  lastName,
+                  ownerName: `${data.firstName} ${lastName}`.trim(),
+                });
+              }}
+              placeholder="e.g. Miller"
+              className="w-full px-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+            />
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-2.5">
+          <div>
+            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+              Phone Number (Teléfono)
+            </label>
+            <div className="relative">
+              <Phone className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
+              <input
+                type="tel"
+                value={data.phone}
+                onChange={(e) => setData({ ...data, phone: e.target.value })}
+                placeholder="+1 (555) 000-0000"
+                className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+              Email Address (Correo)
+            </label>
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
+              <input
+                type="email"
+                value={data.email}
+                onChange={(e) => setData({ ...data, email: e.target.value })}
+                placeholder="name@domain.com"
+                className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* -------------------- STEP 5: INFO PERRO (PASO 5) -------------------- */
+function StepDogInfo({
+  data,
+  setData,
+  petNumber,
+}: {
+  data: GroomingFlowState;
+  setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
+  petNumber: number;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -930,13 +1624,12 @@ function StepDogBasics({
   return (
     <div>
       <StepHeader
-        eyebrow="Step 3 · Dog Info (Part 1)"
-        title="Tell Us About Your Dog"
-        subtitle="Basic details so our master groomer knows who they will be pampering."
+        eyebrow={`Paso 5 · Información del perro ${petNumber > 1 ? `(#${petNumber})` : ""}`}
+        title={`Tell Us About Dog #${petNumber}`}
+        subtitle="Essential details for our master groomer before preparing the luxury van suite."
       />
 
       <div className="mt-4 space-y-3.5">
-        {/* Pet Name */}
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
             Dog's Name (Nombre del perro)
@@ -953,7 +1646,6 @@ function StepDogBasics({
           </div>
         </div>
 
-        {/* Breed Autocomplete */}
         <div className="relative" ref={dropdownRef}>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
             Dog's Breed or Mix (Raza del perro)
@@ -994,12 +1686,10 @@ function StepDogBasics({
           )}
         </div>
 
-        {/* Gender (Macho o Hembra) & Age Side-by-Side */}
         <div className="grid sm:grid-cols-2 gap-3">
-          {/* Gender: Macho o Hembra */}
           <div>
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Gender (Macho o Hembra)
+              Gender (Género)
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -1029,30 +1719,26 @@ function StepDogBasics({
             </div>
           </div>
 
-          {/* Age Selection */}
           <div>
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Age (Edad del perro)
+              Age (Edad)
             </label>
             <div className="grid grid-cols-3 gap-1">
-              {ageOptions.map((age) => {
-                const isSelected = data.petAge === age;
-                return (
-                  <button
-                    key={age}
-                    type="button"
-                    onClick={() => setData({ ...data, petAge: age })}
-                    className={cn(
-                      "py-2 rounded-xl border text-center text-[10.5px] font-medium transition-all cursor-pointer",
-                      isSelected
-                        ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-sm"
-                        : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-                    )}
-                  >
-                    {age.split(" ")[0]}
-                  </button>
-                );
-              })}
+              {ageOptions.map((age) => (
+                <button
+                  key={age}
+                  type="button"
+                  onClick={() => setData({ ...data, petAge: age })}
+                  className={cn(
+                    "py-2 rounded-xl border text-center text-[10.5px] font-medium transition-all cursor-pointer",
+                    data.petAge === age
+                      ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-sm"
+                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+                  )}
+                >
+                  {age.split(" ")[0]}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -1061,13 +1747,15 @@ function StepDogBasics({
   );
 }
 
-/* -------------------- STEP 3: INFO PERRO (PASO 2 - CONDICIÓN Y SALUD) -------------------- */
-function StepDogHealthCare({
+/* -------------------- STEP 6: CONDICIÓN DEL PERRO (PASO 6) -------------------- */
+function StepDogCareCondition({
   data,
   setData,
+  petNumber,
 }: {
   data: GroomingFlowState;
   setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
+  petNumber: number;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1081,12 +1769,11 @@ function StepDogHealthCare({
     reader.readAsDataURL(file);
   };
 
-  const coatConditions = [
-    "Healthy & Smooth",
-    "Light Tangles",
-    "Matted / Needs Detangling",
-    "Calm & Gentle",
-    "Anxious / Sensitive",
+  const temperamentOptions = [
+    "Amigable (Friendly & Calm)",
+    "Ansioso / Sensible (Anxious)",
+    "Activo & Enérgico (Playful)",
+    "Tímido / Paciencia Extra",
   ];
 
   const medicalOptions = [
@@ -1100,115 +1787,104 @@ function StepDogHealthCare({
   return (
     <div>
       <StepHeader
-        eyebrow="Step 4 · Dog Info (Part 2)"
-        title="Health, Condition & Notes"
-        subtitle="Help our master groomer prepare specialized handling, hypoallergenic shampoos, and customized tools."
+        eyebrow={`Paso 6 · Condición del perro ${petNumber > 1 ? `(#${petNumber})` : ""}`}
+        title="Pet Health, Temperament & Photos"
+        subtitle="Help our master groomer prepare specialized handling and calming botanicals."
       />
 
-      <div className="mt-4 space-y-3">
-        {/* Coat / Overall Condition */}
+      <div className="mt-4 space-y-3.5">
         <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Dog's Condition & Temperament (Condición del perro)
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
+            <ShieldCheck className="h-3.5 w-3.5 text-[#AA8B63]" />
+            <span>Rabies Vaccine Status (Vacunas)</span>
           </label>
-          <div className="flex flex-wrap gap-1.5">
-            {coatConditions.map((cond) => {
-              const isSelected = data.petCondition === cond;
-              return (
-                <button
-                  key={cond}
-                  type="button"
-                  onClick={() => setData({ ...data, petCondition: cond })}
-                  className={cn(
-                    "px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer",
-                    isSelected
-                      ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-sm"
-                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-                  )}
-                >
-                  {cond}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Vaccines & Medical Condition */}
-        <div className="grid sm:grid-cols-2 gap-2.5">
-          {/* Vacunas */}
-          <div>
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
-              <ShieldCheck className="h-3 w-3 text-[#AA8B63]" />
-              <span>Rabies Vaccine (Vacunas)</span>
-            </label>
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                type="button"
-                onClick={() => setData({ ...data, vaccinated: "yes" })}
-                className={cn(
-                  "p-2 rounded-lg border text-center text-xs font-semibold transition-all cursor-pointer",
-                  data.vaccinated === "yes"
-                    ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
-                    : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-                )}
-              >
-                ✓ Up to Date
-              </button>
-              <button
-                type="button"
-                onClick={() => setData({ ...data, vaccinated: "no" })}
-                className={cn(
-                  "p-2 rounded-lg border text-center text-xs font-semibold transition-all cursor-pointer",
-                  data.vaccinated === "no"
-                    ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
-                    : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-                )}
-              >
-                In Progress
-              </button>
-            </div>
-          </div>
-
-          {/* Medical Condition Dropdown / Select */}
-          <div>
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
-              <Activity className="h-3 w-3 text-[#AA8B63]" />
-              <span>Medical Conditions (Médica)</span>
-            </label>
-            <select
-              value={data.medicalConditions}
-              onChange={(e) => setData({ ...data, medicalConditions: e.target.value })}
-              className="w-full h-9 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-lg px-2.5 text-xs text-[#FAF0E2] focus:outline-none focus:border-[#AA8B63] cursor-pointer"
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setData({ ...data, vaccinated: "yes" })}
+              className={cn(
+                "p-2.5 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
+                data.vaccinated === "yes"
+                  ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
+                  : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+              )}
             >
-              {medicalOptions.map((opt) => (
-                <option key={opt} value={opt} className="bg-[#191C13] text-[#FAF0E2]">
-                  {opt}
-                </option>
-              ))}
-            </select>
+              ✓ Up to Date (Al día)
+            </button>
+            <button
+              type="button"
+              onClick={() => setData({ ...data, vaccinated: "no" })}
+              className={cn(
+                "p-2.5 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
+                data.vaccinated === "no"
+                  ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
+                  : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+              )}
+            >
+              In Progress (En trámite)
+            </button>
           </div>
         </div>
 
-        {/* Notas para el Groomer */}
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Notes for the Groomer (Notas para el groomer)
+            Temperament: Ansioso / Amigable
+          </label>
+          <div className="grid grid-cols-2 gap-1.5">
+            {temperamentOptions.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setData({ ...data, temperament: opt })}
+                className={cn(
+                  "p-2 rounded-xl border text-left text-[11px] font-medium transition-all cursor-pointer truncate",
+                  data.temperament === opt
+                    ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-sm"
+                    : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+                )}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
+            <Activity className="h-3 w-3 text-[#AA8B63]" />
+            <span>Medical Condition (Condición Médica)</span>
+          </label>
+          <select
+            value={data.medicalConditions}
+            onChange={(e) => setData({ ...data, medicalConditions: e.target.value })}
+            className="w-full h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl px-3 text-xs text-[#FAF0E2] focus:outline-none focus:border-[#AA8B63] cursor-pointer"
+          >
+            {medicalOptions.map((opt) => (
+              <option key={opt} value={opt} className="bg-[#191C13] text-[#FAF0E2]">
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+            Notes for the Groomer
           </label>
           <textarea
             value={data.groomerNotes}
             onChange={(e) => setData({ ...data, groomerNotes: e.target.value })}
-            placeholder="e.g. Sensitive around front paws, loves belly rubs, preferred haircut style..."
+            placeholder="Special handling, sensitive spots, haircut preferences..."
             rows={2}
             className="w-full p-2.5 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] resize-none"
           />
         </div>
 
-        {/* Foto del Perro */}
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider flex items-center gap-1.5">
               <Camera className="h-3.5 w-3.5 text-[#AA8B63]" />
-              <span>Dog Photo (Foto del perro)</span>
+              <span>Foto del perro (Dog Photo)</span>
             </label>
             <span className="text-[9.5px] font-mono text-[#AA8B63]">Optional</span>
           </div>
@@ -1271,7 +1947,7 @@ function StepDogHealthCare({
                   Upload dog photo
                 </span>
                 <span className="text-[10px] text-[#A4AA93] block truncate">
-                  Helps us see coat length & styling
+                  Helps assess coat thickness & styling
                 </span>
               </div>
               <Upload className="h-3.5 w-3.5 text-[#A4AA93] group-hover:text-[#AA8B63] shrink-0" />
@@ -1283,264 +1959,7 @@ function StepDogHealthCare({
   );
 }
 
-/* -------------------- STEP 4: INFORMACIÓN DEL CLIENTE (PASO 3) -------------------- */
-function StepClientInfo({
-  data,
-  setData,
-}: {
-  data: GroomingFlowState;
-  setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
-}) {
-  const [isLocating, setIsLocating] = useState(false);
-  const [locateProgress, setLocateProgress] = useState(0);
-  const [locateError, setLocateError] = useState("");
-
-  const handleUseMyLocation = () => {
-    setIsLocating(true);
-    setLocateProgress(10);
-    setLocateError("");
-
-    const interval = setInterval(() => {
-      setLocateProgress((prev) => {
-        if (prev >= 90) {
-          clearInterval(interval);
-          return 90;
-        }
-        return prev + 15;
-      });
-    }, 250);
-
-    if (!navigator.geolocation) {
-      clearInterval(interval);
-      setLocateProgress(100);
-      setLocateError("Geolocation is not supported by your browser");
-      setTimeout(() => setIsLocating(false), 800);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
-          const result = await response.json();
-          const addrObj = result.address || {};
-          const street = addrObj.road || addrObj.suburb || "";
-          const houseNumber = addrObj.house_number || "";
-          const city = addrObj.city || addrObj.town || addrObj.village || "San Francisco";
-          const state = addrObj.state || "CA";
-          const postcode = addrObj.postcode || "";
-
-          const cleanAddr =
-            [
-              houseNumber && street ? `${houseNumber} ${street}` : street || result.name,
-              city,
-              state,
-              postcode,
-            ]
-              .filter(Boolean)
-              .join(", ") ||
-            result.display_name ||
-            `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
-
-          clearInterval(interval);
-          setLocateProgress(100);
-          setTimeout(() => {
-            setData((prev) => ({
-              ...prev,
-              latitude,
-              longitude,
-              address: cleanAddr,
-            }));
-            setIsLocating(false);
-          }, 500);
-        } catch {
-          clearInterval(interval);
-          setLocateProgress(100);
-          setTimeout(() => {
-            setData((prev) => ({
-              ...prev,
-              latitude,
-              longitude,
-              address: `GPS Doorstep (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
-            }));
-            setIsLocating(false);
-          }, 500);
-        }
-      },
-      (error) => {
-        clearInterval(interval);
-        setLocateProgress(100);
-        setLocateError(error.message || "Failed to locate");
-        setTimeout(() => setIsLocating(false), 1000);
-      },
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
-  };
-
-  return (
-    <div>
-      <StepHeader
-        eyebrow="Step 5 · Client Info"
-        title="Client Contact & Doorstep Address"
-        subtitle="Where should our luxury mobile spa van park for your dog's appointment?"
-      />
-
-      <div className="mt-4 space-y-3">
-        {/* Nombre & Apellido */}
-        <div className="grid sm:grid-cols-2 gap-2.5">
-          <div>
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              First Name (Nombre)
-            </label>
-            <div className="relative">
-              <User className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
-              <input
-                type="text"
-                value={data.firstName}
-                onChange={(e) => {
-                  const firstName = e.target.value;
-                  setData({
-                    ...data,
-                    firstName,
-                    ownerName: `${firstName} ${data.lastName}`.trim(),
-                  });
-                }}
-                placeholder="e.g. Jessica"
-                className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Last Name (Apellido)
-            </label>
-            <input
-              type="text"
-              value={data.lastName}
-              onChange={(e) => {
-                const lastName = e.target.value;
-                setData({
-                  ...data,
-                  lastName,
-                  ownerName: `${data.firstName} ${lastName}`.trim(),
-                });
-              }}
-              placeholder="e.g. Miller"
-              className="w-full px-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-            />
-          </div>
-        </div>
-
-        {/* Phone & Email */}
-        <div className="grid sm:grid-cols-2 gap-2.5">
-          <div>
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Phone Number (Teléfono)
-            </label>
-            <div className="relative">
-              <Phone className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
-              <input
-                type="tel"
-                value={data.phone}
-                onChange={(e) => setData({ ...data, phone: e.target.value })}
-                placeholder="+1 (555) 000-0000"
-                className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Email Address (Email)
-            </label>
-            <div className="relative">
-              <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
-              <input
-                type="email"
-                value={data.email}
-                onChange={(e) => setData({ ...data, email: e.target.value })}
-                placeholder="name@domain.com"
-                className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Address & GPS */}
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Doorstep Street Address (Dirección)
-          </label>
-          <div className="relative">
-            <MapPin className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
-            <input
-              type="text"
-              value={data.address}
-              onChange={(e) => setData({ ...data, address: e.target.value })}
-              placeholder="Street, number, apt (SF Bay Area & East Bay)"
-              className="w-full pl-10 pr-28 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-            />
-            <button
-              type="button"
-              disabled={isLocating}
-              onClick={handleUseMyLocation}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[9px] font-bold font-mono tracking-wide text-[#AA8B63] border border-[#AA8B63]/30 hover:border-[#AA8B63] hover:bg-[#AA8B63]/10 rounded-lg transition-all cursor-pointer select-none disabled:opacity-50"
-            >
-              {isLocating ? "LOCATING..." : "GPS LOCATE"}
-            </button>
-          </div>
-
-          {isLocating && (
-            <div className="mt-1.5 space-y-1">
-              <div className="flex justify-between text-[9.5px] text-[#AA8B63] font-mono font-bold uppercase tracking-wide animate-pulse">
-                <span>SYNCING SATELLITES...</span>
-                <span>{locateProgress}%</span>
-              </div>
-              <div className="energy-bar-wrap">
-                <div className="energy-bar-track">
-                  <div
-                    className="energy-bar-fill animate-pulse"
-                    style={{ width: `${locateProgress}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {locateError && (
-            <div className="text-[10px] text-red-400 font-mono font-bold uppercase tracking-wide mt-1">
-              ERROR: {locateError}
-            </div>
-          )}
-        </div>
-
-        {/* Parking Notes (Nota sobre parking) */}
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1.5">
-            <Car className="h-3.5 w-3.5 text-[#AA8B63]" />
-            <span>Parking Notes for Van (Nota sobre parking)</span>
-          </label>
-          <input
-            type="text"
-            value={data.parkingNotes}
-            onChange={(e) => setData({ ...data, parkingNotes: e.target.value })}
-            placeholder="e.g. Private driveway, curbside street parking, gate code #1234..."
-            className="w-full px-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-          />
-          <span className="text-[10px] text-[#A4AA93]/70 font-mono mt-0.5 block">
-            Our solar van is self-contained and needs approx. 2 car lengths to park.
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- STEP 5: CALENDARIO DE DISPONIBILIDAD (PASO 4) -------------------- */
+/* -------------------- STEP 7: CALENDARIO (PASO 7) -------------------- */
 function StepBookingCalendar({
   data,
   setData,
@@ -1556,13 +1975,12 @@ function StepBookingCalendar({
   return (
     <div>
       <StepHeader
-        eyebrow="Step 6 · Schedule"
-        title="Calendar & Arrival Window"
+        eyebrow="Paso 7 · Calendario de disponibilidad"
+        title="Schedule Your Doorstep Window"
         subtitle="Select your preferred date and 30-minute arrival window for our mobile spa van."
       />
 
       <div className="mt-4 space-y-4">
-        {/* Date Selector Carousel */}
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-2 flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5 text-[#AA8B63]" />
@@ -1595,24 +2013,19 @@ function StepBookingCalendar({
                   <span className={cn("text-[9px] font-mono uppercase", isSelected ? "text-[#161811]/90 font-bold" : "text-[#AA8B63]")}>
                     {d.dayLabel}
                   </span>
-                  <span className="font-display font-extrabold text-base my-0.5">
-                    {d.dayNum}
-                  </span>
-                  <span className="text-[9px] font-mono opacity-80">
-                    {d.month}
-                  </span>
+                  <span className="font-display font-extrabold text-base my-0.5">{d.dayNum}</span>
+                  <span className="text-[9px] font-mono opacity-80">{d.month}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Dynamic Time Slot Selection */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-[#AA8B63]" />
-              <span>Available Arrival Windows ({activeSlots.length} available)</span>
+              <span>Available Arrival Windows ({activeSlots.length} slots)</span>
             </label>
             <span className="text-[10px] font-mono text-[#AA8B63]">
               {selectedDateObj?.dayLabel} Schedule
@@ -1646,86 +2059,144 @@ function StepBookingCalendar({
             })}
           </div>
         </div>
-
-        {/* Selected Window Confirmation Callout */}
-        <div className="p-3 rounded-2xl bg-[#14160F] border border-[#AA8B63]/40 flex items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-[#AA8B63] shrink-0" />
-            <div>
-              <span className="text-[10px] text-[#A4AA93] font-mono block">Confirmed Doorstep Window:</span>
-              <strong className="text-[#FAF0E2] font-display text-xs sm:text-sm">
-                {data.scheduledDate} · {data.scheduledTime}
-              </strong>
-            </div>
-          </div>
-          <span className="text-[9px] font-mono text-[#AA8B63] bg-[#AA8B63]/15 px-2 py-1 rounded-lg shrink-0">
-            30-Min Arrival Window
-          </span>
-        </div>
       </div>
     </div>
   );
 }
 
-/* -------------------- STEP 6: DISCLAIMER CON FIRMA (PASO 5) -------------------- */
-function StepServiceAgreement({
+/* -------------------- STEP 8: DISCLAIMER & MULTI-DOG DECISION (PASO 8) -------------------- */
+function StepDisclaimerConfirm({
   data,
   setData,
+  savedPets,
+  currentDogTotal,
+  grandTotal,
+  onAddAnotherDog,
+  onFinalize,
+  isSubmitting,
 }: {
   data: GroomingFlowState;
   setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
+  savedPets: CompletedPet[];
+  currentDogTotal: number;
+  grandTotal: number;
+  onAddAnotherDog: () => void;
+  onFinalize: () => void;
+  isSubmitting: boolean;
 }) {
+  const [showOptionalSignature, setShowOptionalSignature] = useState(false);
+
+  const totalDogsInSession = savedPets.length + 1;
+
   return (
     <div>
       <StepHeader
-        eyebrow="Step 7 · Agreement"
-        title="Service Agreement & Signature"
-        subtitle="Review our pet care policies and provide your digital signature to confirm your booking."
+        eyebrow="Paso 8 · Disclaimer & Confirmación"
+        title="Service Agreement & Final Step"
+        subtitle="Review our transparent care policies. Below you can decide to finish your booking or add another dog to this session!"
       />
 
-      <div className="mt-4 space-y-3.5">
-        {/* Disclaimer Text Box matching user image exactly */}
-        <div className="rounded-2xl border border-[#FAF0E2]/10 bg-[#161811] p-3.5 text-xs text-[#A4AA93] space-y-2.5 leading-relaxed">
+      <div className="mt-4 space-y-4">
+        {/* Service Agreement Box */}
+        <div className="rounded-2xl border border-[#FAF0E2]/10 bg-[#161811] p-3.5 text-xs text-[#A4AA93] space-y-2 leading-relaxed">
           <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
-            Service Agreement
+            Service Agreement & Care Policies
           </h4>
           <p className="font-medium text-[#FAF0E2]/90">
-            Pets are accepted for grooming only under the following circumstances....
+            Pets are accepted for grooming under our professional care policies:
           </p>
           <p>
-            The pet is fit and healthy, Grooming which takes place on an elderly or infirm pet will be at the owner's risk. Grooming may expose pre-existing health\skin conditions for which Souva Mobile Pet Grooming cannot be held liable.
+            • Pet is fit and healthy. Senior grooming takes place with specialized gentle handling.
           </p>
           <p>
-            The pet's rabies vaccine is up to date (as required by law) unless otherwise discussed.
+            • Rabies vaccination compliance confirmed.
           </p>
           <p>
-            In the event of an emergency, in your absence, you authorize Souva to contact the nearest Veterinarian and authorize the Vet to treat the pet as necessary at your expense.
-          </p>
-          <p>
-            Payment is to be made at the time of service. Payment can be cash, check or credit card zelle.
+            • Payment collected upon doorstep completion: Cash, Check, Card or Zelle.
           </p>
         </div>
 
-        {/* Digital Signature Pad */}
-        <SignaturePad
-          value={data.signature}
-          onChange={(sig) => setData({ ...data, signature: sig })}
-          onClear={() => setData({ ...data, signature: null })}
-        />
-
-        {/* Consent Checkbox */}
-        <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-[#1B1E15] border border-[#FAF0E2]/10 cursor-pointer text-xs select-none">
+        {/* Agreement Checkbox */}
+        <label className="flex items-start gap-2.5 p-3 rounded-xl bg-[#1B1E15] border border-[#FAF0E2]/10 cursor-pointer text-xs select-none">
           <input
             type="checkbox"
             checked={data.agreedToTerms}
             onChange={(e) => setData({ ...data, agreedToTerms: e.target.checked })}
             className="mt-0.5 accent-[#AA8B63] h-4 w-4 rounded cursor-pointer shrink-0"
           />
-          <span className="text-[#A4AA93] leading-snug">
-            I confirm that I am authorized to sign on behalf of{" "}
-            <strong className="text-[#FAF0E2]">{data.petName || "my pet"}</strong>, agree to all terms of the Service Agreement, and approve doorstep grooming.
+          <span className="text-[#FAF0E2]/90 leading-snug">
+            Acepto los Términos del Servicio y autorizo el acicalado móvil para{" "}
+            <strong className="text-[#AA8B63]">{data.petName || "mi perro"}</strong>.
           </span>
         </label>
+
+        {/* Optional Signature Drawer */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowOptionalSignature(!showOptionalSignature)}
+            className="text-[11px] font-mono text-[#AA8B63] hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            <span>{showOptionalSignature ? "Hide" : "Add"} digital handwritten signature (Optional)</span>
+            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showOptionalSignature && "rotate-180")} />
+          </button>
+
+          {showOptionalSignature && (
+            <div className="mt-2.5 p-3 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/10 animate-in fade-in duration-200">
+              <SignaturePad
+                value={data.signature}
+                onChange={(sig) => setData({ ...data, signature: sig })}
+                onClear={() => setData({ ...data, signature: null })}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* ── THE MULTI-DOG DECISION PROMPT CARD (AS REQUESTED) ────── */}
+        <div className="p-4 rounded-3xl bg-gradient-to-br from-[#202517] to-[#14160E] border-2 border-[#AA8B63]/60 shadow-xl space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <h4 className="font-display font-bold text-base text-[#FAF0E2]">
+              ¿Finalizaste o tienes otro perro para esta misma cita?
+            </h4>
+          </div>
+
+          <p className="text-xs text-[#A4AA93] leading-relaxed">
+            Puedes agregar otro perro a la misma visita de nuestra van solar. Si agregas un segundo perro,{" "}
+            <strong className="text-emerald-300">¡recibirás 20% de descuento en el segundo perro!</strong>
+          </p>
+
+          <div className="grid sm:grid-cols-2 gap-2.5 pt-1">
+            {/* BUTTON 1: AGREGAR OTRO PERRO */}
+            <button
+              type="button"
+              onClick={onAddAnotherDog}
+              className="py-3 px-3.5 rounded-2xl bg-[#252C1D] border border-[#AA8B63]/70 hover:bg-[#AA8B63]/30 text-[#FAF0E2] text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md group"
+            >
+              <PlusCircle className="h-4 w-4 text-[#AA8B63] group-hover:scale-110 transition-transform" />
+              <span>➕ Agregar Otro Perro (+20% OFF)</span>
+            </button>
+
+            {/* BUTTON 2: FINALIZAR RESERVA */}
+            <button
+              type="button"
+              disabled={isSubmitting || !data.agreedToTerms}
+              onClick={onFinalize}
+              className="py-3 px-3.5 rounded-2xl bg-[#AA8B63] text-[#161811] hover:bg-[#C4A67E] text-xs font-mono font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <span>Guardando en Airtable...</span>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>
+                    ✓ Finalizar ({totalDogsInSession} perro{totalDogsInSession > 1 ? "s" : ""}) · ${grandTotal}
+                  </span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1762,9 +2233,7 @@ function SignaturePad({
 
     if (value) {
       const img = new Image();
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, rect.width, rect.height);
-      };
+      img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height);
       img.src = value;
     }
   }, [value]);
@@ -1779,10 +2248,7 @@ function SignaturePad({
     const rect = canvas.getBoundingClientRect();
     if ("touches" in e) {
       const touch = e.touches[0];
-      return {
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top,
-      };
+      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
     }
     return {
       x: (e as React.MouseEvent).clientX - rect.left,
@@ -1835,7 +2301,7 @@ function SignaturePad({
     <div>
       <div className="flex items-center justify-between mb-1.5">
         <label className="text-xs font-bold text-[#FAF0E2] uppercase tracking-wider font-mono">
-          Signature:
+          Handwritten Signature:
         </label>
         <button
           type="button"
@@ -1846,10 +2312,10 @@ function SignaturePad({
         </button>
       </div>
 
-      <div className="relative w-full h-28 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/20 overflow-hidden flex items-center justify-center shadow-inner">
+      <div className="relative w-full h-24 rounded-xl bg-[#14160F] border border-[#FAF0E2]/20 overflow-hidden flex items-center justify-center shadow-inner">
         {!hasStroke && !value && (
-          <div className="absolute pointer-events-none select-none text-[#A4AA93]/40 font-sans text-sm font-medium">
-            Sign here
+          <div className="absolute pointer-events-none select-none text-[#A4AA93]/40 font-sans text-xs font-medium">
+            Sign here with finger or mouse
           </div>
         )}
         <canvas
@@ -1868,34 +2334,66 @@ function SignaturePad({
   );
 }
 
-/* -------------------- FINAL COMPLETED VIEW: BOOKING SUMMARY (NO ETA) -------------------- */
+/* -------------------- FINAL COMPLETED VIEW: BOOKING SUMMARY -------------------- */
 function BookingSummaryView({
   data,
+  savedPets,
   invoicePdf,
   emailNotice,
   onReset,
 }: {
   data: GroomingFlowState;
+  savedPets: CompletedPet[];
   invoicePdf: { base64: string; fileName: string } | null;
   emailNotice: { type: "success" | "warning"; message: string } | null;
   onReset: () => void;
 }) {
   const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId);
-  const baseServicePrice = selectedPkg?.prices[data.size as PetSize] || 0;
-  const addonsCost = data.addons.reduce((sum, addId) => {
+  const currentBasePrice = selectedPkg?.prices[data.size as PetSize] || 0;
+  const currentAddonsCost = data.addons.reduce((sum, addId) => {
     const item = SPA_UPGRADES.find((u) => u.id === addId);
     if (!item) return sum;
     return sum + (parseInt(item.price.replace(/[^0-9]/g, ""), 10) || 0);
   }, 0);
-  const total = baseServicePrice + addonsCost;
-  const sizeObj = SIZE_GUIDE.find((s) => s.id === data.size);
+
+  const isSecondDog = savedPets.length === 1;
+  const currentDogDiscount = isSecondDog ? Math.round(currentBasePrice * 0.2) : 0;
+  const currentDogTotal = currentBasePrice - currentDogDiscount + currentAddonsCost;
+
+  const allPetsList: CompletedPet[] = [...savedPets];
+  if (data.petName.trim() && data.packageId) {
+    allPetsList.push({
+      id: "active-pet",
+      petName: data.petName,
+      size: data.size,
+      breed: data.breed || "Mix",
+      petAge: data.petAge,
+      gender: data.gender,
+      packageId: data.packageId,
+      packageName: selectedPkg?.name || "Signature Grooming",
+      addons: data.addons,
+      petCondition: data.petCondition,
+      temperament: data.temperament,
+      vaccinated: data.vaccinated,
+      medicalConditions: data.medicalConditions,
+      groomerNotes: data.groomerNotes,
+      petPhoto: data.petPhoto,
+      basePrice: currentBasePrice,
+      addonsCost: currentAddonsCost,
+      discount: currentDogDiscount,
+      totalPrice: currentDogTotal,
+    });
+  }
+
+  const grandTotal = allPetsList.reduce((sum, p) => sum + p.totalPrice, 0);
+  const totalSavings = allPetsList.reduce((sum, p) => sum + p.discount, 0);
   const resolvedOwner = data.ownerName || `${data.firstName} ${data.lastName}`.trim();
 
   const handleDownloadInvoice = () => {
     if (!invoicePdf?.base64) return;
     const link = document.createElement("a");
     link.href = `data:application/pdf;base64,${invoicePdf.base64}`;
-    link.download = invoicePdf.fileName || `SOUVA-Invoice-${data.petName || "Pet"}.pdf`;
+    link.download = invoicePdf.fileName || `SOUVA-Invoice.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1907,37 +2405,33 @@ function BookingSummaryView({
       : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.address)}`;
 
   const waNumber = "18509600034";
+  const petsSummaryText = allPetsList
+    .map(
+      (p, i) =>
+        `• Dog #${i + 1}: ${p.petName} (${p.breed}, ${p.size.toUpperCase()}) - ${p.packageName} ($${p.totalPrice})`
+    )
+    .join("\n");
+
   const message = `✨ VIP BOOKING CONFIRMED - SOUVA MOBILE PET GROOMING ✨
 
 📅 SCHEDULED APPOINTMENT:
 • Date: ${data.scheduledDate}
 • Time Window: ${data.scheduledTime}
+• Dogs Booked: ${allPetsList.length}
 
-🐾 PET COMPANION:
-• Name: ${data.petName}
-• Breed: ${data.breed}
-• Size: ${data.size.toUpperCase()} (${sizeObj?.weight})
-• Age: ${data.petAge}
-• Gender: ${data.gender.toUpperCase()}
-• Condition: ${data.petCondition}
-• Rabies Vaccine: ${data.vaccinated === "yes" ? "Up to date" : "In Progress"}
-• Medical Notes: ${data.medicalConditions}
-• Groomer Notes: ${data.groomerNotes || "None"}
+🐾 PET COMPANIONS:
+${petsSummaryText}
+${totalSavings > 0 ? `\n🎉 Multi-Dog Discount Applied: -$${totalSavings}.00\n` : ""}
+💰 ESTIMATED TOTAL DUE: $${grandTotal}
 
-✂️ SERVICE & PRICING:
-• Package: ${selectedPkg?.name || "Signature Grooming"} ($${baseServicePrice})
-• Spa Upgrades: ${data.addons.length > 0 ? data.addons.join(", ") : "None"} (+$${addonsCost})
-• Estimated Total: $${total}
-
-📍 DOORSTEP LOCATION:
+📍 DOORSTEP DESTINATION:
 • Parent: ${resolvedOwner}
 • Phone: ${data.phone}
 • Email: ${data.email}
-• Address: ${data.address}
-• Parking: ${data.parkingNotes || "Driveway / Curbside"}
+• Address: ${data.address} (ZIP ${data.zipCode})
+• Parking: ${data.parkingNotes || "Driveway"}
 
-📝 SERVICE AGREEMENT:
-• Digitally Signed & Accepted by ${resolvedOwner}`;
+📝 SOUVA SERVICE AGREEMENT ACCEPTED`;
 
   const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
 
@@ -1945,18 +2439,18 @@ function BookingSummaryView({
     <div className="py-2 text-left space-y-4">
       {/* Header Banner */}
       <div className="text-center pb-3 border-b border-[#FAF0E2]/10">
-        <div className="relative mx-auto h-18 w-18 flex items-center justify-center mb-2">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#AA8B63]/30 to-[#59593E]/30 blur-xl" />
+        <div className="relative mx-auto h-16 w-16 flex items-center justify-center mb-2">
+          <div className="absolute inset-0 rounded-full bg-[#AA8B63]/25 blur-xl" />
           <img
             src="/assets/souva-badge-circle-transparent.png"
             alt="SOUVA Badge"
-            className="h-14 w-14 object-contain rounded-full shadow-[0_0_20px_rgba(170,139,99,0.5)] relative z-10"
+            className="h-12 w-12 object-contain rounded-full shadow-[0_0_20px_rgba(170,139,99,0.5)] relative z-10"
           />
         </div>
 
-        <div className="text-[11px] font-bold uppercase tracking-widest text-[#AA8B63] flex items-center justify-center gap-1.5 font-mono">
-          <CheckCircle2 className="h-3.5 w-3.5 text-[#AA8B63]" />
-          <span>Doorstep Appointment Confirmed</span>
+        <div className="text-[11px] font-bold uppercase tracking-widest text-emerald-400 flex items-center justify-center gap-1.5 font-mono">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          <span>Doorstep Appointment Confirmed & Saved in Airtable!</span>
         </div>
 
         <h3 className="font-display text-2xl sm:text-3xl font-bold mt-1 tracking-tight text-[#FAF0E2]">
@@ -1966,31 +2460,17 @@ function BookingSummaryView({
           </span>
         </h3>
         <p className="text-xs text-[#A4AA93] mt-1 font-mono">
-          30-Minute Arrival Window · Solar Van Dispatched Directly to Your Doorstep
+          30-Minute Arrival Window · Luxury Solar Van Dispatched Directly to Doorstep
         </p>
       </div>
 
       {/* Email Delivery Notification Banner */}
       {emailNotice && (
-        <div
-          className={cn(
-            "p-3 rounded-2xl border text-xs flex items-start gap-2.5",
-            emailNotice.type === "success"
-              ? "bg-[#1B2317] border-[#AA8B63]/60 text-[#FAF0E2]"
-              : "bg-[#252219] border-[#E5A86D]/50 text-[#FAF0E2]"
-          )}
-        >
-          <Mail
-            className={cn(
-              "h-4 w-4 shrink-0 mt-0.5",
-              emailNotice.type === "success" ? "text-[#AA8B63]" : "text-[#E5A86D]"
-            )}
-          />
+        <div className="p-3 rounded-2xl border text-xs flex items-start gap-2.5 bg-[#1B2317] border-[#AA8B63]/60 text-[#FAF0E2]">
+          <Mail className="h-4 w-4 shrink-0 mt-0.5 text-[#AA8B63]" />
           <div className="space-y-0.5 min-w-0 flex-1">
             <span className="font-bold block text-[11px] font-mono uppercase tracking-wider">
-              {emailNotice.type === "success"
-                ? "Confirmation Email Sent"
-                : "Email Notification Notice"}
+              Confirmation Notice
             </span>
             <p className="text-[11px] text-[#A4AA93] leading-relaxed">
               {emailNotice.message}
@@ -1999,195 +2479,62 @@ function BookingSummaryView({
         </div>
       )}
 
-      {/* Grid of details */}
-      <div className="grid sm:grid-cols-2 gap-3 text-xs">
-        {/* Dog Card */}
-        <div className="p-3.5 rounded-2xl bg-[#1B1E15] border border-[#FAF0E2]/10 space-y-2">
-          <div className="flex items-center justify-between pb-1.5 border-b border-[#FAF0E2]/10">
-            <span className="font-bold text-[#AA8B63] uppercase tracking-wider text-[10px] font-mono flex items-center gap-1.5">
-              <Heart className="h-3 w-3" />
-              <span>Pet Companion</span>
-            </span>
-            <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded-md bg-[#25281D] text-[#FAF0E2]">
-              {data.gender} · {sizeObj?.label}
-            </span>
-          </div>
+      {/* Booked Pets Summary */}
+      <div className="space-y-2">
+        <span className="text-[10px] font-mono text-[#AA8B63] uppercase tracking-wider font-bold block">
+          Perros Agendados en Esta Sesión ({allPetsList.length}):
+        </span>
 
-          <div className="flex items-center gap-3">
-            {data.petPhoto ? (
-              <img
-                src={data.petPhoto}
-                alt={data.petName}
-                className="h-12 w-12 object-cover rounded-xl border border-[#AA8B63]/40 shrink-0"
-              />
-            ) : (
-              <div className="h-12 w-12 rounded-xl bg-[#25281D] border border-[#FAF0E2]/10 flex items-center justify-center text-lg shrink-0">
-                🐾
+        <div className="grid sm:grid-cols-2 gap-2.5">
+          {allPetsList.map((pet, idx) => (
+            <div key={pet.id} className="p-3 rounded-2xl bg-[#1B1E15] border border-[#FAF0E2]/10 space-y-1.5">
+              <div className="flex items-center justify-between pb-1 border-b border-[#FAF0E2]/10">
+                <span className="font-bold text-xs text-[#FAF0E2] flex items-center gap-1.5">
+                  <Heart className="h-3.5 w-3.5 text-[#AA8B63]" />
+                  <span>#{idx + 1} {pet.petName}</span>
+                </span>
+                <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#25281D] text-[#AA8B63] font-bold">
+                  {pet.size}
+                </span>
               </div>
-            )}
-            <div className="min-w-0">
-              <h4 className="font-display font-bold text-base text-[#FAF0E2] truncate">
-                {data.petName}
-              </h4>
-              <p className="text-[11px] text-[#A4AA93] truncate">{data.breed}</p>
-              <p className="text-[10px] text-[#AA8B63] font-mono">{data.petAge}</p>
+              <div className="text-[11px] text-[#A4AA93]">
+                <div>{pet.breed} · {pet.petAge}</div>
+                <div className="text-[#FAF0E2] font-semibold mt-0.5">{pet.packageName}</div>
+                {pet.discount > 0 && (
+                  <div className="text-emerald-400 font-mono text-[10px]">
+                    20% Multi-Dog Discount: -${pet.discount}
+                  </div>
+                )}
+              </div>
+              <div className="text-right font-mono font-bold text-xs text-[#AA8B63]">
+                ${pet.totalPrice}
+              </div>
             </div>
-          </div>
-
-          <div className="pt-1.5 space-y-1 text-[11px] border-t border-[#FAF0E2]/5">
-            <div className="flex justify-between">
-              <span className="text-[#A4AA93]">Condition:</span>
-              <span className="text-[#FAF0E2] font-medium">{data.petCondition}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#A4AA93]">Vaccines:</span>
-              <span className="text-[#FAF0E2] font-medium">{data.vaccinated === "yes" ? "Up to Date (Rabies)" : "In Progress"}</span>
-            </div>
-            {data.medicalConditions && data.medicalConditions !== "None / Healthy" && (
-              <div className="flex justify-between">
-                <span className="text-[#A4AA93]">Medical:</span>
-                <span className="text-[#FAF0E2] font-medium text-right">{data.medicalConditions}</span>
-              </div>
-            )}
-            {data.groomerNotes && (
-              <div className="pt-1 border-t border-[#FAF0E2]/5 text-[10.5px]">
-                <span className="text-[#AA8B63] block font-mono">Groomer Notes:</span>
-                <span className="text-[#FAF0E2]/80 italic">{data.groomerNotes}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Client & Doorstep Card */}
-        <div className="p-3.5 rounded-2xl bg-[#1B1E15] border border-[#FAF0E2]/10 space-y-2 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-1.5 border-b border-[#FAF0E2]/10 mb-2">
-              <span className="font-bold text-[#AA8B63] uppercase tracking-wider text-[10px] font-mono flex items-center gap-1.5">
-                <MapPin className="h-3 w-3" />
-                <span>Doorstep Location & Contact</span>
-              </span>
-            </div>
-
-            <div className="space-y-1.5 text-[11px]">
-              <div>
-                <span className="text-[10px] text-[#A4AA93] font-mono uppercase block">Parent Name</span>
-                <span className="font-bold text-[#FAF0E2]">{resolvedOwner}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-[#A4AA93] font-mono uppercase block">Contact</span>
-                <span className="text-[#FAF0E2]">{data.phone} · {data.email}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-[#A4AA93] font-mono uppercase block">Doorstep Address</span>
-                <span className="text-[#FAF0E2] font-medium block">{data.address}</span>
-              </div>
-              {data.parkingNotes && (
-                <div className="pt-1 border-t border-[#FAF0E2]/5">
-                  <span className="text-[10px] text-[#AA8B63] font-mono uppercase flex items-center gap-1">
-                    <Car className="h-3 w-3" />
-                    <span>Parking Instructions</span>
-                  </span>
-                  <span className="text-[#FAF0E2]/90 block">{data.parkingNotes}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <a
-            href={mapsLink}
-            target="_blank"
-            rel="noreferrer"
-            className="text-[10.5px] font-mono text-[#AA8B63] hover:text-[#FAF0E2] underline underline-offset-2 flex items-center gap-1 mt-2"
-          >
-            <span>View Doorstep Pin on Google Maps</span>
-            <ArrowRight className="h-3 w-3" />
-          </a>
+          ))}
         </div>
       </div>
 
-      {/* Services & Pricing Receipt */}
-      <div className="p-4 rounded-2xl bg-[#1B1E15] border border-[#FAF0E2]/10 text-xs space-y-2">
-        <div className="flex items-center justify-between pb-2 border-b border-[#FAF0E2]/10">
-          <span className="font-bold text-[#AA8B63] uppercase tracking-wider text-[10px] font-mono flex items-center gap-1.5">
-            <Scissors className="h-3 w-3" />
-            <span>Service & Price Breakdown</span>
-          </span>
-          <span className="text-[10px] font-mono text-[#A4AA93]">
-            Doorstep Grooming Rate
-          </span>
+      {/* Client & Destination Card */}
+      <div className="p-3.5 rounded-2xl bg-[#1B1E15] border border-[#FAF0E2]/10 space-y-1 text-xs">
+        <div className="text-[10px] font-mono uppercase text-[#AA8B63] font-bold flex items-center gap-1">
+          <MapPin className="h-3.5 w-3.5" />
+          <span>Doorstep Destination:</span>
         </div>
-
-        <div className="flex justify-between items-center py-1">
-          <div>
-            <span className="font-bold text-[#FAF0E2] text-sm block">
-              {selectedPkg?.name || "Signature Grooming"}
-            </span>
-            <span className="text-[10px] text-[#A4AA93]">
-              Custom tailored for {sizeObj?.label} ({sizeObj?.weight})
-            </span>
-          </div>
-          <span className="font-mono font-extrabold text-sm text-[#FAF0E2]">
-            ${baseServicePrice}
-          </span>
-        </div>
-
-        {data.addons.length > 0 && (
-          <div className="pt-2 border-t border-[#FAF0E2]/5 space-y-1">
-            <span className="text-[10px] font-mono text-[#A4AA93] uppercase block">
-              Selected Spa Upgrades:
-            </span>
-            {data.addons.map((addId) => {
-              const upgrade = SPA_UPGRADES.find((u) => u.id === addId);
-              if (!upgrade) return null;
-              return (
-                <div key={addId} className="flex justify-between text-[11px]">
-                  <span className="text-[#A4AA93]">+{upgrade.name}</span>
-                  <span className="font-mono text-[#FAF0E2] font-semibold">{upgrade.price}</span>
-                </div>
-              );
-            })}
-          </div>
+        <div className="font-bold text-[#FAF0E2]">{resolvedOwner} · {data.phone}</div>
+        <div className="text-[#A4AA93]">{data.address} (ZIP {data.zipCode})</div>
+        {data.parkingNotes && (
+          <div className="text-[10.5px] text-[#FAF0E2]/80 pt-1">Parking: {data.parkingNotes}</div>
         )}
-
-        <div className="pt-2.5 mt-2 border-t border-[#FAF0E2]/10 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-mono uppercase text-[#A4AA93] block">
-              Estimated Total Due
-            </span>
-            <span className="text-[10px] text-[#AA8B63]">
-              Payment due at service: Cash, Check, Credit Card or Zelle
-            </span>
-          </div>
-          <span className="font-display font-extrabold text-2xl text-[#AA8B63]">
-            ${total}
-          </span>
-        </div>
       </div>
 
-      {/* Signature & Agreement Card */}
-      {data.signature && (
-        <div className="p-3.5 rounded-2xl bg-[#1B1E15] border border-[#FAF0E2]/10 flex items-center justify-between gap-4">
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-mono uppercase text-[#AA8B63] font-bold block flex items-center gap-1">
-              <FileCheck className="h-3.5 w-3.5" />
-              <span>Service Agreement Verified</span>
-            </span>
-            <span className="text-xs text-[#FAF0E2] font-semibold block">
-              Digitally Signed by {resolvedOwner}
-            </span>
-            <span className="text-[9.5px] text-[#A4AA93]">
-              Accepted on {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-            </span>
-          </div>
-          <div className="h-14 w-28 rounded-xl bg-[#14160F] border border-[#FAF0E2]/15 p-1 flex items-center justify-center shrink-0">
-            <img
-              src={data.signature}
-              alt="Client signature"
-              className="max-h-full max-w-full object-contain filter invert opacity-90"
-            />
-          </div>
+      {/* Total Due */}
+      <div className="p-4 rounded-2xl bg-[#14160F] border border-[#AA8B63]/40 flex items-center justify-between">
+        <div>
+          <span className="text-[10px] font-mono uppercase text-[#A4AA93] block">Total Due at Service</span>
+          <span className="text-[10.5px] text-[#AA8B63]">Cash, Check, Card or Zelle</span>
         </div>
-      )}
+        <span className="font-display font-extrabold text-2xl text-[#AA8B63]">${grandTotal}</span>
+      </div>
 
       {/* Action Buttons */}
       <div className="pt-2 space-y-2.5">
@@ -2212,7 +2559,7 @@ function BookingSummaryView({
           </button>
         ) : (
           <div className="py-2.5 px-3 rounded-xl bg-[#14160F] border border-[#FAF0E2]/10 text-center text-[10.5px] font-mono text-[#A4AA93]">
-            <span>📄 Official PDF Invoice & Signed Agreement emailed to {data.email || "you"}</span>
+            <span>📄 Official PDF Invoice emailed to {data.email || "your email address"}</span>
           </div>
         )}
 

@@ -18,6 +18,9 @@ import {
   Zap,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
+import { Header } from "@/components/Header";
+import { AboutSection } from "@/components/AboutSection";
+import { CoverageSection } from "@/components/CoverageSection";
 import { InteractiveTile } from "@/components/InteractiveTile";
 import { GroomingFlow } from "@/components/GroomingFlow";
 import { StepCard } from "@/components/StepCard";
@@ -265,7 +268,7 @@ function AppContent() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col relative z-10">
         {/* HERO SECTION WITH THE COCKPIT MODAL */}
-        <section className="relative isolate px-4 py-8 md:py-12 md:px-8 flex-1 flex flex-col justify-center w-full overflow-hidden">
+        <section id="book" className="relative isolate px-4 py-8 md:py-12 md:px-8 flex-1 flex flex-col justify-center w-full overflow-hidden">
           <div className="hero-spa-ambient" aria-hidden="true" />
           <div className="hero-gold-glow" aria-hidden="true" />
 
@@ -295,7 +298,7 @@ function AppContent() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#AA8B63]" />
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FAF0E2]" />
                     </span>
-                    <span>San Francisco Bay Area and select East Bay Area CA</span>
+                    <span>San Francisco Bay Area & Peninsula CA</span>
                   </div>
 
                   {/* Main Display Headline */}
@@ -624,6 +627,12 @@ function AppContent() {
           </div>
         </section>
 
+        {/* QUIÉNES SOMOS SECTION */}
+        <AboutSection onBookClick={scrollToHero} />
+
+        {/* ÁREAS QUE ATENDEMOS SECTION */}
+        <CoverageSection onBookClick={scrollToHero} />
+
         {/* BEFORE & AFTER TRANSFORMATION SHOWCASE */}
         <section id="before-after" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 relative overflow-hidden">
           <div className="max-w-5xl mx-auto text-center">
@@ -804,50 +813,6 @@ function AppContent() {
   );
 }
 
-/* -------------------- HEADER COMPONENT -------------------- */
-function Header({ onBookClick }: { onBookClick: () => void }) {
-  return (
-    <header className="app-header sticky top-0 z-40 flex items-center justify-between px-4 py-3 md:px-8">
-      <div className="flex items-center gap-3">
-        <SouvaLogo />
-      </div>
-
-      <nav className="hidden lg:flex items-center gap-6 text-xs font-medium text-[#FAF0E2]/80">
-        <a href="#services" className="hover:text-[#AA8B63] transition-colors">
-          Services & Pricing
-        </a>
-        <a href="#before-after" className="hover:text-[#AA8B63] transition-colors">
-          Before & After
-        </a>
-        <a href="#gallery" className="hover:text-[#AA8B63] transition-colors">
-          The Solar Van
-        </a>
-        <a href="#reviews" className="hover:text-[#AA8B63] transition-colors">
-          Reviews
-        </a>
-      </nav>
-
-      <div className="flex items-center gap-3">
-        <a
-          href="tel:+18509600034"
-          className="hidden sm:inline-flex items-center gap-2 rounded-full border border-[#FAF0E2]/15 bg-[#25281D] px-3.5 py-1.5 text-xs font-mono font-bold text-[#FAF0E2] hover:border-[#AA8B63]/60 transition-colors"
-        >
-          <Phone className="h-3.5 w-3.5 text-[#AA8B63]" />
-          <span>+1 (850) 960-0034</span>
-        </a>
-
-        <button
-          type="button"
-          onClick={onBookClick}
-          className="px-4 py-2 text-xs font-bold font-mono tracking-wide rounded-full bg-[#AA8B63] text-[#161811] hover:bg-[#C4A67E] transition-colors cursor-pointer shadow-md"
-        >
-          BOOK NOW
-        </button>
-      </div>
-    </header>
-  );
-}
-
 /* -------------------- FOOTER COMPONENT -------------------- */
 function Footer({ onOpenAdmin }: { onOpenAdmin: () => void }) {
   return (
@@ -897,7 +862,7 @@ function Footer({ onOpenAdmin }: { onOpenAdmin: () => void }) {
             <span className="text-[9.5px] uppercase tracking-wider text-[#AA8B63] font-bold">
               SERVICE AREA
             </span>
-            <span className="text-[#FAF0E2]">San Francisco · Oakland · Berkeley · Walnut Creek · San Ramon</span>
+            <span className="text-[#FAF0E2]">San Francisco (Select) · Peninsula · Half Moon Bay</span>
           </div>
 
           <div className="flex items-center gap-3 pt-2 sm:pt-0">

@@ -106,6 +106,60 @@ export default async function handler(req: any, res: any) {
     const cleanPetName = petName.replace(/[^a-zA-Z0-9]/g, "-");
     const pdfFileName = `SOUVA-Invoice-${cleanPetName}-${Date.now().toString().slice(-4)}.pdf`;
 
+    // 1.5 Save record to Airtable on Vercel Backend if credentials configured
+    const airtableKey = (process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TOKEN || "").trim();
+    const airtableBaseId = (process.env.AIRTABLE_BASE_ID || "apptb52dkVCyq2rPA").trim();
+    const airtableTable = (process.env.AIRTABLE_TABLE_NAME || "Bookings").trim();
+
+    if (airtableKey) {
+      try {
+        await fetch(`https://api.airtable.com/v0/${airtableBaseId}/${airtableTable}`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${airtableKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            records: [
+              {
+                fields: {
+                  "Booking ID": booking.bookingId || `SOU-${Math.floor(1000 + Math.random() * 9000)}`,
+                  "Status": "Pendiente",
+                  "Customer Name": ownerName,
+                  "Phone": phone,
+                  "Email": email,
+                  "Doorstep Address": address,
+                  "ZIP Code": booking.zipCode || "",
+                  "Service Zone": booking.serviceZone || "San Francisco – Select",
+                  "Parking Notes": parkingNotes || "Driveway available",
+                  "Scheduled Time Window": scheduledTime,
+                  "Number of Dogs": Number(booking.dogCount) || 1,
+                  "Dog Names": petName,
+                  "Breeds": breed,
+                  "Dog Sizes": [sizeLabel ? `${sizeLabel} (${sizeWeight})` : "Small (Up to 15 lb)"],
+                  "Dog Ages": petAge,
+                  "Genders": gender === "male" ? "Macho" : "Hembra",
+                  "Rabies Vaccine": vaccinated === "yes" ? "Al día (Up to Date)" : "En trámite (In Progress)",
+                  "Temperament": ["Amigable"],
+                  "Medical Conditions": medicalConditions || "None / Healthy",
+                  "Groomer Notes": groomerNotes || "Doorstep service",
+                  "Service Package": packageName || "Signature Grooming",
+                  "Base Price": Number(basePrice) || 0,
+                  "Addons Total": Number(booking.addonsCost) || 0,
+                  "Discount 20% 2nd Dog": Number(booking.multiDogDiscount) || 0,
+                  "Estimated Total": Number(estimatedTotal) || 0,
+                  "Payment Status": "Pendiente en Puerta",
+                  "Agreement Accepted": true,
+                },
+              },
+            ],
+          }),
+        });
+      } catch (airtableErr) {
+        console.warn("Airtable backend sync error:", airtableErr);
+      }
+    }
+
     if (!apiKey) {
       console.warn("RESEND_API_KEY is not configured in Vercel environment variables.");
       return res.status(200).json({
