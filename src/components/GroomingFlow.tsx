@@ -122,11 +122,16 @@ export interface AvailableDate {
 export function getAvailableDates(): AvailableDate[] {
   const dates: AvailableDate[] = [];
   const now = new Date();
-  for (let i = 0; i < 14; i++) {
+  
+  // Las reservas requieren al menos 24 horas de anticipación
+  // Si la hora actual es >= 17:00 (5 PM), se inicia pasado mañana para garantizar las 24h
+  const startOffset = now.getHours() >= 17 ? 2 : 1;
+
+  for (let i = startOffset; i < startOffset + 14; i++) {
     const d = new Date(now);
     d.setDate(now.getDate() + i);
     const dayOfWeek = d.getDay();
-    const dayLabel = i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-US", { weekday: "short" });
+    const dayLabel = i === 1 ? "Tomorrow" : d.toLocaleDateString("en-US", { weekday: "short" });
     const month = d.toLocaleDateString("en-US", { month: "short" });
     const dayNum = d.getDate();
     const fullDate = `${dayLabel}, ${month} ${dayNum}`;
@@ -273,7 +278,7 @@ export function GroomingFlow({
   onStatus: (s: { armed: boolean; dispatched: boolean }) => void;
 }) {
   const availableDates = useMemo(() => getAvailableDates(), []);
-  const initialDate = availableDates[1] || availableDates[0];
+  const initialDate = availableDates[0];
   const initialSlots = SCHEDULE_BY_DAY[initialDate?.dayOfWeek ?? 1] || [];
 
   const flowTopRef = useRef<HTMLDivElement>(null);
@@ -2029,6 +2034,14 @@ function StepBookingCalendar({
       />
 
       <div className="mt-4 space-y-4">
+        {/* 24-Hour Advance Booking Policy Notice */}
+        <div className="p-3 rounded-2xl bg-[#1C2116] border border-[#AA8B63]/40 flex items-center gap-2.5 text-xs shadow-inner">
+          <Clock className="h-4 w-4 text-[#AA8B63] shrink-0" />
+          <div className="text-[11px] text-[#FAF0E2] leading-snug">
+            <strong className="text-[#AA8B63]">Política de 24 horas de anticipación:</strong> Para garantizar la preparación energética de nuestra van solar y la ruta, las reservas se agendan con al menos 24 horas previas.
+          </div>
+        </div>
+
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-2 flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5 text-[#AA8B63]" />
