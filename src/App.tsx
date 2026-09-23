@@ -631,16 +631,16 @@ function AppContent() {
 
         {/* BEFORE & AFTER TRANSFORMATION SHOWCASE */}
         <section id="before-after" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 relative overflow-hidden">
-          <div className="max-w-5xl mx-auto text-center">
+          <div className="max-w-7xl mx-auto text-center">
             <span className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase block mb-2">
               {"// THE SOUVA EXPERIENCE //"}
             </span>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#FAF0E2]">
               Before & After Transformations
             </h2>
-            <p className="mt-3 text-[#A4AA93] text-sm md:text-base max-w-xl mx-auto leading-relaxed mb-8">
+            <p className="mt-3 text-[#A4AA93] text-sm md:text-base max-w-2xl mx-auto leading-relaxed mb-10">
               Witness the visual transformation from dull, tangled fur to a brilliant, silky,
-              delightfully scented finish.
+              delightfully scented finish. Cuidado 1-a-1 sin estrés ni jaulas.
             </p>
 
             <BeforeAfterSlider />
