@@ -86,21 +86,24 @@ export function AboutSection({ onBookClick }: { onBookClick: () => void }) {
               </div>
 
               <div className="p-4 rounded-2xl bg-[#1D2116] border border-[#FAF0E2]/10 relative group">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-3">
                   <div className="h-8 w-8 rounded-xl bg-[#252A1C] text-[#AA8B63] flex items-center justify-center">
                     <Sparkles className="h-4 w-4" />
                   </div>
-                  <img
-                    src="/assets/shampoo-logo-white.png"
-                    alt="Official Shampoo Brand Partner"
-                    className="h-8 w-auto object-contain opacity-85 group-hover:opacity-100 transition-opacity filter drop-shadow-[0_0_6px_rgba(255,255,255,0.35)]"
-                  />
+                  <div className="px-2.5 py-1 rounded-xl bg-[#14160F] border border-[#AA8B63]/30 flex items-center gap-1.5 shadow-sm">
+                    <img
+                      src="/assets/shampoo-logo-white.png"
+                      alt="Hydra by Pet Society - Marca Oficial de Shampoo"
+                      className="h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]"
+                    />
+                    <span className="text-[10px] font-mono font-bold text-[#FAF0E2] tracking-wide">HYDRA®</span>
+                  </div>
                 </div>
                 <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
-                  Cosmética Botánica
+                  Cosmética Botánica Hydra®
                 </h4>
                 <p className="text-[11px] text-[#A4AA93] mt-1 leading-relaxed">
-                  Champús de avena coloidal, mascarillas de arándano y bálsamos de karité sin sulfatos ni parabenos. Formulado con nuestra marca oficial de spa canino.
+                  Champús de avena coloidal, mascarillas y acondicionadores sin sulfatos ni químicos agresivos, formulados por Hydra® Pet Society.
                 </p>
               </div>
 

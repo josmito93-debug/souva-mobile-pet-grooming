@@ -323,15 +323,25 @@ function AppContent() {
                   <SolarEcoFeature className="mt-5" />
 
                   {/* Official Shampoo Brand Partner Badge (White Logo) */}
-                  <div className="mt-3 p-2.5 rounded-2xl bg-[#1A1E14]/80 border border-[#FAF0E2]/15 flex items-center justify-between gap-3 max-w-md shadow-md">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#A4AA93]">
-                      Official Luxury Spa Shampoo Partner:
-                    </span>
-                    <img
-                      src="/assets/shampoo-logo-white.png"
-                      alt="Official Shampoo Brand Logo"
-                      className="h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]"
-                    />
+                  <div className="mt-4 p-3.5 rounded-2xl bg-[#1D2116]/90 border border-[#AA8B63]/40 flex items-center justify-between gap-4 max-w-md shadow-xl backdrop-blur-md">
+                    <div className="flex flex-col">
+                      <span className="text-[9.5px] font-mono uppercase tracking-widest text-[#AA8B63] font-bold">
+                        Official Luxury Spa Partner
+                      </span>
+                      <span className="text-sm font-display font-bold text-[#FAF0E2] mt-0.5">
+                        HYDRA® by Pet Society
+                      </span>
+                      <span className="text-[11px] text-[#A4AA93]">
+                        Cosmética botánica profesional sin sulfatos
+                      </span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-[#14160F] border border-[#FAF0E2]/15 shrink-0 flex items-center justify-center">
+                      <img
+                        src="/assets/shampoo-logo-white.png"
+                        alt="Hydra by Pet Society White Logo"
+                        className="h-11 sm:h-12 w-auto object-contain filter drop-shadow-[0_0_10px_rgba(255,255,255,0.6)]"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -681,17 +691,24 @@ function AppContent() {
                   />
                 </div>
                 <div className="p-5">
-                  <div className="flex items-center justify-between gap-2">
-                    <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
-                      Artisan Botanical Product Line
-                    </h4>
-                    <img
-                      src="/assets/shampoo-logo-white.png"
-                      alt="Official Shampoo Brand"
-                      className="h-7 w-auto object-contain opacity-90 filter drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]"
-                    />
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
+                        Artisan Botanical Product Line
+                      </h4>
+                      <span className="text-[11px] font-mono font-bold text-[#AA8B63] block">
+                        Official Partner: HYDRA® by Pet Society
+                      </span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-[#161811] border border-[#FAF0E2]/15 shrink-0 flex items-center justify-center">
+                      <img
+                        src="/assets/shampoo-logo-white.png"
+                        alt="Official Shampoo Brand - Hydra by Pet Society"
+                        className="h-9 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                      />
+                    </div>
                   </div>
-                  <p className="text-xs text-[#A4AA93] mt-1.5 leading-relaxed">
+                  <p className="text-xs text-[#A4AA93] mt-2 leading-relaxed">
                     Colloidal oat shampoos, silk detanglers, and healing paw butter formulated without parabens, sulfates, or artificial fragrances.
                   </p>
                 </div>
@@ -733,44 +750,84 @@ function AppContent() {
             <div className="grid md:grid-cols-3 gap-6">
               {[
                 {
-                  author: "Sarah M. & Toby (Golden Retriever)",
-                  text: "The most seamless grooming experience we've ever had in San Francisco. Toby used to dread cage dryers at traditional salons. SOUVA parked right on our street, and he came back calm, fluffy, and smelling heavenly.",
+                  petName: "Teddy",
+                  breed: "Apricot Doodle",
+                  author: "Sarah M.",
+                  image: "/assets/reviews/review-1.jpg",
+                  tag: "Teddy Cut & Spa Bath",
+                  text: "The most seamless grooming experience we've ever had in San Francisco. Teddy used to dread cage dryers at traditional salons. SOUVA parked right at our driveway, and he came back calm, fluffy, and smelling heavenly with his holiday bandana!",
                   stars: 5,
-                  city: "Pacific Heights, San Francisco",
+                  city: "Pacific Heights, SF",
                 },
                 {
-                  author: "David L. & Luna (Toy Poodle)",
-                  text: "Her scissor cut was immaculate. The eco-conscious solar van is whisper quiet, and the booking portal made coordinating arrival super easy. Hands down the premier service in the East Bay.",
+                  petName: "Mocha",
+                  breed: "Chocolate Labradoodle",
+                  author: "David L.",
+                  image: "/assets/reviews/review-2.jpg",
+                  tag: "Asian Fusion Scissor Trim",
+                  text: "His scissor cut was immaculate. The eco-friendly solar van is whisper quiet, and knowing they use official Hydra botanical products gave us total peace of mind. Hands down the premier service in the East Bay.",
                   stars: 5,
                   city: "Rockridge, Oakland",
                 },
                 {
-                  author: "Elena K. & Thor (French Bulldog)",
-                  text: "Thor has sensitive skin and allergy folds. Their hypoallergenic colloidal oat wash and blueberry facial kept his coat shiny and calm without any redness. Worth every penny.",
+                  petName: "Rusty",
+                  breed: "Red Mini Doodle",
+                  author: "Elena & Marcus K.",
+                  image: "/assets/reviews/review-3.jpg",
+                  tag: "Hypoallergenic Spa Therapy",
+                  text: "Rusty has delicate skin and allergy folds. SOUVA's gentle colloidal oat wash and blueberry facial kept his coat shiny, calm, and fluffy without any redness. Worth every single penny.",
                   stars: 5,
                   city: "Walnut Creek, CA",
                 },
               ].map((rev, idx) => (
                 <div
                   key={idx}
-                  className="p-6 rounded-3xl border border-[#FAF0E2]/10 bg-[#1D2016] shadow-md flex flex-col justify-between"
+                  className="rounded-3xl border border-[#FAF0E2]/15 bg-[#1D2016] shadow-xl overflow-hidden flex flex-col justify-between group hover:border-[#AA8B63]/40 transition-all duration-300"
                 >
-                  <div>
-                    <div className="flex items-center gap-1 mb-3 text-[#AA8B63]">
-                      {Array.from({ length: rev.stars }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-current" />
-                      ))}
+                  {/* Pet Photo Card Top */}
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/40">
+                    <img
+                      src={rev.image}
+                      alt={`${rev.petName} - ${rev.breed} client review`}
+                      className="w-full h-full object-cover object-center group-hover:scale-104 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1D2016] via-transparent to-black/20" />
+                    <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-[#161811]/85 backdrop-blur-md border border-[#FAF0E2]/20 text-[10px] font-mono font-bold text-[#FAF0E2] flex items-center gap-1 shadow-md">
+                      <Sparkles className="h-3 w-3 text-[#AA8B63]" />
+                      <span>{rev.tag}</span>
                     </div>
-                    <p className="text-xs sm:text-sm text-[#E2D7C5] leading-relaxed italic">
-                      "{rev.text}"
-                    </p>
+                    <div className="absolute bottom-3 left-4">
+                      <h4 className="font-display font-bold text-lg text-[#FAF0E2] drop-shadow-md">
+                        {rev.petName}
+                      </h4>
+                      <span className="text-[11px] font-mono text-[#AA8B63] drop-shadow-sm">
+                        {rev.breed}
+                      </span>
+                    </div>
                   </div>
-                  <div className="mt-5 pt-4 border-t border-[#FAF0E2]/5 flex items-center justify-between">
+
+                  <div className="p-6 flex flex-col justify-between flex-1">
                     <div>
-                      <h5 className="font-bold text-xs text-[#FAF0E2]">{rev.author}</h5>
-                      <span className="text-[10.5px] text-[#A4AA93] font-mono">{rev.city}</span>
+                      <div className="flex items-center gap-1 mb-3 text-[#AA8B63]">
+                        {Array.from({ length: rev.stars }).map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-current" />
+                        ))}
+                      </div>
+                      <p className="text-xs sm:text-[13px] text-[#E2D7C5] leading-relaxed italic">
+                        "{rev.text}"
+                      </p>
                     </div>
-                    <Check className="h-4 w-4 text-[#AA8B63]" />
+
+                    <div className="mt-5 pt-4 border-t border-[#FAF0E2]/10 flex items-center justify-between">
+                      <div>
+                        <h5 className="font-bold text-xs text-[#FAF0E2]">{rev.author}</h5>
+                        <span className="text-[10.5px] text-[#A4AA93] font-mono">{rev.city}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[#AA8B63] text-[10.5px] font-mono">
+                        <Check className="h-3.5 w-3.5" />
+                        <span>Verificado</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
