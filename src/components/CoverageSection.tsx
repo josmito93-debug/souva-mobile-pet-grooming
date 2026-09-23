@@ -87,13 +87,13 @@ export function CoverageSection({ onBookClick }: { onBookClick: () => void }) {
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-12">
           <span className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase block mb-2">
-            {"// ÁREAS QUE ATENDEMOS // SERVICE COVERAGE"}
+            {"// SERVICE COVERAGE // SOUVA MOBILE"}
           </span>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-[#FAF0E2]">
-            San Francisco & Península
+            San Francisco & Peninsula
           </h2>
           <p className="mt-3 text-[#E2D7C5] text-sm md:text-base leading-relaxed">
-            Nuestra van solar autónoma viaja directamente a la puerta de tu hogar en las siguientes zonas seleccionadas.
+            Our autonomous solar mobile spa travels directly to your doorstep across the following selected coverage zones.
           </p>
         </div>
 
@@ -101,10 +101,10 @@ export function CoverageSection({ onBookClick }: { onBookClick: () => void }) {
         <div className="max-w-xl mx-auto mb-14 p-5 sm:p-6 rounded-3xl bg-[#1D2116] border border-[#FAF0E2]/15 shadow-2xl">
           <div className="text-center mb-4">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#AA8B63]">
-              Verificador Instantáneo de Cobertura
+              Instant Coverage Checker
             </span>
             <h3 className="font-display font-bold text-lg text-[#FAF0E2] mt-0.5">
-              ¿Cubrimos tu código postal?
+              Do we service your ZIP code?
             </h3>
           </div>
 
@@ -124,7 +124,7 @@ export function CoverageSection({ onBookClick }: { onBookClick: () => void }) {
                     setHasChecked(false);
                   }
                 }}
-                placeholder="Ingresa tu ZIP code (ej. 94122, 94010)"
+                placeholder="Enter your 5-digit ZIP (e.g. 94122, 94010)"
                 className="w-full pl-10 pr-3 h-11 bg-[#14160F] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/40 focus:outline-none focus:border-[#AA8B63]"
               />
             </div>
@@ -134,7 +134,7 @@ export function CoverageSection({ onBookClick }: { onBookClick: () => void }) {
               className="h-11 px-5 rounded-xl bg-[#AA8B63] text-[#161811] text-xs font-mono font-bold tracking-wider uppercase hover:bg-[#C4A67E] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shrink-0 flex items-center justify-center gap-1.5"
             >
               <Search className="h-3.5 w-3.5" />
-              <span>Verificar</span>
+              <span>Check Coverage</span>
             </button>
           </form>
 
@@ -146,17 +146,17 @@ export function CoverageSection({ onBookClick }: { onBookClick: () => void }) {
                   <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <span className="text-xs font-bold text-emerald-300 block">
-                      ¡Excelente noticia! Cubrimos tu área en {checkResult.cityArea} ({checkResult.zone})
+                      Great news! We service your neighborhood in {checkResult.cityArea} ({checkResult.zone})
                     </span>
                     <p className="text-[11px] text-emerald-200/80 leading-relaxed">
-                      Nuestra van solar autónoma llega directamente a la puerta de tu casa para acicalar a tu mascota.
+                      Our autonomous solar van arrives directly at your doorstep to pamper your pet.
                     </p>
                     <button
                       type="button"
                       onClick={onBookClick}
                       className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-black text-[11px] font-mono font-bold uppercase tracking-wider hover:bg-emerald-400 transition-colors cursor-pointer"
                     >
-                      <span>Agendar Cita en {checkResult.zipCode}</span>
+                      <span>Book Appointment in {checkResult.zipCode}</span>
                       <ArrowRight className="h-3 w-3" />
                     </button>
                   </div>
@@ -166,10 +166,10 @@ export function CoverageSection({ onBookClick }: { onBookClick: () => void }) {
                   <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
                   <div className="space-y-1.5 flex-1">
                     <span className="text-xs font-bold text-red-300 block">
-                      Aún no cubrimos el código postal {checkResult.zipCode}
+                      We do not service ZIP code {checkResult.zipCode} yet
                     </span>
                     <p className="text-[11px] text-red-200/80 leading-relaxed">
-                      Por ahora operamos exclusivamente en San Francisco (zonas seleccionadas) y Península (de Daly City a Mountain View y Half Moon Bay).
+                      We currently operate in select San Francisco neighborhoods and Peninsula cities (Daly City through Mountain View & Half Moon Bay).
                     </p>
 
                     {/* Waitlist inline */}
@@ -179,7 +179,7 @@ export function CoverageSection({ onBookClick }: { onBookClick: () => void }) {
                           type="email"
                           value={waitlistEmail}
                           onChange={(e) => setWaitlistEmail(e.target.value)}
-                          placeholder="Tu correo para avisarte cuando lleguemos"
+                          placeholder="Your email to notify you when we expand"
                           className="flex-1 px-2.5 h-8 bg-[#14160F] border border-red-500/30 rounded-lg text-[11px] text-[#FAF0E2] placeholder:text-red-200/40"
                         />
                         <button
@@ -189,13 +189,13 @@ export function CoverageSection({ onBookClick }: { onBookClick: () => void }) {
                           }}
                           className="h-8 px-3 rounded-lg bg-red-500/80 text-white text-[10px] font-mono font-bold uppercase tracking-wider hover:bg-red-500 transition-colors shrink-0 cursor-pointer"
                         >
-                          Notifícame
+                          Notify Me
                         </button>
                       </div>
                     ) : (
                       <div className="text-[10px] font-mono text-emerald-300 pt-1 flex items-center gap-1">
                         <Check className="h-3 w-3" />
-                        <span>¡Anotado! Te avisaremos con prioridad cuando abramos ruta en tu zona.</span>
+                        <span>Saved! We'll notify you with priority when our route expands to your area.</span>
                       </div>
                     )}
                   </div>
@@ -252,11 +252,11 @@ export function CoverageSection({ onBookClick }: { onBookClick: () => void }) {
             <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
               <Sparkles className="h-4 w-4 text-[#AA8B63]" />
               <span className="font-display font-bold text-base text-[#FAF0E2]">
-                ¿Tienes dos perros?
+                Have Two Dogs?
               </span>
             </div>
             <p className="text-xs text-[#A4AA93]">
-              Reserva para dos perros en la misma visita y disfruta de un <strong className="text-[#FAF0E2]">20% de descuento en el segundo perro</strong>.
+              Book for two dogs during the same appointment visit and enjoy an automatic <strong className="text-[#FAF0E2]">20% discount on the second dog</strong>.
             </p>
           </div>
           <button
@@ -264,7 +264,7 @@ export function CoverageSection({ onBookClick }: { onBookClick: () => void }) {
             onClick={onBookClick}
             className="px-5 py-2.5 rounded-full bg-[#AA8B63] text-[#161811] text-xs font-mono font-bold uppercase tracking-wider hover:bg-[#C4A67E] transition-colors cursor-pointer shrink-0 shadow-md"
           >
-            Agendar Ahora
+            Book Now
           </button>
         </div>
       </div>

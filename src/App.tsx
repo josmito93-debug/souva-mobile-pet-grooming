@@ -332,7 +332,7 @@ function AppContent() {
                         HYDRA® by Pet Society
                       </span>
                       <span className="text-[11px] text-[#A4AA93]">
-                        Cosmética botánica profesional sin sulfatos
+                        Professional sulfate-free botanical pet cosmetics
                       </span>
                     </div>
                     <div className="p-2 rounded-xl bg-[#14160F] border border-[#FAF0E2]/15 shrink-0 flex items-center justify-center">
@@ -640,7 +640,7 @@ function AppContent() {
             </h2>
             <p className="mt-3 text-[#A4AA93] text-sm md:text-base max-w-2xl mx-auto leading-relaxed mb-10">
               Witness the visual transformation from dull, tangled fur to a brilliant, silky,
-              delightfully scented finish. Cuidado 1-a-1 sin estrés ni jaulas.
+              delightfully scented finish. 100% cage-free, 1-on-1 private gentle care.
             </p>
 
             <BeforeAfterSlider />
@@ -825,7 +825,7 @@ function AppContent() {
                       </div>
                       <div className="flex items-center gap-1 text-[#AA8B63] text-[10.5px] font-mono">
                         <Check className="h-3.5 w-3.5" />
-                        <span>Verificado</span>
+                        <span>Verified Client</span>
                       </div>
                     </div>
                   </div>

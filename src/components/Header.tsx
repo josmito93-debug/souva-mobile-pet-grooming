@@ -47,10 +47,10 @@ export function Header({ onBookClick }: HeaderProps) {
 
   const navItems = [
     { label: "Book Now", href: "#book", action: onBookClick, icon: Calendar, highlight: true },
-    { label: "Servicios y Precios", href: "#services", icon: Scissors },
-    { label: "Quiénes Somos", href: "#about", icon: Users },
-    { label: "Áreas que Atendemos", href: "#coverage", icon: MapPin },
-    { label: "Galería", href: "#gallery", icon: Camera },
+    { label: "Services & Pricing", href: "#services", icon: Scissors },
+    { label: "About SOUVA", href: "#about", icon: Users },
+    { label: "Coverage Areas", href: "#coverage", icon: MapPin },
+    { label: "Gallery", href: "#gallery", icon: Camera },
     { label: "Reviews", href: "#reviews", icon: Star },
     { label: "+1 (850) 960-0034", href: "tel:+18509600034", icon: Phone },
   ];
@@ -65,16 +65,16 @@ export function Header({ onBookClick }: HeaderProps) {
             {/* Promo Tag Badge */}
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-300 text-stone-950 text-[10.5px] font-sans font-black uppercase tracking-wide shadow-sm shrink-0">
               <span className="text-sm">🐾</span>
-              <span>PROMO 20% OFF</span>
+              <span>20% OFF PROMO</span>
             </span>
 
             {/* Friendly Headline */}
             <div className="font-sans font-bold text-xs sm:text-sm text-white flex items-center gap-1.5 truncate">
               <span className="truncate">
-                ¿Tienes 2 perros? <strong className="text-yellow-200 underline decoration-yellow-300 font-black">20% de Descuento</strong> en el segundo peludito
+                Have 2 dogs? Get <strong className="text-yellow-200 underline decoration-yellow-300 font-black">20% Off</strong> your second pup's grooming
               </span>
               <span className="hidden lg:inline-block text-emerald-200 font-medium">
-                · ¡Van móvil de spa a tu puerta en SF & Península!
+                · Solar mobile spa directly to your door in SF & Peninsula!
               </span>
             </div>
           </div>
@@ -86,14 +86,14 @@ export function Header({ onBookClick }: HeaderProps) {
               onClick={onBookClick}
               className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white text-emerald-950 hover:bg-yellow-300 hover:text-stone-950 font-sans font-black text-[11px] uppercase tracking-wide transition-all shadow-md cursor-pointer"
             >
-              <span>🐶 Reclamar 20% OFF</span>
+              <span>🐶 Claim 20% OFF</span>
               <ArrowRight className="h-3 w-3" />
             </button>
 
             <a
               href="tel:+18509600034"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/70 hover:bg-emerald-950 border border-emerald-300/40 text-white font-sans font-bold text-[11px] transition-colors shadow-sm"
-              title="Llamar a SOUVA"
+              title="Call SOUVA Concierge"
             >
               <Phone className="h-3 w-3 text-yellow-300" />
               <span>+1 (850) 960-0034</span>
@@ -127,17 +127,17 @@ export function Header({ onBookClick }: HeaderProps) {
             <span>Book Now</span>
           </button>
           <a href="#services" className="hover:text-[#AA8B63] transition-colors">
-            Servicios y Precios
+            Services & Pricing
           </a>
           <a href="#about" className="hover:text-[#AA8B63] transition-colors">
-            Quiénes Somos
+            About SOUVA
           </a>
           <a href="#coverage" className="hover:text-[#AA8B63] transition-colors flex items-center gap-1">
             <MapPin className="h-3 w-3 text-[#AA8B63]" />
-            <span>Áreas que Atendemos</span>
+            <span>Coverage Areas</span>
           </a>
           <a href="#gallery" className="hover:text-[#AA8B63] transition-colors">
-            Galería
+            Gallery
           </a>
           <a href="#reviews" className="hover:text-[#AA8B63] transition-colors">
             Reviews
@@ -209,15 +209,15 @@ export function Header({ onBookClick }: HeaderProps) {
                   <div className="flex items-center gap-1.5">
                     <span className="text-base">🐾</span>
                     <span className="font-sans font-black text-xs text-yellow-300 uppercase tracking-wide">
-                      ¡Promo 20% de Descuento!
+                      20% OFF Multi-Dog Promo!
                     </span>
                   </div>
                   <span className="px-2 py-0.5 rounded-full bg-yellow-300 text-stone-950 text-[9px] font-sans font-black uppercase">
-                    2 Perros
+                    2 Dogs
                   </span>
                 </div>
                 <p className="text-xs font-sans text-emerald-100 leading-snug">
-                  ¿Tienes dos compañeros caninos? Recibe automáticamente un <strong className="text-yellow-200">20% de descuento</strong> en el servicio de tu segundo perro al reservar juntos.
+                  Have two canine companions? Automatically receive <strong className="text-yellow-200">20% off</strong> your second dog's service when booked together.
                 </p>
                 <button
                   type="button"
@@ -227,7 +227,7 @@ export function Header({ onBookClick }: HeaderProps) {
                   }}
                   className="mt-1 w-full py-2.5 rounded-xl bg-white text-emerald-950 font-sans font-black text-xs uppercase tracking-wide hover:bg-yellow-300 transition-colors flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                 >
-                  <span>🐶 Aprovechar 20% OFF Ahora</span>
+                  <span>🐶 Claim 20% OFF Now</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -236,7 +236,7 @@ export function Header({ onBookClick }: HeaderProps) {
               <div className="p-3 rounded-2xl bg-[#1B1E15] border border-[#FAF0E2]/10 flex items-center gap-2.5 text-xs text-[#FAF0E2]">
                 <MapPin className="h-4 w-4 text-[#AA8B63] shrink-0" />
                 <div>
-                  <span className="font-mono text-[10px] text-[#A4AA93] uppercase block">Área de Cobertura:</span>
+                  <span className="font-mono text-[10px] text-[#A4AA93] uppercase block">Coverage Area:</span>
                   <strong className="font-medium text-[#FAF0E2]">San Francisco Bay Area & Peninsula</strong>
                 </div>
               </div>
@@ -244,7 +244,7 @@ export function Header({ onBookClick }: HeaderProps) {
               {/* Navigation Links List */}
               <div className="space-y-1">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-[#A4AA93] px-2 block mb-1">
-                  Menú Principal
+                  Main Menu
                 </span>
                 {navItems.map((item) => {
                   const IconComp = item.icon;
@@ -279,14 +279,14 @@ export function Header({ onBookClick }: HeaderProps) {
               {/* Quick Contact Buttons */}
               <div className="pt-2 space-y-2">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-[#A4AA93] px-2 block">
-                  Contacto Directo
+                  Direct Concierge
                 </span>
                 <a
                   href="tel:+18509600034"
                   className="w-full py-3 px-4 rounded-xl bg-[#25281D] border border-[#FAF0E2]/15 text-[#FAF0E2] text-xs font-mono font-bold flex items-center justify-center gap-2 hover:border-[#AA8B63] transition-colors"
                 >
                   <Phone className="h-4 w-4 text-[#AA8B63]" />
-                  <span>Llamar: +1 (850) 960-0034</span>
+                  <span>Call: +1 (850) 960-0034</span>
                 </a>
 
                 <a
@@ -301,7 +301,7 @@ export function Header({ onBookClick }: HeaderProps) {
               </div>
 
               <div className="text-center pt-2 text-[10px] font-mono text-[#A4AA93]/60">
-                Horario: Lunes a Domingo · 8:30 AM – 7:00 PM
+                Hours: Monday to Sunday · 8:30 AM – 7:00 PM
               </div>
             </div>
           </div>

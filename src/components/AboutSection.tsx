@@ -10,13 +10,13 @@ export function AboutSection({ onBookClick }: { onBookClick: () => void }) {
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-14">
           <span className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase block mb-2">
-            {"// NUESTRA FILOSOFÍA & EQUIPO // ABOUT SOUVA"}
+            {"// OUR CRAFT & PHILOSOPHY // ABOUT SOUVA"}
           </span>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-[#FAF0E2]">
-            Quiénes Somos
+            About SOUVA
           </h2>
           <p className="mt-3 text-[#E2D7C5] text-sm md:text-base leading-relaxed">
-            Elevando el cuidado canino en San Francisco y la Península mediante atención personalizada uno a uno, tecnología solar silenciosa y productos botánicos premium.
+            Elevating canine wellness across San Francisco and the Peninsula through personalized 1-on-1 care, whisper-quiet solar mobile salons, and luxury botanical spa cosmetics.
           </p>
         </div>
 
@@ -40,7 +40,7 @@ export function AboutSection({ onBookClick }: { onBookClick: () => void }) {
                 </span>
               </div>
               <p className="text-[11px] font-bold text-[#FAF0E2] leading-tight">
-                Cero emisiones · Cero ruidos molestos
+                Zero Emissions · Whisper Quiet Salon
               </p>
             </div>
           </div>
@@ -49,13 +49,13 @@ export function AboutSection({ onBookClick }: { onBookClick: () => void }) {
           <div className="lg:col-span-7 space-y-6">
             <div>
               <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#AA8B63] block mb-1">
-                Cuidado Compasivo sin Estrés
+                Compassionate, Stress-Free Care
               </span>
               <h3 className="font-display text-2xl sm:text-3xl font-bold text-[#FAF0E2]">
-                Una Experiencia Privada y Exclusiva en la Puerta de tu Hogar
+                A Private, Sanctuary-Grade Mobile Spa at Your Doorstep
               </h3>
               <p className="mt-3 text-sm text-[#A4AA93] leading-relaxed">
-                En SOUVA creemos que el acicalado debe ser un momento de tranquilidad y bienestar, no de estrés. Despedimos las jaulas ruidosas, las esperas de horas y los traslados incómodos. Nuestra van solar llega a tu puerta como un spa móvil privado, donde tu mascota recibe el 100% de la atención de nuestros master groomers certificados.
+                At SOUVA, we believe grooming should be a calming sanctuary of wellness, never a source of anxiety. We have eliminated noisy cage dryers, crowded salon floors, and stressful car rides. Our autonomous solar van arrives directly outside your home as an exclusive private suite, where your pet enjoys 100% undivided attention from certified master stylists.
               </p>
             </div>
 
@@ -66,10 +66,10 @@ export function AboutSection({ onBookClick }: { onBookClick: () => void }) {
                   <Heart className="h-4 w-4" />
                 </div>
                 <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
-                  1 a 1 Libre de Estrés
+                  1-on-1 Cage-Free Sanctuary
                 </h4>
                 <p className="text-[11px] text-[#A4AA93] mt-1 leading-relaxed">
-                  Nunca mezclamos perros. Cada sesión es exclusiva, con secado manual suave y sin estrés en jaula.
+                  We never crate or mix pets. Every appointment is completely private with gentle hand-drying and zero stress.
                 </p>
               </div>
 
@@ -78,10 +78,10 @@ export function AboutSection({ onBookClick }: { onBookClick: () => void }) {
                   <Zap className="h-4 w-4" />
                 </div>
                 <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
-                  Autonomía Solar 100%
+                  100% Solar Autonomy
                 </h4>
                 <p className="text-[11px] text-[#A4AA93] mt-1 leading-relaxed">
-                  No necesitamos enchufes ni tomas de agua de tu casa. Nuestro equipo solar es autosuficiente y ecológico.
+                  No electrical cords or water hookups needed from your residence. Our battery architecture is completely self-sufficient.
                 </p>
               </div>
 
@@ -93,17 +93,17 @@ export function AboutSection({ onBookClick }: { onBookClick: () => void }) {
                   <div className="px-2.5 py-1 rounded-xl bg-[#14160F] border border-[#AA8B63]/30 flex items-center gap-1.5 shadow-sm">
                     <img
                       src="/assets/shampoo-logo-white.png"
-                      alt="Hydra by Pet Society - Marca Oficial de Shampoo"
+                      alt="Hydra by Pet Society - Official Luxury Shampoo Partner"
                       className="h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]"
                     />
                     <span className="text-[10px] font-mono font-bold text-[#FAF0E2] tracking-wide">HYDRA®</span>
                   </div>
                 </div>
                 <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
-                  Cosmética Botánica Hydra®
+                  Hydra® Botanical Cosmetics
                 </h4>
                 <p className="text-[11px] text-[#A4AA93] mt-1 leading-relaxed">
-                  Champús de avena coloidal, mascarillas y acondicionadores sin sulfatos ni químicos agresivos, formulados por Hydra® Pet Society.
+                  Colloidal oat shampoos, blueberry facial masks, and silk conditioners free of harsh parabens, crafted by Hydra® Pet Society.
                 </p>
               </div>
 
@@ -112,10 +112,10 @@ export function AboutSection({ onBookClick }: { onBookClick: () => void }) {
                   <Award className="h-4 w-4" />
                 </div>
                 <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
-                  Master Estilistas
+                  Master Pet Stylists
                 </h4>
                 <p className="text-[11px] text-[#A4AA93] mt-1 leading-relaxed">
-                  Especialistas en cortes a tijera de alta precisión, estilos de raza, Asian Fusion y cuidado senior.
+                  Specialized in precision hand-scissor styling, breed standards, Asian Fusion sculpting, and gentle senior pet care.
                 </p>
               </div>
             </div>
@@ -124,10 +124,10 @@ export function AboutSection({ onBookClick }: { onBookClick: () => void }) {
             <div className="p-4 rounded-2xl bg-gradient-to-r from-[#202518] to-[#1C1F15] border border-[#AA8B63]/40 flex items-center justify-between gap-4">
               <div>
                 <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#AA8B63] block">
-                  Promoción Especial
+                  Exclusive Multi-Dog Offer
                 </span>
                 <span className="font-display font-bold text-sm text-[#FAF0E2]">
-                  ¿Tienes 2 perros? Aprovecha 20% de descuento en el segundo perro
+                  Have 2 dogs? Enjoy an automatic 20% discount on your second dog's service
                 </span>
               </div>
               <button
@@ -135,7 +135,7 @@ export function AboutSection({ onBookClick }: { onBookClick: () => void }) {
                 onClick={onBookClick}
                 className="px-4 py-2 rounded-xl bg-[#AA8B63] text-[#161811] text-xs font-mono font-bold uppercase tracking-wider hover:bg-[#C4A67E] transition-colors cursor-pointer shrink-0"
               >
-                Agendar
+                Book Now
               </button>
             </div>
           </div>

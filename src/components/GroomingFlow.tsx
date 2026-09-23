@@ -459,7 +459,7 @@ export function GroomingFlow({
   // 4. ACTION: ADD ANOTHER DOG LOOP
   const handleAddAnotherDog = () => {
     if (!data.packageId || !data.petName.trim()) {
-      alert("Por favor completa los datos y el servicio de este perro antes de agregar otro.");
+      alert("Please complete the information and service selection for this pet before adding another.");
       return;
     }
 
@@ -794,7 +794,7 @@ export function GroomingFlow({
         <div className="mb-3 p-2.5 rounded-2xl bg-[#1C2216] border border-[#AA8B63]/40 flex items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
             <span className="text-[10px] font-mono uppercase text-[#AA8B63] font-bold shrink-0">
-              Perros en esta cita:
+              Dogs in this session:
             </span>
             {savedPets.map((p, idx) => (
               <span
@@ -870,20 +870,20 @@ export function GroomingFlow({
                     </span>
                     {isSecondDog && (
                       <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-bold shrink-0">
-                        20% OFF 2do Perro
+                        20% OFF 2nd Dog
                       </span>
                     )}
                   </div>
                   <div className="text-[11px] text-[#A4AA93] truncate">
                     {selectedPkg ? selectedPkg.name : "Select a service"}
-                    {savedPets.length > 0 ? ` · (+${savedPets.length} perro anterior)` : ""}
+                    {savedPets.length > 0 ? ` · (+${savedPets.length} prior dog${savedPets.length > 1 ? "s" : ""})` : ""}
                   </div>
                 </div>
               </div>
 
               <div className="text-right shrink-0">
                 <span className="text-[9px] font-mono text-[#A4AA93] uppercase block">
-                  {savedPets.length > 0 ? `Total (${savedPets.length + 1} Perros)` : "Know Your Price"}
+                  {savedPets.length > 0 ? `Total (${savedPets.length + 1} Dogs)` : "Know Your Price"}
                 </span>
                 <span className="font-display font-extrabold text-lg text-[#AA8B63]">
                   ${grandEstimatedTotal}
@@ -947,7 +947,7 @@ export function GroomingFlow({
               {step === 1 ? (
                 <span className="flex items-center justify-center gap-2">
                   <Calendar className="h-4.5 w-4.5" />
-                  <span>Agendar Ahora · Check Coverage</span>
+                  <span>Book Now · Check Coverage</span>
                   <ArrowRight className="h-4 w-4" />
                 </span>
               ) : (
@@ -985,7 +985,7 @@ function StepPetSize({
   return (
     <div>
       <StepHeader
-        eyebrow={`Paso 1 · Tamaño del perro ${petNumber > 1 ? `(#${petNumber})` : ""}`}
+        eyebrow={`Step 1 · Pet Size ${petNumber > 1 ? `(#${petNumber})` : ""}`}
         title="Choose Your Pet's Size"
         subtitle="View the 3D model of each size to ensure custom space and suite preparation inside our solar van."
       />
@@ -1049,7 +1049,7 @@ function StepServicePackage({
   return (
     <div>
       <StepHeader
-        eyebrow="Paso 2 · Servicio & Know Your Price"
+        eyebrow="Step 2 · Service Selection & Know Your Price"
         title="Select Your Grooming Service"
         subtitle="Upfront pricing calibrated for your dog's size. Select any luxury spa upgrades."
       />
@@ -1057,7 +1057,7 @@ function StepServicePackage({
       {isSecondDog && (
         <div className="mt-3 p-2.5 rounded-2xl bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 text-xs flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-emerald-400 shrink-0" />
-          <span>¡Segundo perro detectado! Aplicaremos automáticamente un <strong>20% de descuento</strong> en el servicio base.</span>
+          <span>Multi-dog booking detected! Automatically applying <strong>20% OFF</strong> to this dog's base grooming package.</span>
         </div>
       )}
 
@@ -1294,7 +1294,7 @@ function StepLocationCoverage({
   return (
     <div>
       <StepHeader
-        eyebrow="Paso 3 · Locación & Cobertura"
+        eyebrow="Step 3 · Service Location & Coverage"
         title="Check Service Coverage & Address"
         subtitle="We service San Francisco (Select zones) and Peninsula. Verify if our solar van covers your doorstep."
       />
@@ -1302,7 +1302,7 @@ function StepLocationCoverage({
       <div className="mt-4 space-y-3.5">
         <div className="relative">
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Doorstep Address (Dirección)
+            Doorstep Address
           </label>
           <div className="relative">
             <MapPin className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
@@ -1403,14 +1403,14 @@ function StepLocationCoverage({
             <div className="space-y-1.5 flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-bold text-red-200 uppercase font-mono tracking-wider">
-                  ⚠️ Área Fuera de Cobertura (ZIP {data.zipCode})
+                  ⚠️ Out of Service Area (ZIP {data.zipCode})
                 </span>
                 <span className="text-[9px] font-mono bg-red-900/60 text-red-300 px-2 py-0.5 rounded-full border border-red-500/40 shrink-0 font-bold">
-                  No Disponible Aún
+                  Not Available Yet
                 </span>
               </div>
               <p className="text-[11.5px] text-red-200/90 leading-relaxed">
-                Lo sentimos, actualmente nuestro servicio opera exclusivamente en <strong>San Francisco (zonas selectas)</strong> y la <strong>Península</strong> (de Daly City a Mountain View y Half Moon Bay). Aún no cubrimos el código postal <strong>{data.zipCode}</strong>.
+                We're sorry, our mobile spa currently services select <strong>San Francisco neighborhoods</strong> and across the <strong>Peninsula</strong> (Daly City through Mountain View & Half Moon Bay). We do not cover ZIP code <strong>{data.zipCode}</strong> yet.
               </p>
               <div className="pt-1.5 flex flex-wrap items-center gap-2">
                 <button
@@ -1418,7 +1418,7 @@ function StepLocationCoverage({
                   onClick={() => setShowCoverageModal(true)}
                   className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[11px] font-mono font-bold tracking-wider uppercase transition-colors cursor-pointer shadow-md flex items-center gap-1"
                 >
-                  <span>Unirse a Lista de Espera</span>
+                  <span>Join Route Waitlist</span>
                   <ArrowRight className="h-3 w-3" />
                 </button>
                 <button
@@ -1426,7 +1426,7 @@ function StepLocationCoverage({
                   onClick={() => setData({ ...data, zipCode: "" })}
                   className="px-3 py-1.5 rounded-xl bg-[#25281D] hover:bg-[#333827] text-red-300 hover:text-white text-[11px] font-mono font-bold transition-colors cursor-pointer border border-red-500/30"
                 >
-                  Ingresar Otro Código Postal
+                  Enter Another ZIP Code
                 </button>
               </div>
             </div>
@@ -1436,7 +1436,7 @@ function StepLocationCoverage({
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1.5">
             <Car className="h-3.5 w-3.5 text-[#AA8B63]" />
-            <span>Parking Notes for Solar Van (Nota de parking)</span>
+            <span>Parking Notes for Solar Van</span>
           </label>
 
           <div className="grid grid-cols-2 gap-1.5 mb-2">
@@ -1485,21 +1485,21 @@ function StepLocationCoverage({
               </div>
               <div>
                 <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-red-400 block">
-                  Aviso de Cobertura · Out of Route
+                  Coverage Notice · Out of Area
                 </span>
                 <h4 className="font-display font-bold text-lg text-white">
-                  Aún no cubrimos el ZIP {data.zipCode}
+                  We do not service ZIP {data.zipCode} yet
                 </h4>
               </div>
             </div>
 
             <p className="text-xs text-[#FAF0E2]/90 leading-relaxed">
-              Actualmente operamos en <strong className="text-[#AA8B63]">San Francisco (zonas selectas)</strong> y en la <strong className="text-[#AA8B63]">Península</strong>.
+              We currently operate in <strong className="text-[#AA8B63]">San Francisco (select zones)</strong> and across the <strong className="text-[#AA8B63]">Peninsula</strong>.
             </p>
 
             <div className="p-3.5 rounded-2xl bg-[#1D2116] border border-[#FAF0E2]/15 space-y-2">
               <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-[#AA8B63] block">
-                Lista de Espera
+                Join Route Waitlist
               </span>
               {!waitlistJoined ? (
                 <div className="flex gap-2">
@@ -1507,7 +1507,7 @@ function StepLocationCoverage({
                     type="email"
                     value={waitlistEmail}
                     onChange={(e) => setWaitlistEmail(e.target.value)}
-                    placeholder="tucorreo@ejemplo.com"
+                    placeholder="youremail@example.com"
                     className="flex-1 px-3 h-9 bg-[#14160F] border border-[#FAF0E2]/20 rounded-xl text-xs text-[#FAF0E2]"
                   />
                   <button
@@ -1517,13 +1517,13 @@ function StepLocationCoverage({
                     }}
                     className="px-3 h-9 rounded-xl bg-red-500 text-white text-[11px] font-mono font-bold uppercase tracking-wider hover:bg-red-400 cursor-pointer"
                   >
-                    Notificarme
+                    Notify Me
                   </button>
                 </div>
               ) : (
                 <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center gap-1.5">
                   <Check className="h-4 w-4" />
-                  <span>¡Anotado! Te avisaremos cuando lleguemos al {data.zipCode}.</span>
+                  <span>Saved! We will notify you when we expand to {data.zipCode}.</span>
                 </div>
               )}
             </div>
@@ -1536,7 +1536,7 @@ function StepLocationCoverage({
               }}
               className="w-full py-3 rounded-xl bg-[#25281D] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] text-xs font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
             >
-              Probar Otra Dirección o ZIP Code
+              Try Another Address or ZIP Code
             </button>
           </div>
         </div>
@@ -1556,7 +1556,7 @@ function StepClientInfo({
   return (
     <div>
       <StepHeader
-        eyebrow="Paso 4 · Información del cliente"
+        eyebrow="Step 4 · Pet Parent Contact Information"
         title="Pet Parent Contact Information"
         subtitle="We will coordinate doorstep arrival, send appointment reminders, and deliver your invoice to these details."
       />
@@ -1565,7 +1565,7 @@ function StepClientInfo({
         <div className="grid sm:grid-cols-2 gap-2.5">
           <div>
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              First Name (Nombre)
+              First Name
             </label>
             <div className="relative">
               <User className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
@@ -1588,7 +1588,7 @@ function StepClientInfo({
 
           <div>
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Last Name (Apellido)
+              Last Name
             </label>
             <input
               type="text"
@@ -1610,7 +1610,7 @@ function StepClientInfo({
         <div className="grid sm:grid-cols-2 gap-2.5">
           <div>
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Phone Number (Teléfono)
+              Phone Number
             </label>
             <div className="relative">
               <Phone className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
@@ -1677,7 +1677,7 @@ function StepDogInfo({
   return (
     <div>
       <StepHeader
-        eyebrow={`Paso 5 · Información del perro ${petNumber > 1 ? `(#${petNumber})` : ""}`}
+        eyebrow={`Step 5 · Dog Details ${petNumber > 1 ? `(#${petNumber})` : ""}`}
         title={`Tell Us About Dog #${petNumber}`}
         subtitle="Essential details for our master groomer before preparing the luxury van suite."
       />
@@ -1685,7 +1685,7 @@ function StepDogInfo({
       <div className="mt-4 space-y-3.5">
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Dog's Name (Nombre del perro)
+            Dog's Name
           </label>
           <div className="relative">
             <Heart className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
@@ -1701,7 +1701,7 @@ function StepDogInfo({
 
         <div className="relative" ref={dropdownRef}>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Dog's Breed or Mix (Raza del perro)
+            Dog's Breed or Mix
           </label>
           <div className="relative">
             <Sparkles className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
@@ -1840,7 +1840,7 @@ function StepDogCareCondition({
   return (
     <div>
       <StepHeader
-        eyebrow={`Paso 6 · Condición del perro ${petNumber > 1 ? `(#${petNumber})` : ""}`}
+        eyebrow={`Step 6 · Dog Coat & Temperament ${petNumber > 1 ? `(#${petNumber})` : ""}`}
         title="Pet Health, Temperament & Photos"
         subtitle="Help our master groomer prepare specialized handling and calming botanicals."
       />
@@ -1849,7 +1849,7 @@ function StepDogCareCondition({
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
             <ShieldCheck className="h-3.5 w-3.5 text-[#AA8B63]" />
-            <span>Rabies Vaccine Status (Vacunas)</span>
+            <span>Rabies Vaccine Status</span>
           </label>
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -1862,7 +1862,7 @@ function StepDogCareCondition({
                   : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
               )}
             >
-              ✓ Up to Date (Al día)
+              ✓ Up to Date
             </button>
             <button
               type="button"
@@ -1874,14 +1874,14 @@ function StepDogCareCondition({
                   : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
               )}
             >
-              In Progress (En trámite)
+              Pending / In Progress
             </button>
           </div>
         </div>
 
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Temperament: Ansioso / Amigable
+            Pet Temperament
           </label>
           <div className="grid grid-cols-2 gap-1.5">
             {temperamentOptions.map((opt) => (
@@ -1905,7 +1905,7 @@ function StepDogCareCondition({
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
             <Activity className="h-3 w-3 text-[#AA8B63]" />
-            <span>Medical Condition (Condición Médica)</span>
+            <span>Medical Conditions or Sensitivities</span>
           </label>
           <select
             value={data.medicalConditions}
@@ -1937,7 +1937,7 @@ function StepDogCareCondition({
           <div className="flex items-center justify-between mb-1">
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider flex items-center gap-1.5">
               <Camera className="h-3.5 w-3.5 text-[#AA8B63]" />
-              <span>Foto del perro (Dog Photo)</span>
+              <span>Dog Photo (Optional)</span>
             </label>
             <span className="text-[9.5px] font-mono text-[#AA8B63]">Optional</span>
           </div>
@@ -2028,7 +2028,7 @@ function StepBookingCalendar({
   return (
     <div>
       <StepHeader
-        eyebrow="Paso 7 · Calendario de disponibilidad"
+        eyebrow="Step 7 · Availability & Date Selection"
         title="Schedule Your Doorstep Window"
         subtitle="Select your preferred date and 30-minute arrival window for our mobile spa van."
       />
@@ -2038,7 +2038,7 @@ function StepBookingCalendar({
         <div className="p-3 rounded-2xl bg-[#1C2116] border border-[#AA8B63]/40 flex items-center gap-2.5 text-xs shadow-inner">
           <Clock className="h-4 w-4 text-[#AA8B63] shrink-0" />
           <div className="text-[11px] text-[#FAF0E2] leading-snug">
-            <strong className="text-[#AA8B63]">Política de 24 horas de anticipación:</strong> Para garantizar la preparación energética de nuestra van solar y la ruta, las reservas se agendan con al menos 24 horas previas.
+            <strong className="text-[#AA8B63]">24-Hour Advance Booking Policy:</strong> To ensure optimal solar battery preparation and route scheduling, appointments must be scheduled at least 24 hours in advance.
           </div>
         </div>
 
@@ -2152,7 +2152,7 @@ function StepDisclaimerConfirm({
   return (
     <div>
       <StepHeader
-        eyebrow="Paso 8 · Disclaimer & Confirmación"
+        eyebrow="Step 8 · Policies, Review & Confirmation"
         title="Service Agreement & Final Step"
         subtitle="Review our transparent care policies. Below you can decide to finish your booking or add another dog to this session!"
       />
@@ -2186,8 +2186,8 @@ function StepDisclaimerConfirm({
             className="mt-0.5 accent-[#AA8B63] h-4 w-4 rounded cursor-pointer shrink-0"
           />
           <span className="text-[#FAF0E2]/90 leading-snug">
-            Acepto los Términos del Servicio y autorizo el acicalado móvil para{" "}
-            <strong className="text-[#AA8B63]">{data.petName || "mi perro"}</strong>.
+            I agree to the Terms of Service & authorize mobile spa grooming for{" "}
+            <strong className="text-[#AA8B63]">{data.petName || "my pet"}</strong>.
           </span>
         </label>
 
@@ -2218,13 +2218,13 @@ function StepDisclaimerConfirm({
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             <h4 className="font-display font-bold text-base text-[#FAF0E2]">
-              ¿Finalizaste o tienes otro perro para esta misma cita?
+              Ready to finish, or would you like to add another dog?
             </h4>
           </div>
 
           <p className="text-xs text-[#A4AA93] leading-relaxed">
-            Puedes agregar otro perro a la misma visita de nuestra van solar. Si agregas un segundo perro,{" "}
-            <strong className="text-emerald-300">¡recibirás 20% de descuento en el segundo perro!</strong>
+            You can add another dog to the same visit of our solar van. If you add a second dog,{" "}
+            <strong className="text-emerald-300">you will receive a 20% discount on the second dog!</strong>
           </p>
 
           <div className="grid sm:grid-cols-2 gap-2.5 pt-1">
@@ -2235,7 +2235,7 @@ function StepDisclaimerConfirm({
               className="py-3 px-3.5 rounded-2xl bg-[#252C1D] border border-[#AA8B63]/70 hover:bg-[#AA8B63]/30 text-[#FAF0E2] text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md group"
             >
               <PlusCircle className="h-4 w-4 text-[#AA8B63] group-hover:scale-110 transition-transform" />
-              <span>➕ Agregar Otro Perro (+20% OFF)</span>
+              <span>➕ Add Another Dog (+20% OFF)</span>
             </button>
 
             {/* BUTTON 2: FINALIZAR RESERVA */}
@@ -2246,12 +2246,12 @@ function StepDisclaimerConfirm({
               className="py-3 px-3.5 rounded-2xl bg-[#AA8B63] text-[#161811] hover:bg-[#C4A67E] text-xs font-mono font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-50"
             >
               {isSubmitting ? (
-                <span>Guardando en Airtable...</span>
+                <span>Confirming in System...</span>
               ) : (
                 <>
                   <CheckCircle2 className="h-4 w-4" />
                   <span>
-                    ✓ Finalizar ({totalDogsInSession} perro{totalDogsInSession > 1 ? "s" : ""}) · ${grandTotal}
+                    ✓ Confirm Booking ({totalDogsInSession} dog{totalDogsInSession > 1 ? "s" : ""}) · ${grandTotal}
                   </span>
                 </>
               )}
@@ -2543,7 +2543,7 @@ ${totalSavings > 0 ? `\n🎉 Multi-Dog Discount Applied: -$${totalSavings}.00\n`
       {/* Booked Pets Summary */}
       <div className="space-y-2">
         <span className="text-[10px] font-mono text-[#AA8B63] uppercase tracking-wider font-bold block">
-          Perros Agendados en Esta Sesión ({allPetsList.length}):
+          Booked Dogs in This Session ({allPetsList.length}):
         </span>
 
         <div className="grid sm:grid-cols-2 gap-2.5">

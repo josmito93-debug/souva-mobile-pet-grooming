@@ -21,11 +21,11 @@ const TRANSFORMATIONS: Transformation[] = [
     breed: "Toy Poodle",
     service: "Asian Fusion Scissor Cut",
     tag: "Teddy Bear Style",
-    description: "Rostro despejado, hocico redondeado tipo peluche y bandana tropical hawaiana.",
+    description: "Clear facial silhouette, rounded teddy bear muzzle, and vibrant tropical Hawaiian bandana finish.",
     beforeImg: "/assets/before-after/poodle-before.jpg",
     afterImg: "/assets/before-after/poodle-after.jpg",
-    beforeNote: "Llegada · Ojos cubiertos y manto desigual",
-    afterNote: "Look SOUVA · Esculpido facial a tijera",
+    beforeNote: "Arrival · Overgrown fur obstructing eyes and facial structure",
+    afterNote: "SOUVA Look · Precision hand-scissored facial contour",
   },
   {
     id: "goldendoodle",
@@ -33,11 +33,11 @@ const TRANSFORMATIONS: Transformation[] = [
     breed: "Goldendoodle",
     service: "Signature Spa Bath & Sculpt",
     tag: "Velvet Coat Finish",
-    description: "Deslanado botánico profundo, volumen esponjoso en patas y bandana de sandía.",
+    description: "Deep botanical de-shedding bath, sculpted velvet paw lines, and refreshing watermelon bandana finish.",
     beforeImg: "/assets/before-after/goldendoodle-before.jpg",
     afterImg: "/assets/before-after/goldendoodle-after.jpg",
-    beforeNote: "Llegada · Manto crecido y pérdida de definición",
-    afterNote: "Look SOUVA · Silueta simétrica y pelaje sedoso",
+    beforeNote: "Arrival · Dense unbrushed coat with loss of silhouette",
+    afterNote: "SOUVA Look · Symmetrical scissor trim & silky radiant finish",
   },
   {
     id: "bernedoodle",
@@ -45,11 +45,11 @@ const TRANSFORMATIONS: Transformation[] = [
     breed: "Mini Bernedoodle",
     service: "Master Scissor Trim & Hygiene",
     tag: "Botanical Spa Care",
-    description: "Desenredado con Hydra®, peinado de cejas y patas, y bandana festiva de huellitas.",
+    description: "Hydra® botanical de-tangling therapy, refined eyebrow and muzzle shaping, and festive paws bandana.",
     beforeImg: "/assets/before-after/bernedoodle-before.jpg",
     afterImg: "/assets/before-after/bernedoodle-after.jpg",
-    beforeNote: "Llegada · Pelaje denso previo al corte",
-    afterNote: "Look SOUVA · Patas acampanadas y hocico limpio",
+    beforeNote: "Arrival · Heavy tangled coat prior to styling",
+    afterNote: "SOUVA Look · Flared scissor legs, clean muzzle, and silky sheen",
   },
 ];
 
@@ -101,7 +101,7 @@ function TransformationCard({ item }: { item: Transformation }) {
           {/* AFTER Image (Full background) */}
           <img
             src={item.afterImg}
-            alt={`${item.name} Después - Look SOUVA`}
+            alt={`${item.name} After - SOUVA Look`}
             className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
             draggable={false}
           />
@@ -115,7 +115,7 @@ function TransformationCard({ item }: { item: Transformation }) {
           >
             <img
               src={item.beforeImg}
-              alt={`${item.name} Antes`}
+              alt={`${item.name} Before`}
               className="absolute inset-0 w-full h-full object-cover object-center"
               draggable={false}
             />
@@ -124,12 +124,12 @@ function TransformationCard({ item }: { item: Transformation }) {
           {/* Floating Badges */}
           <div className="absolute top-2.5 left-2.5 z-20 px-2.5 py-1 rounded-full bg-[#161811]/90 backdrop-blur-md border border-[#FAF0E2]/20 text-[11px] font-semibold text-[#FAF0E2] shadow pointer-events-none flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-            <span>ANTES</span>
+            <span>BEFORE</span>
           </div>
 
           <div className="absolute top-2.5 right-2.5 z-20 px-2.5 py-1 rounded-full bg-[#AA8B63] backdrop-blur-md border border-[#FAF0E2]/30 text-[11px] font-semibold text-[#161811] shadow pointer-events-none flex items-center gap-1">
             <Sparkles className="h-3 w-3" />
-            <span>DESPUÉS</span>
+            <span>AFTER</span>
           </div>
 
           {/* Divider Line */}
@@ -146,11 +146,11 @@ function TransformationCard({ item }: { item: Transformation }) {
           {/* Helper caption */}
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-[#161811]/85 backdrop-blur-sm text-[10px] font-medium text-[#FAF0E2]/85 border border-[#FAF0E2]/10 pointer-events-none flex items-center gap-1.5 whitespace-nowrap">
             <Eye className="h-3 w-3 text-[#AA8B63]" />
-            <span>Desliza para comparar</span>
+            <span>Drag to compare</span>
           </div>
         </div>
 
-        {/* Quick Toggles: Antes / Después (50/50 removed) */}
+        {/* Quick Toggles: Before / After (50/50 removed) */}
         <div className="grid grid-cols-2 gap-2 mt-3 px-0.5">
           <button
             type="button"
@@ -161,7 +161,7 @@ function TransformationCard({ item }: { item: Transformation }) {
                 : "bg-[#161811] text-[#A4AA93] border-[#FAF0E2]/10 hover:text-[#FAF0E2] hover:border-[#FAF0E2]/25"
             }`}
           >
-            Ver Antes
+            View Before
           </button>
           <button
             type="button"
@@ -172,7 +172,7 @@ function TransformationCard({ item }: { item: Transformation }) {
                 : "bg-[#161811] text-[#AA8B63] border-[#AA8B63]/40 hover:bg-[#AA8B63]/20"
             }`}
           >
-            <span>Ver Después</span>
+            <span>View After</span>
             <Sparkles className="h-3 w-3" />
           </button>
         </div>
@@ -203,9 +203,9 @@ function TransformationCard({ item }: { item: Transformation }) {
         <div className="mt-4 pt-3 border-t border-[#FAF0E2]/10 flex items-center justify-between text-xs text-[#A4AA93]">
           <span className="flex items-center gap-1.5 text-[#AA8B63] font-medium">
             <ShieldCheck className="h-3.5 w-3.5" />
-            <span>Sin Jaulas</span>
+            <span>100% Cage-Free</span>
           </span>
-          <span className="text-[#FAF0E2]/60 font-medium">Cuidado 1-a-1</span>
+          <span className="text-[#FAF0E2]/60 font-medium">1-on-1 Gentle Care</span>
         </div>
       </div>
     </div>
