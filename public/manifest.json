@@ -1,0 +1,21 @@
+{
+  "name": "SOUVA Mobile Pet Grooming",
+  "short_name": "SOUVA",
+  "description": "Luxury 1-on-1 solar mobile pet grooming at your doorstep across San Francisco and the Peninsula.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#161811",
+  "theme_color": "#161811",
+  "icons": [
+    {
+      "src": "/assets/souva-badge-circle-transparent.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/souva-badge-circle-transparent.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

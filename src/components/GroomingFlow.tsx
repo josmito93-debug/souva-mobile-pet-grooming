@@ -30,9 +30,12 @@ import {
   Users,
   PlusCircle,
   RotateCcw,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PetBlueprint } from "@/components/PetBlueprint";
+import { TermsModal } from "@/components/TermsModal";
 import breedsList from "@/data/breeds.json";
 import { SOUVA_PACKAGES, SPA_UPGRADES, SIZE_GUIDE, type PetSize } from "@/data/services";
 import { checkCoverage, SOUVA_COVERAGE_ZONES, SUGGESTED_AREAS } from "@/data/coverage";
@@ -2146,6 +2149,7 @@ function StepDisclaimerConfirm({
   isSubmitting: boolean;
 }) {
   const [showOptionalSignature, setShowOptionalSignature] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const totalDogsInSession = savedPets.length + 1;
 
@@ -2160,21 +2164,32 @@ function StepDisclaimerConfirm({
       <div className="mt-4 space-y-4">
         {/* Service Agreement Box */}
         <div className="rounded-2xl border border-[#FAF0E2]/10 bg-[#161811] p-3.5 text-xs text-[#A4AA93] space-y-2 leading-relaxed">
-          <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
-            Service Agreement & Care Policies
-          </h4>
+          <div className="flex items-center justify-between pb-1 border-b border-[#FAF0E2]/10">
+            <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
+              Terms & Conditions of Service
+            </h4>
+            <span className="text-[10px] font-mono text-[#AA8B63] font-bold">SOUVA CORP</span>
+          </div>
           <p className="font-medium text-[#FAF0E2]/90">
-            Pets are accepted for grooming under our professional care policies:
+            Pets are accepted for grooming under our professional corporate care policies:
           </p>
-          <p>
-            • Pet is fit and healthy. Senior grooming takes place with specialized gentle handling.
-          </p>
-          <p>
-            • Rabies vaccination compliance confirmed.
-          </p>
-          <p>
-            • Payment collected upon doorstep completion: Cash, Check, Card or Zelle.
-          </p>
+          <div className="space-y-1 text-[11px] text-[#E2D7C5]/90">
+            <p>• <strong>Health & Comfort:</strong> Pet safety always takes priority over coat styling. We never crate or rush.</p>
+            <p>• <strong>Rabies & Vaccinations:</strong> Up-to-date rabies vaccination compliance confirmed.</p>
+            <p>• <strong>Parking & Access:</strong> Safe, legal van parking required within reasonable distance.</p>
+            <p>• <strong>Cancellation Policy:</strong> 24-hour advance notice required for schedule modifications.</p>
+            <p>• <strong>Payment at Doorstep:</strong> Cash, Check, Card, or Zelle upon completion.</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowTermsModal(true)}
+            className="pt-1.5 text-xs font-mono font-bold text-[#AA8B63] hover:text-[#C4A67E] hover:underline flex items-center gap-1.5 cursor-pointer"
+          >
+            <FileText className="h-3.5 w-3.5" />
+            <span>Read Full Terms & Conditions of Service (16 Articles)</span>
+            <ExternalLink className="h-3 w-3" />
+          </button>
         </div>
 
         {/* Agreement Checkbox */}
@@ -2186,7 +2201,18 @@ function StepDisclaimerConfirm({
             className="mt-0.5 accent-[#AA8B63] h-4 w-4 rounded cursor-pointer shrink-0"
           />
           <span className="text-[#FAF0E2]/90 leading-snug">
-            I agree to the Terms of Service & authorize mobile spa grooming for{" "}
+            I have read and agree to the{" "}
+            <span
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowTermsModal(true);
+              }}
+              className="text-[#AA8B63] underline font-semibold hover:text-[#C4A67E] cursor-pointer"
+            >
+              Terms & Conditions of Service
+            </span>{" "}
+            and authorize mobile spa grooming for{" "}
             <strong className="text-[#AA8B63]">{data.petName || "my pet"}</strong>.
           </span>
         </label>

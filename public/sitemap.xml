@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <!-- Main Homepage -->
+  <url>
+    <loc>https://souva-mobile-pet-grooming.vercel.app/</loc>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://souva-mobile-pet-grooming.vercel.app/assets/souva-van-profile.png</image:loc>
+      <image:title>SOUVA Mobile Pet Grooming Autonomous Solar Van</image:title>
+      <image:caption>Luxury mobile dog grooming salon serving San Francisco and the Peninsula</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://souva-mobile-pet-grooming.vercel.app/assets/souva-badge-circle-transparent.png</image:loc>
+      <image:title>SOUVA Official Brand Logo</image:title>
+    </image:image>
+  </url>
+
+  <!-- Service Coverage Areas & ZIP Codes -->
+  <url>
+    <loc>https://souva-mobile-pet-grooming.vercel.app/#coverage</loc>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Services & Pricing Menu -->
+  <url>
+    <loc>https://souva-mobile-pet-grooming.vercel.app/#services</loc>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Before and After Grooming Transformations -->
+  <url>
+    <loc>https://souva-mobile-pet-grooming.vercel.app/#before-after</loc>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://souva-mobile-pet-grooming.vercel.app/assets/before-after/poodle-after.jpg</image:loc>
+      <image:title>Toy Poodle Asian Fusion Scissor Cut Before and After</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://souva-mobile-pet-grooming.vercel.app/assets/before-after/goldendoodle-after.jpg</image:loc>
+      <image:title>Goldendoodle Signature Spa Bath and Sculpt Before and After</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://souva-mobile-pet-grooming.vercel.app/assets/before-after/bernedoodle-after.jpg</image:loc>
+      <image:title>Mini Bernedoodle Master Scissor Trim Before and After</image:title>
+    </image:image>
+  </url>
+
+  <!-- Verified Pet Parent Reviews -->
+  <url>
+    <loc>https://souva-mobile-pet-grooming.vercel.app/#reviews</loc>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://souva-mobile-pet-grooming.vercel.app/assets/reviews/review-1.jpg</image:loc>
+      <image:title>Verified Customer Review Dog Teddy Apricot Doodle</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://souva-mobile-pet-grooming.vercel.app/assets/reviews/review-2.jpg</image:loc>
+      <image:title>Verified Customer Review Dog Mocha Chocolate Labradoodle</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://souva-mobile-pet-grooming.vercel.app/assets/reviews/review-3.jpg</image:loc>
+      <image:title>Verified Customer Review Dog Rusty Red Mini Doodle</image:title>
+    </image:image>
+  </url>
+
+  <!-- About SOUVA Philosophy & Solar Fleet -->
+  <url>
+    <loc>https://souva-mobile-pet-grooming.vercel.app/#about</loc>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Solar Salon Fleet Gallery -->
+  <url>
+    <loc>https://souva-mobile-pet-grooming.vercel.app/#gallery</loc>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+</urlset>

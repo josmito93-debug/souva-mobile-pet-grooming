@@ -28,6 +28,8 @@ import { GroomingFlow } from "@/components/GroomingFlow";
 import { StepCard } from "@/components/StepCard";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { AdminDashboard } from "@/components/AdminDashboard";
+import { TermsModal } from "@/components/TermsModal";
+import { LocalSeoDirectory } from "@/components/LocalSeoDirectory";
 import {
   SOUVA_PACKAGES,
   SPA_UPGRADES,
@@ -855,6 +857,9 @@ function AppContent() {
             </button>
           </div>
         </section>
+
+        {/* Local SEO & ZIP Code Geographic Crawlable Directory */}
+        <LocalSeoDirectory onBookClick={scrollToHero} />
       </main>
 
       {/* Floating WhatsApp Quick Concierge Button */}
@@ -891,6 +896,8 @@ function AppContent() {
 
 /* -------------------- FOOTER COMPONENT -------------------- */
 function Footer({ onOpenAdmin }: { onOpenAdmin: () => void }) {
+  const [showTermsModal, setShowTermsModal] = useState(false);
+
   return (
     <footer className="px-5 py-8 md:px-8 border-t border-[#FAF0E2]/10 text-[11px] font-mono text-[#A4AA93] bg-[#14160F]">
       <div className="mx-auto max-w-6xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -904,9 +911,17 @@ function Footer({ onOpenAdmin }: { onOpenAdmin: () => void }) {
           <p className="text-[#A4AA93] text-[10px]">
             "The Bay Area’s elevated mobile grooming experience."
           </p>
-          <span className="text-[10px] text-[#A4AA93]/60">
-            © {new Date().getFullYear()} SOUVA Mobile Pet Grooming LLC. All rights reserved.
-          </span>
+          <div className="flex flex-wrap items-center gap-2 text-[10px] text-[#A4AA93]/60">
+            <span>© {new Date().getFullYear()} SOUVA CORP. All rights reserved.</span>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => setShowTermsModal(true)}
+              className="text-[#AA8B63] hover:underline cursor-pointer"
+            >
+              Terms & Conditions of Service
+            </button>
+          </div>
           <button
             type="button"
             onClick={onOpenAdmin}
@@ -968,6 +983,8 @@ function Footer({ onOpenAdmin }: { onOpenAdmin: () => void }) {
           </div>
         </div>
       </div>
+
+      <TermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
     </footer>
   );
 }

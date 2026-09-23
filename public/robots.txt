@@ -1,0 +1,40 @@
+# ==============================================================================
+# SOUVA Mobile Pet Grooming - robots.txt
+# https://souva-mobile-pet-grooming.vercel.app
+# ==============================================================================
+
+User-agent: *
+Allow: /
+Allow: /assets/
+Allow: /#services
+Allow: /#coverage
+Allow: /#about
+Allow: /#before-after
+Allow: /#reviews
+Allow: /#gallery
+
+# Disallow private administrative tools
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/send-booking
+Disallow: /api/send-reminder
+Disallow: /api/test-resend
+
+# Search engine crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /assets/
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Sitemap Index
+Sitemap: https://souva-mobile-pet-grooming.vercel.app/sitemap.xml

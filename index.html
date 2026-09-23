@@ -3,12 +3,251 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/assets/souva-badge-circle-transparent.png" />
+    <link rel="apple-touch-icon" href="/assets/souva-badge-circle-transparent.png" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SOUVA · Mobile Pet Grooming | San Francisco Bay Area & East Bay</title>
-    <meta name="description" content="The Bay Area’s elevated mobile grooming experience. A private, one-on-one mobile grooming experience designed around your pet’s comfort and individual needs." />
+    <meta name="theme-color" content="#161811" />
+
+    <!-- ── PRIMARY SEO META TAGS ─────────────────────────────────── -->
+    <title>SOUVA · Luxury Solar Mobile Pet Grooming | San Francisco & Peninsula</title>
+    <meta
+      name="title"
+      content="SOUVA · Luxury Solar Mobile Pet Grooming | San Francisco & Peninsula"
+    />
+    <meta
+      name="description"
+      content="Premier 1-on-1 mobile dog grooming delivered directly to your doorstep in San Francisco and the Peninsula. 100% solar autonomous van, cage-free comfort, and Hydra® botanical spa treatments."
+    />
+    <meta
+      name="keywords"
+      content="mobile dog grooming, mobile pet grooming San Francisco, mobile dog groomer San Mateo, dog groomer Burlingame, Palo Alto mobile pet spa, cage free dog grooming, Daly City mobile groomer, Redwood City pet grooming, Pacifica mobile groomer, Half Moon Bay dog grooming, 94116, 94122, 94127, 94132, 94112, 94131, 94014, 94015, 94005, 94080, 94066, 94044, 94030, 94010, 94401, 94402, 94403, 94404, 94002, 94070, 94061, 94062, 94063, 94065, 94027, 94025, 94303, 94301, 94304, 94306, 94040, 94041, 94043, 94019, solar mobile pet grooming, Hydra Pet Society grooming"
+    />
+    <meta name="author" content="SOUVA CORP" />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <link rel="canonical" href="https://souva-mobile-pet-grooming.vercel.app/" />
+
+    <!-- ── GEO META TAGS (LOCAL SEARCH ENGINE INDEXING) ───────────── -->
+    <meta name="geo.region" content="US-CA" />
+    <meta name="geo.placename" content="San Francisco, Peninsula, California" />
+    <meta name="geo.position" content="37.7749;-122.4194" />
+    <meta name="ICBM" content="37.7749, -122.4194" />
+
+    <!-- ── OPEN GRAPH (FACEBOOK, LINKEDIN, WHATSAPP, IMESSAGE) ───── -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://souva-mobile-pet-grooming.vercel.app/" />
+    <meta property="og:site_name" content="SOUVA Mobile Pet Grooming" />
+    <meta
+      property="og:title"
+      content="SOUVA · Luxury Solar Mobile Pet Grooming | San Francisco & Peninsula"
+    />
+    <meta
+      property="og:description"
+      content="Elevated 1-on-1 mobile dog grooming delivered directly to your doorstep in San Francisco and the Peninsula. Whisper-quiet solar mobile van, cage-free comfort, and Hydra® botanical spa treatments."
+    />
+    <meta
+      property="og:image"
+      content="https://souva-mobile-pet-grooming.vercel.app/assets/souva-badge-circle-transparent.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="SOUVA Mobile Pet Grooming Luxury Solar Fleet" />
+
+    <!-- ── TWITTER / X CARD ───────────────────────────────────────── -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://souva-mobile-pet-grooming.vercel.app/" />
+    <meta
+      name="twitter:title"
+      content="SOUVA · Luxury Solar Mobile Pet Grooming | San Francisco & Peninsula"
+    />
+    <meta
+      name="twitter:description"
+      content="Elevated 1-on-1 mobile dog grooming delivered directly to your doorstep in San Francisco and the Peninsula. Whisper-quiet solar mobile van, cage-free comfort, and Hydra® botanical spa treatments."
+    />
+    <meta
+      name="twitter:image"
+      content="https://souva-mobile-pet-grooming.vercel.app/assets/souva-badge-circle-transparent.png"
+    />
+
+    <!-- ── GOOGLE FONTS PRECONNECT ────────────────────────────────── -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- ── SCHEMA.ORG LOCAL BUSINESS & SERVICE STRUCTURED DATA ────── -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "additionalType": "https://schema.org/PetGroomingService",
+        "name": "SOUVA Mobile Pet Grooming",
+        "legalName": "SOUVA CORP",
+        "url": "https://souva-mobile-pet-grooming.vercel.app/",
+        "logo": "https://souva-mobile-pet-grooming.vercel.app/assets/souva-badge-circle-transparent.png",
+        "image": "https://souva-mobile-pet-grooming.vercel.app/assets/souva-van-profile.png",
+        "telephone": "+1-850-960-0034",
+        "email": "info@souvagrooming.com",
+        "priceRange": "$$$",
+        "currenciesAccepted": "USD",
+        "paymentAccepted": "Cash, Credit Card, Debit Card, Check, Zelle",
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ],
+            "opens": "08:30",
+            "closes": "19:00"
+          }
+        ],
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 37.7749,
+          "longitude": -122.4194
+        },
+        "areaServed": [
+          { "@type": "PostalCode", "postalCode": "94116" },
+          { "@type": "PostalCode", "postalCode": "94122" },
+          { "@type": "PostalCode", "postalCode": "94127" },
+          { "@type": "PostalCode", "postalCode": "94132" },
+          { "@type": "PostalCode", "postalCode": "94112" },
+          { "@type": "PostalCode", "postalCode": "94131" },
+          { "@type": "PostalCode", "postalCode": "94014" },
+          { "@type": "PostalCode", "postalCode": "94015" },
+          { "@type": "PostalCode", "postalCode": "94005" },
+          { "@type": "PostalCode", "postalCode": "94080" },
+          { "@type": "PostalCode", "postalCode": "94066" },
+          { "@type": "PostalCode", "postalCode": "94044" },
+          { "@type": "PostalCode", "postalCode": "94030" },
+          { "@type": "PostalCode", "postalCode": "94010" },
+          { "@type": "PostalCode", "postalCode": "94401" },
+          { "@type": "PostalCode", "postalCode": "94402" },
+          { "@type": "PostalCode", "postalCode": "94403" },
+          { "@type": "PostalCode", "postalCode": "94404" },
+          { "@type": "PostalCode", "postalCode": "94002" },
+          { "@type": "PostalCode", "postalCode": "94070" },
+          { "@type": "PostalCode", "postalCode": "94061" },
+          { "@type": "PostalCode", "postalCode": "94062" },
+          { "@type": "PostalCode", "postalCode": "94063" },
+          { "@type": "PostalCode", "postalCode": "94065" },
+          { "@type": "PostalCode", "postalCode": "94027" },
+          { "@type": "PostalCode", "postalCode": "94025" },
+          { "@type": "PostalCode", "postalCode": "94303" },
+          { "@type": "PostalCode", "postalCode": "94301" },
+          { "@type": "PostalCode", "postalCode": "94304" },
+          { "@type": "PostalCode", "postalCode": "94306" },
+          { "@type": "PostalCode", "postalCode": "94040" },
+          { "@type": "PostalCode", "postalCode": "94041" },
+          { "@type": "PostalCode", "postalCode": "94043" },
+          { "@type": "PostalCode", "postalCode": "94019" }
+        ],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "5.0",
+          "reviewCount": "158"
+        },
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Mobile Grooming Services",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Bath & Brush Refresh",
+                "description": "Warm water bath with Hydra botanical shampoo, hand blow-dry, ear cleaning, nail trim, and gentle brush out."
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Bath & Tidy",
+                "description": "Full bath refresh plus sanitary trim, paw pad cleanup, and delicate facial scissor shaping."
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Essential Full Groom",
+                "description": "Complete full haircut, shorter all-over breed trim, bath, and hygiene sanitization."
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Signature SOUVA Grooming",
+                "description": "Master scissor sculpting, longer plush coat styling ½\"+, blueberry facial, and festive bandana finish."
+              }
+            }
+          ]
+        }
+      }
+    </script>
+
+    <!-- ── SCHEMA.ORG FAQPAGE RICH SNIPPETS ───────────────────────── -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What areas in the Bay Area does SOUVA Mobile Pet Grooming service?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SOUVA services select neighborhoods in San Francisco (Sunset, Parkside, West Portal, Lake Merced, Ingleside, Glen Park) and Peninsula cities including Daly City, Colma, Brisbane, South San Francisco, San Bruno, Pacifica, Millbrae, Burlingame, Hillsborough, San Mateo, Foster City, Belmont, San Carlos, Redwood City, Woodside, Atherton, Menlo Park, Palo Alto, Mountain View, and Half Moon Bay."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does solar-powered mobile dog grooming benefit my pet?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Our custom mobile salons operate on an autonomous 100% solar lithium battery bank. Unlike loud generator-powered vans, our solar van is whisper-quiet, producing zero toxic exhaust fumes outside your home and zero generator vibrations, keeping your dog calm and comfortable throughout the session."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Are dogs caged or crated during grooming?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Never. SOUVA is 100% cage-free. We only groom one pet at a time, providing undivided 1-on-1 attention with gentle warm hand blow-drying and ergonomic hydraulic lifting tables."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does the 20% discount on the second dog work?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "When you schedule two dogs for the same visit of our solar mobile van, an automatic 20% discount is applied to the second dog's base grooming package during booking."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What pet shampoos and spa products do you use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "We proudly partner with Hydra® by Pet Society, a world leader in professional salon pet cosmetics. All shampoos, facial washes, and detanglers are cruelty-free, sulfate-free, and formulated with natural colloidal oat and botanical extracts."
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body class="bg-[#161811] text-[#FAF0E2] antialiased selection:bg-[#AA8B63]/40 selection:text-[#FAF0E2]">
     <div id="root"></div>
