@@ -122,13 +122,13 @@ function TransformationCard({ item }: { item: Transformation }) {
           </div>
 
           {/* Floating Badges */}
-          <div className="absolute top-2.5 left-2.5 z-20 px-2 py-0.5 rounded-full bg-[#161811]/90 backdrop-blur-md border border-[#FAF0E2]/20 text-[9.5px] font-mono font-bold text-[#FAF0E2] shadow pointer-events-none flex items-center gap-1">
+          <div className="absolute top-2.5 left-2.5 z-20 px-2.5 py-1 rounded-full bg-[#161811]/90 backdrop-blur-md border border-[#FAF0E2]/20 text-[11px] font-semibold text-[#FAF0E2] shadow pointer-events-none flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
             <span>ANTES</span>
           </div>
 
-          <div className="absolute top-2.5 right-2.5 z-20 px-2.5 py-0.5 rounded-full bg-[#AA8B63] backdrop-blur-md border border-[#FAF0E2]/30 text-[9.5px] font-mono font-bold text-[#161811] shadow pointer-events-none flex items-center gap-1">
-            <Sparkles className="h-2.5 w-2.5" />
+          <div className="absolute top-2.5 right-2.5 z-20 px-2.5 py-1 rounded-full bg-[#AA8B63] backdrop-blur-md border border-[#FAF0E2]/30 text-[11px] font-semibold text-[#161811] shadow pointer-events-none flex items-center gap-1">
+            <Sparkles className="h-3 w-3" />
             <span>DESPUÉS</span>
           </div>
 
@@ -144,46 +144,36 @@ function TransformationCard({ item }: { item: Transformation }) {
           </div>
 
           {/* Helper caption */}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 px-2.5 py-0.5 rounded-full bg-[#161811]/85 backdrop-blur-sm text-[9px] font-mono text-[#FAF0E2]/80 border border-[#FAF0E2]/10 pointer-events-none flex items-center gap-1 whitespace-nowrap">
-            <Eye className="h-2.5 w-2.5 text-[#AA8B63]" />
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-[#161811]/85 backdrop-blur-sm text-[10px] font-medium text-[#FAF0E2]/85 border border-[#FAF0E2]/10 pointer-events-none flex items-center gap-1.5 whitespace-nowrap">
+            <Eye className="h-3 w-3 text-[#AA8B63]" />
             <span>Desliza para comparar</span>
           </div>
         </div>
 
-        {/* Quick Toggles */}
-        <div className="flex items-center justify-between gap-1 mt-2.5 px-0.5">
+        {/* Quick Toggles: Antes / Después (50/50 removed) */}
+        <div className="grid grid-cols-2 gap-2 mt-3 px-0.5">
           <button
             type="button"
-            onClick={() => setSliderPosition(5)}
-            className={`px-2 py-1 rounded-lg text-[10px] font-mono font-bold transition-colors cursor-pointer border ${
-              sliderPosition <= 15
-                ? "bg-[#AA8B63]/20 text-[#AA8B63] border-[#AA8B63]"
-                : "bg-[#161811] text-[#A4AA93] border-[#FAF0E2]/10 hover:text-[#FAF0E2]"
+            onClick={() => setSliderPosition(0)}
+            className={`py-1.5 px-3 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer border text-center ${
+              sliderPosition <= 25
+                ? "bg-[#AA8B63] text-[#161811] border-[#AA8B63] shadow-md"
+                : "bg-[#161811] text-[#A4AA93] border-[#FAF0E2]/10 hover:text-[#FAF0E2] hover:border-[#FAF0E2]/25"
             }`}
           >
-            Antes
+            Ver Antes
           </button>
           <button
             type="button"
-            onClick={() => setSliderPosition(50)}
-            className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-colors cursor-pointer border ${
-              sliderPosition > 35 && sliderPosition < 65
-                ? "bg-[#AA8B63] text-[#161811] border-[#AA8B63]"
-                : "bg-[#161811] text-[#A4AA93] border-[#FAF0E2]/10 hover:text-[#FAF0E2]"
+            onClick={() => setSliderPosition(100)}
+            className={`py-1.5 px-3 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer border text-center flex items-center justify-center gap-1.5 ${
+              sliderPosition >= 75
+                ? "bg-[#AA8B63] text-[#161811] border-[#AA8B63] shadow-md"
+                : "bg-[#161811] text-[#AA8B63] border-[#AA8B63]/40 hover:bg-[#AA8B63]/20"
             }`}
           >
-            50/50
-          </button>
-          <button
-            type="button"
-            onClick={() => setSliderPosition(95)}
-            className={`px-2 py-1 rounded-lg text-[10px] font-mono font-bold transition-colors cursor-pointer border ${
-              sliderPosition >= 85
-                ? "bg-[#AA8B63]/20 text-[#AA8B63] border-[#AA8B63]"
-                : "bg-[#161811] text-[#AA8B63] border-[#AA8B63]/40 hover:bg-[#AA8B63]/30"
-            }`}
-          >
-            Después ✨
+            <span>Ver Después</span>
+            <Sparkles className="h-3 w-3" />
           </button>
         </div>
       </div>
@@ -192,15 +182,15 @@ function TransformationCard({ item }: { item: Transformation }) {
       <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
         <div>
           <div className="flex items-center justify-between gap-2 mb-1.5">
-            <h4 className="font-display font-bold text-xl text-[#FAF0E2]">
+            <h4 className="font-bold text-xl text-[#FAF0E2]">
               {item.name}
             </h4>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#AA8B63]/15 border border-[#AA8B63]/35 text-[#AA8B63] font-mono text-[10.5px] font-bold">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#AA8B63]/15 border border-[#AA8B63]/35 text-[#AA8B63] text-xs font-semibold">
               {item.breed}
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-[#AA8B63] font-mono font-semibold mb-2">
+          <div className="flex items-center gap-1.5 text-xs text-[#AA8B63] font-semibold mb-2">
             <Scissors className="h-3.5 w-3.5" />
             <span>{item.service}</span>
           </div>
@@ -210,12 +200,12 @@ function TransformationCard({ item }: { item: Transformation }) {
           </p>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-[#FAF0E2]/10 flex items-center justify-between text-[10.5px] font-mono text-[#A4AA93]">
-          <span className="flex items-center gap-1 text-[#AA8B63]">
+        <div className="mt-4 pt-3 border-t border-[#FAF0E2]/10 flex items-center justify-between text-xs text-[#A4AA93]">
+          <span className="flex items-center gap-1.5 text-[#AA8B63] font-medium">
             <ShieldCheck className="h-3.5 w-3.5" />
             <span>Sin Jaulas</span>
           </span>
-          <span className="text-[#FAF0E2]/60">Cuidado 1-a-1</span>
+          <span className="text-[#FAF0E2]/60 font-medium">Cuidado 1-a-1</span>
         </div>
       </div>
     </div>
@@ -226,7 +216,7 @@ export function BeforeAfterSlider() {
   return (
     <div className="w-full max-w-7xl mx-auto">
       {/* 3 Distinct Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-left">
         {TRANSFORMATIONS.map((item) => (
           <TransformationCard key={item.id} item={item} />
         ))}
