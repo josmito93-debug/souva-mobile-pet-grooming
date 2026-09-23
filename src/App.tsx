@@ -28,8 +28,8 @@ import { GroomingFlow } from "@/components/GroomingFlow";
 import { StepCard } from "@/components/StepCard";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { AdminDashboard } from "@/components/AdminDashboard";
-import { TermsModal } from "@/components/TermsModal";
 import { LocalSeoDirectory } from "@/components/LocalSeoDirectory";
+import { Footer } from "@/components/Footer";
 import {
   SOUVA_PACKAGES,
   SPA_UPGRADES,
@@ -888,103 +888,8 @@ function AppContent() {
         </svg>
       </a>
 
-      {/* Footer */}
-      <Footer onOpenAdmin={navigateToAdmin} />
+      {/* Robust Footer */}
+      <Footer onOpenAdmin={navigateToAdmin} onBookClick={scrollToHero} />
     </div>
-  );
-}
-
-/* -------------------- FOOTER COMPONENT -------------------- */
-function Footer({ onOpenAdmin }: { onOpenAdmin: () => void }) {
-  const [showTermsModal, setShowTermsModal] = useState(false);
-
-  return (
-    <footer className="px-5 py-8 md:px-8 border-t border-[#FAF0E2]/10 text-[11px] font-mono text-[#A4AA93] bg-[#14160F]">
-      <div className="mx-auto max-w-6xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-2">
-            <span className="font-display font-bold text-[#FAF0E2] uppercase tracking-wider text-xs">
-              SOUVA MOBILE PET GROOMING
-            </span>
-            <span className="text-[#AA8B63]">♥</span>
-          </div>
-          <p className="text-[#A4AA93] text-[10px]">
-            "The Bay Area’s elevated mobile grooming experience."
-          </p>
-          <div className="flex flex-wrap items-center gap-2 text-[10px] text-[#A4AA93]/60">
-            <span>© {new Date().getFullYear()} SOUVA CORP. All rights reserved.</span>
-            <span>•</span>
-            <button
-              type="button"
-              onClick={() => setShowTermsModal(true)}
-              className="text-[#AA8B63] hover:underline cursor-pointer"
-            >
-              Terms & Conditions of Service
-            </button>
-          </div>
-          <button
-            type="button"
-            onClick={onOpenAdmin}
-            className="text-[10px] text-[#A4AA93]/50 hover:text-[#AA8B63] transition-colors flex items-center gap-1.5 mt-2 cursor-pointer text-left w-fit"
-          >
-            <Shield className="h-3 w-3" />
-            <span>Owner Portal / Fleet Dispatch (/admin)</span>
-          </button>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-6 md:gap-10">
-          <div className="flex flex-col gap-1">
-            <span className="text-[9.5px] uppercase tracking-wider text-[#AA8B63] font-bold">
-              CONCIERGE / WHATSAPP
-            </span>
-            <a
-              href="https://wa.me/18509600034?text=Hello%20SOUVA%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
-              target="_blank"
-              rel="noreferrer"
-              className="text-[#FAF0E2] hover:text-[#25D366] transition-colors font-bold flex items-center gap-1"
-            >
-              <span>+1 (850) 960-0034</span>
-            </a>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <span className="text-[9.5px] uppercase tracking-wider text-[#AA8B63] font-bold">
-              OPERATING HOURS
-            </span>
-            <span className="text-[#FAF0E2]">Monday – Sunday (7 Days): 8:30 AM – 7:00 PM</span>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <span className="text-[9.5px] uppercase tracking-wider text-[#AA8B63] font-bold">
-              SERVICE AREA
-            </span>
-            <span className="text-[#FAF0E2]">San Francisco (Select) · Peninsula · Half Moon Bay</span>
-          </div>
-
-          <div className="flex items-center gap-3 pt-2 sm:pt-0">
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noreferrer"
-              className="p-2 rounded-full bg-[#1F2318] border border-[#FAF0E2]/10 hover:border-[#AA8B63] text-[#FAF0E2] transition-colors"
-              aria-label="Instagram"
-            >
-              <Instagram className="h-4 w-4" />
-            </a>
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noreferrer"
-              className="p-2 rounded-full bg-[#1F2318] border border-[#FAF0E2]/10 hover:border-[#AA8B63] text-[#FAF0E2] transition-colors"
-              aria-label="Facebook"
-            >
-              <Facebook className="h-4 w-4" />
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <TermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
-    </footer>
   );
 }
