@@ -278,13 +278,14 @@ function StepHeader({
 export function GroomingFlow({
   onStatus,
 }: {
-  onStatus: (s: { armed: boolean; dispatched: boolean }) => void;
+  onStatus?: (s: { armed: boolean; dispatched: boolean; currentStep?: number }) => void;
 }) {
   const availableDates = useMemo(() => getAvailableDates(), []);
   const initialDate = availableDates[0];
   const initialSlots = SCHEDULE_BY_DAY[initialDate?.dayOfWeek ?? 1] || [];
 
   const flowTopRef = useRef<HTMLDivElement>(null);
+  const isFirstMount = useRef(true);
 
   // 1. REHYDRATE FROM LOCALSTORAGE IF EXISTS
   const initialDataState: GroomingFlowState = {
@@ -307,7 +308,7 @@ export function GroomingFlow({
     petAge: "Adult (1–7 yrs)",
     gender: "male",
     petCondition: "Healthy & Well-Maintained",
-    temperament: "Amigable (Friendly)",
+    temperament: "Friendly & Calm",
     vaccinated: "yes",
     medicalConditions: "None / Healthy",
     groomerNotes: "",
@@ -374,16 +375,30 @@ export function GroomingFlow({
     }
   }, [data, step, savedPets, completed]);
 
-  // 3. AUTO-SCROLL TO TOP OF MODAL/COCKPIT ON EVERY STEP CHANGE
+  // 3. AUTO-SCROLL TO COCKPIT ON STEP CHANGE (NOT on initial page load!)
   const scrollToTop = useCallback(() => {
     if (flowTopRef.current) {
-      const yOffset = -75; // accounts for sticky header
-      const y = flowTopRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+      const rect = flowTopRef.current.getBoundingClientRect();
+      const cardHeight = rect.height;
+      const windowHeight = window.innerHeight;
+
+      // If the card fits nicely, frame and center it in the viewport for comfortable reading
+      if (cardHeight < windowHeight - 90) {
+        const targetY = rect.top + window.pageYOffset - (windowHeight - cardHeight) / 2;
+        window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
+      } else {
+        const yOffset = -75; // accounts for sticky header
+        const y = rect.top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+      }
     }
   }, []);
 
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return; // Do NOT auto-scroll on initial mount! Page stays at top (top: 0)!
+    }
     scrollToTop();
   }, [step, completed, scrollToTop]);
 
@@ -423,8 +438,8 @@ export function GroomingFlow({
   );
 
   useEffect(() => {
-    onStatus({ armed: canNext && !completed, dispatched: completed });
-  }, [canNext, completed, onStatus]);
+    onStatus?.({ armed: canNext && !completed, dispatched: completed, currentStep: step });
+  }, [canNext, completed, onStatus, step]);
 
   const prevCanNext = useRef(false);
   useEffect(() => {
@@ -503,7 +518,7 @@ export function GroomingFlow({
       petAge: "Adult (1–7 yrs)",
       gender: "male",
       petCondition: "Healthy & Well-Maintained",
-      temperament: "Amigable (Friendly)",
+      temperament: "Friendly & Calm",
       vaccinated: "yes",
       medicalConditions: "None / Healthy",
       groomerNotes: "",
@@ -551,7 +566,7 @@ export function GroomingFlow({
     const finalBreeds = allPets.map((p) => p.breed).join(" · ") || data.breed;
     const finalSizes = allPets.map((p) => p.size);
     const finalAges = allPets.map((p) => p.petAge).join(" · ");
-    const finalGenders = allPets.map((p) => (p.gender === "male" ? "Macho" : "Hembra")).join(" · ");
+    const finalGenders = allPets.map((p) => (p.gender === "male" ? "Male" : "Female")).join(" · ");
     const finalPackages = allPets.map((p) => p.packageName).join(" + ");
     const finalAddons = allPets.flatMap((p) => p.addons);
     const totalMultiDiscount = allPets.reduce((sum, p) => sum + p.discount, 0);
@@ -742,21 +757,29 @@ export function GroomingFlow({
           </div>
           {savedPets.length > 0 && !completed && (
             <div className="text-[10px] font-mono text-emerald-300 font-bold">
-              Configurando Perro #{savedPets.length + 1} · ({savedPets.length} guardado{savedPets.length > 1 ? "s" : ""})
+              Configuring Dog #{savedPets.length + 1} · ({savedPets.length} saved)
             </div>
           )}
         </div>
 
-        {/* Clear draft option if user wants to reset */}
-        {!completed && (step > 0 || savedPets.length > 0) ? (
+        {/* Start Over Button */}
+        {!completed ? (
           <button
             type="button"
-            onClick={reset}
-            className="text-[10px] font-mono text-[#A4AA93]/60 hover:text-red-400 transition-colors cursor-pointer flex items-center gap-1"
-            title="Borrar borrador y reiniciar"
+            onClick={() => {
+              if (step > 0 || savedPets.length > 0) {
+                if (window.confirm("Are you sure you want to start over? This will reset your booking.")) {
+                  reset();
+                }
+              } else {
+                reset();
+              }
+            }}
+            className="px-2.5 py-1 rounded-full bg-[#1F2318] border border-[#FAF0E2]/15 text-[10px] font-mono font-bold text-[#AA8B63] hover:text-[#FAF0E2] hover:border-[#AA8B63] hover:bg-[#AA8B63]/20 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+            title="Reset and start over from step 1"
           >
             <RotateCcw className="h-3 w-3" />
-            <span className="hidden sm:inline">Reset</span>
+            <span>Start Over</span>
           </button>
         ) : (
           <div className="w-9" />
@@ -857,16 +880,16 @@ export function GroomingFlow({
 
         {/* PERSISTENT LIVE SUMMARY BAR & KNOW YOUR PRICE */}
         {!completed && (
-          <div className="mt-4 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-md overflow-hidden transition-all">
-            <div className="p-3 flex items-center justify-between gap-3 text-xs select-none">
+          <div className="mt-3 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-md overflow-hidden transition-all">
+            <div className="p-2.5 sm:p-3 flex items-center justify-between gap-3 text-xs select-none">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="h-8 w-8 rounded-xl bg-[#25281D] border border-[#AA8B63]/40 flex items-center justify-center shrink-0">
-                  <span className="text-sm">🐾</span>
+                <div className="h-7 w-7 rounded-lg bg-[#25281D] border border-[#AA8B63]/40 flex items-center justify-center shrink-0">
+                  <span className="text-xs">🐾</span>
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 truncate">
                     <span className="font-bold text-[#FAF0E2] truncate">
-                      {data.petName.trim() ? data.petName : `Perro #${savedPets.length + 1}`}
+                      {data.petName.trim() ? data.petName : `Dog #${savedPets.length + 1}`}
                     </span>
                     <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-[#25281D] text-[#AA8B63] font-bold uppercase shrink-0">
                       {SIZE_GUIDE.find((s) => s.id === data.size)?.label || data.size}
@@ -877,7 +900,7 @@ export function GroomingFlow({
                       </span>
                     )}
                   </div>
-                  <div className="text-[11px] text-[#A4AA93] truncate">
+                  <div className="text-[10.5px] text-[#A4AA93] truncate">
                     {selectedPkg ? selectedPkg.name : "Select a service"}
                     {savedPets.length > 0 ? ` · (+${savedPets.length} prior dog${savedPets.length > 1 ? "s" : ""})` : ""}
                   </div>
@@ -888,7 +911,7 @@ export function GroomingFlow({
                 <span className="text-[9px] font-mono text-[#A4AA93] uppercase block">
                   {savedPets.length > 0 ? `Total (${savedPets.length + 1} Dogs)` : "Know Your Price"}
                 </span>
-                <span className="font-display font-extrabold text-lg text-[#AA8B63]">
+                <span className="font-display font-extrabold text-base text-[#AA8B63]">
                   ${grandEstimatedTotal}
                 </span>
               </div>
@@ -896,33 +919,33 @@ export function GroomingFlow({
 
             {/* Expandable inclusions */}
             {selectedPkg && (
-              <div className="border-t border-[#FAF0E2]/10 bg-[#181B12]/80 px-3 py-2">
+              <div className="border-t border-[#FAF0E2]/10 bg-[#181B12]/80 px-3 py-1.5">
                 <button
                   type="button"
                   onClick={() => setIsDescExpanded(!isDescExpanded)}
-                  className="w-full flex items-center justify-between text-[11px] font-medium text-[#AA8B63] hover:text-[#FAF0E2] transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between text-[10.5px] font-medium text-[#AA8B63] hover:text-[#FAF0E2] transition-colors cursor-pointer"
                 >
                   <span className="flex items-center gap-1.5 truncate">
-                    <Info className="h-3.5 w-3.5 shrink-0" />
+                    <Info className="h-3 w-3 shrink-0" />
                     <span className="truncate">
                       {isDescExpanded ? "Hide" : "View"} {selectedPkg.name} description & inclusions
                     </span>
                   </span>
                   {isDescExpanded ? (
-                    <ChevronUp className="h-4 w-4 shrink-0" />
+                    <ChevronUp className="h-3.5 w-3.5 shrink-0" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 shrink-0" />
+                    <ChevronDown className="h-3.5 w-3.5 shrink-0" />
                   )}
                 </button>
 
                 {isDescExpanded && (
-                  <div className="mt-2.5 pt-2.5 border-t border-[#FAF0E2]/10 space-y-2 text-xs">
-                    <p className="text-[#FAF0E2]/90 leading-relaxed text-[11.5px]">
+                  <div className="mt-2 pt-2 border-t border-[#FAF0E2]/10 space-y-1.5 text-xs">
+                    <p className="text-[#FAF0E2]/90 leading-relaxed text-[11px]">
                       {selectedPkg.tagline}
                     </p>
                     <div className="grid grid-cols-2 gap-1.5">
                       {selectedPkg.includes.map((inc) => (
-                        <div key={inc} className="flex items-center gap-1.5 text-[11px] text-[#FAF0E2]/85">
+                        <div key={inc} className="flex items-center gap-1.5 text-[10.5px] text-[#FAF0E2]/85">
                           <Check className="h-3 w-3 text-[#AA8B63] shrink-0" />
                           <span className="truncate">{inc}</span>
                         </div>
@@ -943,20 +966,20 @@ export function GroomingFlow({
               disabled={!canNext}
               onClick={handleNext}
               className={cn(
-                "mt-4 w-full py-4 text-sm font-bold btn-luxury relative z-10 flex items-center justify-center gap-2",
+                "mt-3 w-full py-3.5 text-xs sm:text-sm font-bold btn-luxury relative z-10 flex items-center justify-center gap-2",
                 justArmed && "just-armed"
               )}
             >
               {step === 1 ? (
                 <span className="flex items-center justify-center gap-2">
-                  <Calendar className="h-4.5 w-4.5" />
+                  <Calendar className="h-4 w-4" />
                   <span>Book Now · Check Coverage</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
                   <span>Continue</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </span>
               )}
             </button>
@@ -965,7 +988,7 @@ export function GroomingFlow({
             {step === 2 && data.zipCode.length === 5 && !isCoveredZip && (
               <div className="mt-2 text-center text-xs font-mono font-bold text-red-400 bg-red-950/60 border border-red-500/50 p-2.5 rounded-xl animate-pulse flex items-center justify-center gap-1.5 shadow-md">
                 <AlertCircle className="h-4 w-4 text-red-400 shrink-0" />
-                <span>Ingresa un ZIP cubierto (SF o Península) para habilitar el botón de continuar</span>
+                <span>Please enter a covered ZIP code (San Francisco or Peninsula) to proceed</span>
               </div>
             )}
           </>
@@ -1357,7 +1380,7 @@ function StepLocationCoverage({
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider">
-              ZIP Code (Código Postal de 5 dígitos)
+              ZIP Code (5 digits)
             </label>
             <span className="text-[10px] font-mono text-[#AA8B63]">
               {coverage.covered ? "✓ Area Covered" : "Instant Verification"}
@@ -1745,7 +1768,7 @@ function StepDogInfo({
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Gender (Género)
+              Gender
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -1758,7 +1781,7 @@ function StepDogInfo({
                     : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
                 )}
               >
-                <span>♂ Macho (Male)</span>
+                <span>♂ Male</span>
               </button>
               <button
                 type="button"
@@ -1770,14 +1793,14 @@ function StepDogInfo({
                     : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
                 )}
               >
-                <span>♀ Hembra (Female)</span>
+                <span>♀ Female</span>
               </button>
             </div>
           </div>
 
           <div>
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Age (Edad)
+              Age Bracket
             </label>
             <div className="grid grid-cols-3 gap-1">
               {ageOptions.map((age) => (
@@ -1826,10 +1849,10 @@ function StepDogCareCondition({
   };
 
   const temperamentOptions = [
-    "Amigable (Friendly & Calm)",
-    "Ansioso / Sensible (Anxious)",
-    "Activo & Enérgico (Playful)",
-    "Tímido / Paciencia Extra",
+    "Friendly & Calm",
+    "Anxious / Sensitive",
+    "Active & Playful",
+    "Shy / Extra Patience Needed",
   ];
 
   const medicalOptions = [

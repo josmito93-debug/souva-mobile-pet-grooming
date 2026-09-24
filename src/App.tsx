@@ -59,7 +59,11 @@ function AppContent() {
 
   const [loading, setLoading] = useState(true);
   const [previewSize, setPreviewSize] = useState<PetSize>("small");
-  const [flowStatus, setFlowStatus] = useState({ armed: false, dispatched: false });
+  const [flowStatus, setFlowStatus] = useState<{ armed: boolean; dispatched: boolean; currentStep?: number }>({
+    armed: false,
+    dispatched: false,
+    currentStep: 0,
+  });
   const [burst, setBurst] = useState(0);
   const prevDispatched = useRef(false);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
@@ -209,8 +213,15 @@ function AppContent() {
     return () => ctx.revert();
   }, []);
 
-  const scrollToHero = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const scrollToBookingFlow = () => {
+    const el = document.getElementById("book");
+    if (el) {
+      const yOffset = -75;
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (
@@ -267,7 +278,7 @@ function AppContent() {
       )}
 
       {/* Header */}
-      <Header onBookClick={scrollToHero} />
+      <Header onBookClick={scrollToBookingFlow} />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col relative z-10">
@@ -292,9 +303,23 @@ function AppContent() {
           </div>
 
           <div className="relative z-10 max-w-6xl mx-auto w-full">
-            <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-              {/* Left Side: Brand Story & Value Prop */}
-              <div className="hero-left-content lg:col-span-5 flex flex-col justify-between py-2 space-y-6">
+            <div
+              className={cn(
+                "transition-all duration-500",
+                flowStatus.currentStep !== undefined && flowStatus.currentStep >= 2
+                  ? "grid grid-cols-1"
+                  : "grid lg:grid-cols-12 gap-8 lg:gap-12 items-center"
+              )}
+            >
+              {/* Left Side: Brand Story & Value Prop (Collapses on step >= 2 to center cockpit) */}
+              <div
+                className={cn(
+                  "hero-left-content flex flex-col justify-between py-2 space-y-6 transition-all duration-500",
+                  flowStatus.currentStep !== undefined && flowStatus.currentStep >= 2
+                    ? "hidden"
+                    : "lg:col-span-5"
+                )}
+              >
                 <div>
                   {/* Location Status Badge */}
                   <div className="inline-flex items-center gap-2 rounded-full border border-[#FAF0E2]/15 bg-[#202419]/80 backdrop-blur-md px-4 py-1.5 text-xs font-medium tracking-wide text-[#FAF0E2]">
@@ -320,6 +345,32 @@ function AppContent() {
                     premium products support a more eco-conscious approach, while delivering
                     personalized care and beautifully tailored results directly to your doorstep.
                   </p>
+
+                  {/* Highlighted CALL US Banner */}
+                  <div className="mt-4 p-3.5 rounded-2xl bg-gradient-to-r from-[#2A2418] via-[#23271A] to-[#1C1F15] border-2 border-[#AA8B63] shadow-[0_0_25px_rgba(170,139,99,0.35)] flex items-center justify-between gap-3 max-w-md">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-10 w-10 rounded-xl bg-[#AA8B63] text-[#161811] flex items-center justify-center shrink-0 shadow-md">
+                        <Phone className="h-5 w-5 fill-[#161811] animate-bounce" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-[#AA8B63] font-bold block truncate">
+                          Prefer to Book by Phone?
+                        </span>
+                        <a
+                          href="tel:+18509600034"
+                          className="text-sm font-display font-extrabold text-[#FAF0E2] hover:text-[#AA8B63] transition-colors block truncate"
+                        >
+                          CALL US: +1 (850) 960-0034
+                        </a>
+                      </div>
+                    </div>
+                    <a
+                      href="tel:+18509600034"
+                      className="px-3.5 py-1.5 rounded-xl bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-black text-xs uppercase tracking-wider shrink-0 transition-colors shadow-md"
+                    >
+                      CALL US
+                    </a>
+                  </div>
 
                   {/* Solar Panels & Eco-Friendly Feature Callouts */}
                   <SolarEcoFeature className="mt-5" />
@@ -351,9 +402,23 @@ function AppContent() {
                 <TrustPillars />
               </div>
 
-              {/* Right Side: The Interactive Cockpit Card */}
-              <div className="hero-right-content lg:col-span-7 flex flex-col justify-center">
-                <div className="relative w-full max-w-xl mx-auto lg:mr-0">
+              {/* Right Side: The Interactive Cockpit Card (Centered when step >= 2) */}
+              <div
+                className={cn(
+                  "flex flex-col justify-center transition-all duration-500",
+                  flowStatus.currentStep !== undefined && flowStatus.currentStep >= 2
+                    ? "col-span-12 max-w-2xl mx-auto w-full"
+                    : "hero-right-content lg:col-span-7"
+                )}
+              >
+                <div
+                  className={cn(
+                    "relative w-full transition-all duration-500",
+                    flowStatus.currentStep !== undefined && flowStatus.currentStep >= 2
+                      ? "max-w-2xl mx-auto"
+                      : "max-w-xl mx-auto lg:mr-0"
+                  )}
+                >
                   <div
                     className={cn(
                       "absolute -inset-3 blur-3xl rounded-[3rem] transition-colors duration-700",
@@ -367,7 +432,7 @@ function AppContent() {
                     live={flowStatus.dispatched}
                     celebrate={burst}
                     enableSparks={flowStatus.dispatched}
-                    className="p-5 sm:p-7"
+                    className="p-4 sm:p-6"
                   >
                     <GroomingFlow onStatus={setFlowStatus} />
                   </InteractiveTile>
@@ -522,7 +587,7 @@ function AppContent() {
 
                     <button
                       type="button"
-                      onClick={scrollToHero}
+                      onClick={scrollToBookingFlow}
                       className="mt-6 w-full py-2.5 rounded-xl border border-[#AA8B63]/40 bg-[#AA8B63]/10 text-xs font-bold text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <span>Select This Service</span>
@@ -626,10 +691,10 @@ function AppContent() {
         </section>
 
         {/* QUIÉNES SOMOS SECTION */}
-        <AboutSection onBookClick={scrollToHero} />
+        <AboutSection onBookClick={scrollToBookingFlow} />
 
         {/* ÁREAS QUE ATENDEMOS SECTION */}
-        <CoverageSection onBookClick={scrollToHero} />
+        <CoverageSection onBookClick={scrollToBookingFlow} />
 
         {/* BEFORE & AFTER TRANSFORMATION SHOWCASE */}
         <section id="before-after" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 relative overflow-hidden">
@@ -688,7 +753,7 @@ function AppContent() {
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
                     src="/assets/souva-products.png"
-                    alt="SOUVA Botanical Pet Cosmetics"
+                    alt="HYDRA Professional Pet Shampoo & Spa Line"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
@@ -696,7 +761,7 @@ function AppContent() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
-                        Artisan Botanical Product Line
+                        HYDRA® Professional Spa Line
                       </h4>
                       <span className="text-[11px] font-mono font-bold text-[#AA8B63] block">
                         Official Partner: HYDRA® by Pet Society
@@ -711,7 +776,7 @@ function AppContent() {
                     </div>
                   </div>
                   <p className="text-xs text-[#A4AA93] mt-2 leading-relaxed">
-                    Colloidal oat shampoos, silk detanglers, and healing paw butter formulated without parabens, sulfates, or artificial fragrances.
+                    Official salon-grade Hydra® botanical shampoos: Colloidal Oatmeal Moisturizing, Chamomile Gentle, Aloe Deshedding, and Silky Conditioner without harsh sulfates or parabens.
                   </p>
                 </div>
               </div>
@@ -767,9 +832,9 @@ function AppContent() {
                   author: "David L.",
                   image: "/assets/reviews/review-2.jpg",
                   tag: "Asian Fusion Scissor Trim",
-                  text: "His scissor cut was immaculate. The eco-friendly solar van is whisper quiet, and knowing they use official Hydra botanical products gave us total peace of mind. Hands down the premier service in the East Bay.",
+                  text: "His scissor cut was immaculate. The eco-friendly solar van is whisper quiet, and knowing they use official Hydra botanical products gave us total peace of mind. Hands down the premier mobile grooming service in Burlingame.",
                   stars: 5,
-                  city: "Rockridge, Oakland",
+                  city: "Burlingame, CA",
                 },
                 {
                   petName: "Rusty",
@@ -779,7 +844,7 @@ function AppContent() {
                   tag: "Hypoallergenic Spa Therapy",
                   text: "Rusty has delicate skin and allergy folds. SOUVA's gentle colloidal oat wash and blueberry facial kept his coat shiny, calm, and fluffy without any redness. Worth every single penny.",
                   stars: 5,
-                  city: "Walnut Creek, CA",
+                  city: "San Mateo, CA",
                 },
               ].map((rev, idx) => (
                 <div
@@ -850,7 +915,7 @@ function AppContent() {
             </div>
             <button
               type="button"
-              onClick={scrollToHero}
+              onClick={scrollToBookingFlow}
               className="px-8 py-3.5 rounded-2xl btn-luxury font-bold text-xs tracking-wider cursor-pointer shadow-xl shrink-0"
             >
               Book Solar Van to Doorstep
@@ -859,7 +924,7 @@ function AppContent() {
         </section>
 
         {/* Local SEO & ZIP Code Geographic Crawlable Directory */}
-        <LocalSeoDirectory onBookClick={scrollToHero} />
+        <LocalSeoDirectory onBookClick={scrollToBookingFlow} />
       </main>
 
       {/* Floating WhatsApp Quick Concierge Button */}
@@ -889,7 +954,7 @@ function AppContent() {
       </a>
 
       {/* Robust Footer */}
-      <Footer onOpenAdmin={navigateToAdmin} onBookClick={scrollToHero} />
+      <Footer onOpenAdmin={navigateToAdmin} onBookClick={scrollToBookingFlow} />
     </div>
   );
 }

@@ -25,7 +25,7 @@ const TRANSFORMATIONS: Transformation[] = [
     beforeImg: "/assets/before-after/poodle-before.jpg",
     afterImg: "/assets/before-after/poodle-after.jpg",
     beforeNote: "Arrival · Overgrown fur obstructing eyes and facial structure",
-    afterNote: "SOUVA Look · Precision hand-scissored facial contour",
+    afterNote: "SOUVA Look · Precision hand-scissored contour & floral bandana",
   },
   {
     id: "goldendoodle",
@@ -37,7 +37,7 @@ const TRANSFORMATIONS: Transformation[] = [
     beforeImg: "/assets/before-after/goldendoodle-before.jpg",
     afterImg: "/assets/before-after/goldendoodle-after.jpg",
     beforeNote: "Arrival · Dense unbrushed coat with loss of silhouette",
-    afterNote: "SOUVA Look · Symmetrical scissor trim & silky radiant finish",
+    afterNote: "SOUVA Look · Symmetrical scissor trim & watermelon bandana",
   },
   {
     id: "bernedoodle",
@@ -45,11 +45,11 @@ const TRANSFORMATIONS: Transformation[] = [
     breed: "Mini Bernedoodle",
     service: "Master Scissor Trim & Hygiene",
     tag: "Botanical Spa Care",
-    description: "Hydra® botanical de-tangling therapy, refined eyebrow and muzzle shaping, and festive paws bandana.",
+    description: "Hydra® botanical de-tangling therapy, refined eyebrow and muzzle shaping, and festive ear bows.",
     beforeImg: "/assets/before-after/bernedoodle-before.jpg",
     afterImg: "/assets/before-after/bernedoodle-after.jpg",
     beforeNote: "Arrival · Heavy tangled coat prior to styling",
-    afterNote: "SOUVA Look · Flared scissor legs, clean muzzle, and silky sheen",
+    afterNote: "SOUVA Look · Flared scissor legs, clean muzzle & ear bows",
   },
 ];
 

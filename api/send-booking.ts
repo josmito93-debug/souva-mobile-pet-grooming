@@ -171,11 +171,17 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // 2. Send confirmation email with SOUVA Logo, exhaustive modal info, and attached branded PDF invoice
-    const toRecipients = [email].filter(Boolean);
+    // 2. Define business admin notification recipients (Always notify business inbox)
+    const adminEmails: string[] = ["souvamobilepetgrooming@gmail.com", "info@souvagrooming.com"];
     if (process.env.ADMIN_NOTIFICATION_EMAIL) {
-      toRecipients.push(process.env.ADMIN_NOTIFICATION_EMAIL);
+      process.env.ADMIN_NOTIFICATION_EMAIL.split(",").forEach((item) => {
+        const clean = item.trim();
+        if (clean && !adminEmails.includes(clean)) adminEmails.push(clean);
+      });
     }
+
+    // Always include admin emails so business is notified of every appointment
+    const toRecipients = Array.from(new Set([email, ...adminEmails].filter(Boolean)));
 
     const fromEmail = process.env.RESEND_FROM_EMAIL || "Souva Mobile Grooming <info@souvagrooming.com>";
 
@@ -192,7 +198,7 @@ Thank you for choosing SOUVA Mobile Pet Grooming! Your luxury doorstep appointme
 • Pet Name: ${petName}
 • Breed: ${breed}
 • Size Bracket: ${sizeLabel} (${sizeWeight})
-• Gender: ${gender === "male" ? "Male (Macho)" : "Female (Hembra)"}
+• Gender: ${gender === "male" ? "Male" : "Female"}
 • Age Bracket: ${petAge}
 • Coat & Temperament: ${petCondition}
 • Rabies Vaccine Status: ${vaccinated === "yes" ? "Up to Date (Compliant)" : "In Progress"}
