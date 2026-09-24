@@ -32,6 +32,8 @@ import {
   RotateCcw,
   FileText,
   ExternalLink,
+  Lock,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PetBlueprint } from "@/components/PetBlueprint";
@@ -39,8 +41,14 @@ import { TermsModal } from "@/components/TermsModal";
 import breedsList from "@/data/breeds.json";
 import { SOUVA_PACKAGES, SPA_UPGRADES, SIZE_GUIDE, type PetSize } from "@/data/services";
 import { checkCoverage, SOUVA_COVERAGE_ZONES, SUGGESTED_AREAS } from "@/data/coverage";
-import { addDispatchRequest } from "@/lib/dispatchStore";
-import { createAirtableBooking } from "@/lib/airtable";
+import { addDispatchRequest, getStoredRequests } from "@/lib/dispatchStore";
+import {
+  createAirtableBooking,
+  fetchBookedSlots,
+  formatToIsoDate,
+  isTimeMatching,
+  type BookedSlot,
+} from "@/lib/airtable";
 
 export interface CompletedPet {
   id: string;
@@ -103,6 +111,7 @@ export interface GroomingFlowState {
 
   // Paso 7: Calendario de disponibilidad
   scheduledDate: string;
+  scheduledDateIso?: string;
   scheduledTime: string;
 
   // Paso 8: Disclaimer (botón de confirmación directa + firma opcional)
@@ -113,12 +122,15 @@ export interface GroomingFlowState {
 const STEPS_TOTAL = 8;
 const STORAGE_KEY = "souva_booking_draft_v3";
 
-// Dynamic Helper for next 14 days
+// Full Year Calendar Availability (365 Days)
 export interface AvailableDate {
   dayLabel: string;
   month: string;
+  monthFull: string;
+  year: number;
   dayNum: number;
   fullDate: string;
+  isoDate: string;
   dayOfWeek: number;
 }
 
@@ -130,15 +142,21 @@ export function getAvailableDates(): AvailableDate[] {
   // Si la hora actual es >= 17:00 (5 PM), se inicia pasado mañana para garantizar las 24h
   const startOffset = now.getHours() >= 17 ? 2 : 1;
 
-  for (let i = startOffset; i < startOffset + 14; i++) {
+  // Abrir calendario a todo el año (365 días en adelante)
+  for (let i = startOffset; i < startOffset + 365; i++) {
     const d = new Date(now);
     d.setDate(now.getDate() + i);
     const dayOfWeek = d.getDay();
     const dayLabel = i === 1 ? "Tomorrow" : d.toLocaleDateString("en-US", { weekday: "short" });
     const month = d.toLocaleDateString("en-US", { month: "short" });
+    const monthFull = d.toLocaleDateString("en-US", { month: "long" });
+    const year = d.getFullYear();
     const dayNum = d.getDate();
     const fullDate = `${dayLabel}, ${month} ${dayNum}`;
-    dates.push({ dayLabel, month, dayNum, fullDate, dayOfWeek });
+    const monthNum = String(d.getMonth() + 1).padStart(2, "0");
+    const dayPad = String(d.getDate()).padStart(2, "0");
+    const isoDate = `${year}-${monthNum}-${dayPad}`;
+    dates.push({ dayLabel, month, monthFull, year, dayNum, fullDate, isoDate, dayOfWeek });
   }
   return dates;
 }
@@ -314,6 +332,7 @@ export function GroomingFlow({
     groomerNotes: "",
     petPhoto: null,
     scheduledDate: initialDate?.fullDate || "Tomorrow",
+    scheduledDateIso: initialDate?.isoDate || "",
     scheduledTime: initialSlots[0]?.time || "9:30 AM",
     signature: null,
     agreedToTerms: true,
@@ -364,6 +383,53 @@ export function GroomingFlow({
   const [emailNotice, setEmailNotice] = useState<{ type: "success" | "warning"; message: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Airtable Live Availability State
+  const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+
+  const loadBookedSlots = useCallback(async () => {
+    setIsLoadingSlots(true);
+    try {
+      const slots = await fetchBookedSlots();
+      setBookedSlots(slots);
+    } catch (e) {
+      console.warn("Slot sync failed:", e);
+    } finally {
+      setIsLoadingSlots(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadBookedSlots();
+    // Poll every 30 seconds to keep slots up to date in real time
+    const interval = setInterval(loadBookedSlots, 30000);
+    return () => clearInterval(interval);
+  }, [loadBookedSlots]);
+
+  const isSlotBooked = useCallback(
+    (isoDate: string, time: string) => {
+      if (!isoDate || !time) return false;
+      const inAirtable = bookedSlots.some(
+        (b) => b.date === isoDate && isTimeMatching(time, b.time)
+      );
+      if (inAirtable) return true;
+
+      try {
+        const local = getStoredRequests();
+        const inLocal = local.some((req) => {
+          if (req.status === "cancelled") return false;
+          const reqIso = formatToIsoDate(req.scheduledDate || req.preferredTime || "");
+          const reqTime = req.scheduledTime || req.preferredTime || "";
+          return reqIso === isoDate && isTimeMatching(time, reqTime);
+        });
+        if (inLocal) return true;
+      } catch {}
+
+      return false;
+    },
+    [bookedSlots]
+  );
+
   // 2. PERSIST DRAFT TO LOCALSTORAGE ON EVERY CHANGE
   useEffect(() => {
     if (!completed) {
@@ -375,22 +441,13 @@ export function GroomingFlow({
     }
   }, [data, step, savedPets, completed]);
 
-  // 3. AUTO-SCROLL TO COCKPIT ON STEP CHANGE (NOT on initial page load!)
+  // 3. AUTO-SCROLL TO COCKPIT TOP ON STEP CHANGE (NOT on initial page load!)
   const scrollToTop = useCallback(() => {
     if (flowTopRef.current) {
+      const stickyHeaderOffset = 80;
       const rect = flowTopRef.current.getBoundingClientRect();
-      const cardHeight = rect.height;
-      const windowHeight = window.innerHeight;
-
-      // If the card fits nicely, frame and center it in the viewport for comfortable reading
-      if (cardHeight < windowHeight - 90) {
-        const targetY = rect.top + window.pageYOffset - (windowHeight - cardHeight) / 2;
-        window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
-      } else {
-        const yOffset = -75; // accounts for sticky header
-        const y = rect.top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
-      }
+      const targetY = rect.top + window.scrollY - stickyHeaderOffset;
+      window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
     }
   }, []);
 
@@ -399,7 +456,11 @@ export function GroomingFlow({
       isFirstMount.current = false;
       return; // Do NOT auto-scroll on initial mount! Page stays at top (top: 0)!
     }
-    scrollToTop();
+    // Give browser a frame to paint the new step view before computing scroll
+    const timer = setTimeout(() => {
+      scrollToTop();
+    }, 40);
+    return () => clearTimeout(timer);
   }, [step, completed, scrollToTop]);
 
   const reset = () => {
@@ -418,6 +479,12 @@ export function GroomingFlow({
 
   // Step Completion Validation Rules
   const isCoveredZip = checkCoverage(data.zipCode).covered;
+  const currentIsoDate = data.scheduledDateIso || formatToIsoDate(data.scheduledDate);
+  const isCurrentSlotBooked = Boolean(
+    data.scheduledDate &&
+    data.scheduledTime &&
+    isSlotBooked(currentIsoDate, data.scheduledTime)
+  );
 
   const canNext = Boolean(
     (step === 0 && Boolean(data.size)) ||
@@ -433,8 +500,11 @@ export function GroomingFlow({
       Boolean(data.gender) &&
       Boolean(data.petAge)) ||
     (step === 5 && Boolean(data.vaccinated) && Boolean(data.temperament)) ||
-    (step === 6 && Boolean(data.scheduledDate) && Boolean(data.scheduledTime)) ||
-    (step === 7 && data.agreedToTerms)
+    (step === 6 &&
+      Boolean(data.scheduledDate) &&
+      Boolean(data.scheduledTime) &&
+      !isCurrentSlotBooked) ||
+    (step === 7 && data.agreedToTerms && !isCurrentSlotBooked)
   );
 
   useEffect(() => {
@@ -573,6 +643,17 @@ export function GroomingFlow({
     const finalTotal = allPets.reduce((sum, p) => sum + p.totalPrice, 0);
 
     const bookingId = `SOU-${Math.floor(1000 + Math.random() * 9000)}`;
+    const resolvedIsoDate = data.scheduledDateIso || formatToIsoDate(data.scheduledDate);
+
+    // Guard: ensure arrival slot is still open in Airtable before proceeding
+    if (isSlotBooked(resolvedIsoDate, data.scheduledTime)) {
+      alert(
+        `The arrival window on ${data.scheduledDate} at ${data.scheduledTime} was just booked. Please choose another available arrival window.`
+      );
+      setStep(6);
+      setIsSubmitting(false);
+      return;
+    }
 
     // Save to Dispatch Admin Store
     addDispatchRequest({
@@ -600,20 +681,21 @@ export function GroomingFlow({
       addons: finalAddons,
       estimatedTotal: finalTotal,
       preferredTime: `${data.scheduledDate} at ${data.scheduledTime}`,
-      scheduledDate: data.scheduledDate,
+      scheduledDate: resolvedIsoDate,
       scheduledTime: data.scheduledTime,
       etaMinutes: 20,
       vanId: "VAN-01",
       vanName: "Van 01 (SF & Peninsula Mobile Fleet)",
       status: "pending",
       signature: data.signature,
-      notes: `Booked for ${data.scheduledDate} @ ${data.scheduledTime}. Dogs (${allPets.length}): ${finalDogNames}. Parking: ${data.parkingNotes}.`,
+      notes: `Booked for ${data.scheduledDate} (${resolvedIsoDate}) @ ${data.scheduledTime}. Dogs (${allPets.length}): ${finalDogNames}. Parking: ${data.parkingNotes}.`,
     });
 
     // 6. SAVE RECORD DIRECTLY TO AIRTABLE
+    let createdAirtableId: string | undefined;
     try {
       const coverage = checkCoverage(data.zipCode);
-      await createAirtableBooking({
+      const airRes = await createAirtableBooking({
         bookingId,
         customerName: resolvedOwnerName,
         phone: data.phone,
@@ -623,6 +705,7 @@ export function GroomingFlow({
         serviceZone: coverage.zone,
         parkingNotes: data.parkingNotes,
         scheduledDate: data.scheduledDate,
+        scheduledDateIso: resolvedIsoDate,
         scheduledTime: data.scheduledTime,
         dogCount: allPets.length,
         dogNames: finalDogNames,
@@ -644,9 +727,18 @@ export function GroomingFlow({
         agreementAccepted: true,
         signatureUrl: data.signature,
       });
+      if (airRes.success && airRes.id) {
+        createdAirtableId = airRes.id;
+      }
     } catch (err) {
       console.warn("Airtable sync note:", err);
     }
+
+    // Immediately update local slot tracking
+    setBookedSlots((prev) => [
+      ...prev,
+      { date: resolvedIsoDate, time: data.scheduledTime, status: "Pendiente" },
+    ]);
 
     // 7. SEND EMAIL & PDF INVOICE VIA VERCEL SERVERLESS
     fetch("/api/send-booking", {
@@ -654,6 +746,7 @@ export function GroomingFlow({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         bookingId,
+        airtableRecordId: createdAirtableId,
         ownerName: resolvedOwnerName,
         email: data.email,
         phone: data.phone,
@@ -682,6 +775,7 @@ export function GroomingFlow({
         sizeWeight: SIZE_GUIDE.find((s) => s.id === data.size)?.weight || "",
         estimatedTotal: finalTotal,
         scheduledDate: data.scheduledDate,
+        scheduledDateIso: resolvedIsoDate,
         scheduledTime: data.scheduledTime,
         signature: data.signature,
         allPets,
@@ -714,14 +808,12 @@ export function GroomingFlow({
     setIsSubmitting(false);
     setDir("fwd");
     setCompleted(true);
-    scrollToTop();
   };
 
   const handleNext = () => {
     if (step < STEPS_TOTAL - 1) {
       setDir("fwd");
-      setStep(step + 1);
-      scrollToTop();
+      setStep((prev) => prev + 1);
     } else {
       handleFinalizeBooking();
     }
@@ -730,13 +822,29 @@ export function GroomingFlow({
   const handleBack = () => {
     if (step > 0 && !completed) {
       setDir("back");
-      setStep(step - 1);
-      scrollToTop();
+      setStep((prev) => prev - 1);
     }
   };
 
   return (
     <div ref={flowTopRef} className="w-full">
+      {/* Membrete Oficial: RESERVA AQUÍ */}
+      <div className="mb-3.5 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-[#22271A] via-[#2A2419] to-[#22271A] border border-[#AA8B63]/60 shadow-[0_2px_14px_rgba(170,139,99,0.2)] flex items-center justify-between select-none">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#AA8B63] opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#AA8B63]" />
+          </span>
+          <span className="text-xs sm:text-sm font-mono font-black tracking-widest text-[#FAF0E2] uppercase">
+            RESERVA AQUÍ
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-[10px] font-mono text-[#AA8B63] font-bold uppercase tracking-wider">
+          <Sparkles className="h-3 w-3 text-[#AA8B63]" />
+          <span>Doorstep Mobile Spa</span>
+        </div>
+      </div>
+
       <StatusLedGrid activeIndex={activeIndex} hot={completed} />
 
       {/* Header controls with multi-dog notification */}
@@ -863,7 +971,14 @@ export function GroomingFlow({
           ) : step === 5 ? (
             <StepDogCareCondition data={data} setData={setData} petNumber={savedPets.length + 1} />
           ) : step === 6 ? (
-            <StepBookingCalendar data={data} setData={setData} dates={availableDates} />
+            <StepBookingCalendar
+              data={data}
+              setData={setData}
+              dates={availableDates}
+              isSlotBooked={isSlotBooked}
+              isLoadingSlots={isLoadingSlots}
+              onRefreshSlots={loadBookedSlots}
+            />
           ) : (
             <StepDisclaimerConfirm
               data={data}
@@ -2043,20 +2158,102 @@ function StepBookingCalendar({
   data,
   setData,
   dates,
+  isSlotBooked,
+  isLoadingSlots,
+  onRefreshSlots,
 }: {
   data: GroomingFlowState;
   setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
   dates: AvailableDate[];
+  isSlotBooked: (isoDate: string, time: string) => boolean;
+  isLoadingSlots: boolean;
+  onRefreshSlots: () => void;
 }) {
   const selectedDateObj = dates.find((d) => d.fullDate === data.scheduledDate) || dates[0];
+
+  // Derive unique months across the whole year (365 days)
+  const months = useMemo(() => {
+    const map = new Map<string, { key: string; label: string; year: number; month: string }>();
+    for (const d of dates) {
+      const key = `${d.year}-${d.month}`;
+      if (!map.has(key)) {
+        map.set(key, { key, label: `${d.month} ${d.year}`, year: d.year, month: d.month });
+      }
+    }
+    return Array.from(map.values());
+  }, [dates]);
+
+  const [activeMonthKey, setActiveMonthKey] = useState<string>(
+    () => `${selectedDateObj.year}-${selectedDateObj.month}`
+  );
+
+  // Sync active month tab if selected date changes externally
+  useEffect(() => {
+    if (selectedDateObj) {
+      setActiveMonthKey(`${selectedDateObj.year}-${selectedDateObj.month}`);
+    }
+  }, [selectedDateObj]);
+
+  const visibleDays = useMemo(() => {
+    return dates.filter((d) => `${d.year}-${d.month}` === activeMonthKey);
+  }, [dates, activeMonthKey]);
+
+  const isDateFull = (d: AvailableDate) => {
+    const slots = SCHEDULE_BY_DAY[d.dayOfWeek] || [];
+    if (slots.length === 0) return true;
+    return slots.every((s) => isSlotBooked(d.isoDate, s.time));
+  };
+
+  const handleSelectDate = (d: AvailableDate) => {
+    if (isDateFull(d)) return;
+    const daySlots = SCHEDULE_BY_DAY[d.dayOfWeek] || [];
+    const currentStillAvailable = daySlots.some(
+      (s) => s.time === data.scheduledTime && !isSlotBooked(d.isoDate, s.time)
+    );
+    const firstAvailable = daySlots.find((s) => !isSlotBooked(d.isoDate, s.time));
+
+    setData((prev) => ({
+      ...prev,
+      scheduledDate: d.fullDate,
+      scheduledDateIso: d.isoDate,
+      scheduledTime: currentStillAvailable ? prev.scheduledTime : firstAvailable?.time || "",
+    }));
+  };
+
+  const handleSelectMonth = (monthKey: string) => {
+    setActiveMonthKey(monthKey);
+    const daysInNewMonth = dates.filter((d) => `${d.year}-${d.month}` === monthKey);
+    // If currently selected date is already within this month, keep it
+    if (daysInNewMonth.some((d) => d.fullDate === data.scheduledDate)) return;
+    // Otherwise select first available day in this month
+    const firstOpenDay = daysInNewMonth.find((d) => !isDateFull(d)) || daysInNewMonth[0];
+    if (firstOpenDay) {
+      handleSelectDate(firstOpenDay);
+    }
+  };
+
+  const handleJumpDateInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const isoVal = e.target.value;
+    if (!isoVal) return;
+    const found = dates.find((d) => d.isoDate === isoVal);
+    if (found) {
+      setActiveMonthKey(`${found.year}-${found.month}`);
+      handleSelectDate(found);
+    }
+  };
+
   const activeSlots = SCHEDULE_BY_DAY[selectedDateObj.dayOfWeek] || [];
+  const isAllSlotsReserved = activeSlots.length > 0 && activeSlots.every((s) => isSlotBooked(selectedDateObj.isoDate, s.time));
+
+  const minIso = dates[0]?.isoDate;
+  const maxIso = dates[dates.length - 1]?.isoDate;
 
   return (
     <div>
       <StepHeader
         eyebrow="Step 7 · Availability & Date Selection"
         title="Schedule Your Doorstep Window"
-        subtitle="Select your preferred date and 30-minute arrival window for our mobile spa van."
+        subtitle="Select your preferred date and 30-minute arrival window for our mobile spa van (Available 365 Days a Year)."
       />
 
       <div className="mt-4 space-y-4">
@@ -2064,59 +2261,130 @@ function StepBookingCalendar({
         <div className="p-3 rounded-2xl bg-[#1C2116] border border-[#AA8B63]/40 flex items-center gap-2.5 text-xs shadow-inner">
           <Clock className="h-4 w-4 text-[#AA8B63] shrink-0" />
           <div className="text-[11px] text-[#FAF0E2] leading-snug">
-            <strong className="text-[#AA8B63]">24-Hour Advance Booking Policy:</strong> To ensure optimal solar battery preparation and route scheduling, appointments must be scheduled at least 24 hours in advance.
+            <strong className="text-[#AA8B63]">24-Hour Advance Booking Policy:</strong> Appointments open for the entire year (365 days). Daily slots prepared with autonomous clean solar suites.
           </div>
         </div>
 
+        {/* ── FULL YEAR MONTH NAVIGATOR + JUMP TO ANY DATE ── */}
         <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-2 flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5 text-[#AA8B63]" />
-            <span>Select Date (Next 14 Days)</span>
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 text-[#AA8B63]" />
+              <span>Full Year Calendar · Select Month</span>
+            </label>
+            {/* Quick date picker input */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9.5px] font-mono text-[#AA8B63] uppercase hidden sm:inline font-bold">Pick Date:</span>
+              <input
+                type="date"
+                min={minIso}
+                max={maxIso}
+                value={selectedDateObj.isoDate}
+                onChange={handleJumpDateInput}
+                className="bg-[#1C2016] border border-[#AA8B63]/50 rounded-lg px-2 py-0.5 text-[11px] font-mono text-[#FAF0E2] focus:outline-none focus:border-[#AA8B63] cursor-pointer shadow-sm"
+                title="Pick any date across the entire year"
+              />
+            </div>
+          </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-            {dates.map((d) => {
-              const isSelected = data.scheduledDate === d.fullDate;
+          {/* Horizontal Month Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+            {months.map((m) => {
+              const isSelectedMonth = activeMonthKey === m.key;
               return (
                 <button
-                  key={d.fullDate}
+                  key={m.key}
                   type="button"
-                  onClick={() => {
-                    const daySlots = SCHEDULE_BY_DAY[d.dayOfWeek] || [];
-                    const keepTime = daySlots.some((s) => s.time === data.scheduledTime);
-                    setData({
-                      ...data,
-                      scheduledDate: d.fullDate,
-                      scheduledTime: keepTime ? data.scheduledTime : daySlots[0]?.time || "",
-                    });
-                  }}
+                  onClick={() => handleSelectMonth(m.key)}
                   className={cn(
-                    "min-w-[70px] p-2.5 rounded-2xl border text-center transition-all duration-200 cursor-pointer shrink-0 flex flex-col items-center justify-center",
-                    isSelected
-                      ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-lg scale-105"
-                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/40"
+                    "px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all duration-200 shrink-0 cursor-pointer",
+                    isSelectedMonth
+                      ? "bg-[#AA8B63] text-[#161811] shadow-md scale-102"
+                      : "bg-[#1B1E15] text-[#A4AA93] border border-[#FAF0E2]/10 hover:text-[#FAF0E2] hover:border-[#AA8B63]/40"
                   )}
                 >
-                  <span className={cn("text-[9px] font-mono uppercase", isSelected ? "text-[#161811]/90 font-bold" : "text-[#AA8B63]")}>
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Days of Selected Month */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none">
+            {visibleDays.map((d) => {
+              const isSelected = data.scheduledDate === d.fullDate;
+              const full = isDateFull(d);
+              const daySlots = SCHEDULE_BY_DAY[d.dayOfWeek] || [];
+              const availableCount = daySlots.filter((s) => !isSlotBooked(d.isoDate, s.time)).length;
+
+              return (
+                <button
+                  key={d.isoDate}
+                  type="button"
+                  disabled={full}
+                  onClick={() => handleSelectDate(d)}
+                  className={cn(
+                    "min-w-[72px] p-2.5 rounded-2xl border text-center transition-all duration-200 shrink-0 flex flex-col items-center justify-center relative",
+                    full
+                      ? "opacity-40 bg-[#161811]/60 border-stone-800 text-[#A4AA93]/40 cursor-not-allowed"
+                      : isSelected
+                      ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-lg scale-105 cursor-pointer"
+                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/40 cursor-pointer"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "text-[9px] font-mono uppercase",
+                      full ? "text-[#A4AA93]/50" : isSelected ? "text-[#161811]/90 font-bold" : "text-[#AA8B63]"
+                    )}
+                  >
                     {d.dayLabel}
                   </span>
                   <span className="font-display font-extrabold text-base my-0.5">{d.dayNum}</span>
                   <span className="text-[9px] font-mono opacity-80">{d.month}</span>
+                  {full ? (
+                    <span className="text-[8px] font-mono font-bold text-red-400 mt-0.5 uppercase tracking-wider">
+                      Full
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        "text-[8px] font-mono mt-0.5 font-bold",
+                        isSelected ? "text-[#161811]/80" : "text-emerald-400/90"
+                      )}
+                    >
+                      {availableCount} open
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
         </div>
 
+        {/* ── TIME WINDOWS ── */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-[#AA8B63]" />
               <span>Available Arrival Windows ({activeSlots.length} slots)</span>
             </label>
-            <span className="text-[10px] font-mono text-[#AA8B63]">
-              {selectedDateObj?.dayLabel} Schedule
-            </span>
+            <div className="flex items-center gap-1.5 text-[10px] font-mono">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span className="text-emerald-400 font-semibold">Airtable Live</span>
+              <button
+                type="button"
+                onClick={onRefreshSlots}
+                disabled={isLoadingSlots}
+                title="Refresh live availability from Airtable"
+                className="ml-1 p-1 hover:text-[#FAF0E2] text-[#AA8B63] transition-colors cursor-pointer disabled:opacity-40"
+              >
+                <RefreshCw className={cn("h-3 w-3", isLoadingSlots && "animate-spin")} />
+              </button>
+            </div>
           </div>
 
           <div
@@ -2126,25 +2394,63 @@ function StepBookingCalendar({
             )}
           >
             {activeSlots.map((slot) => {
-              const isSelected = data.scheduledTime === slot.time;
+              const booked = isSlotBooked(selectedDateObj.isoDate, slot.time);
+              const isSelected = data.scheduledTime === slot.time && !booked;
+
               return (
                 <button
                   key={slot.id}
                   type="button"
-                  onClick={() => setData({ ...data, scheduledTime: slot.time })}
+                  disabled={booked}
+                  onClick={() => {
+                    if (!booked) {
+                      setData((prev) => ({
+                        ...prev,
+                        scheduledTime: slot.time,
+                        scheduledDate: selectedDateObj.fullDate,
+                        scheduledDateIso: selectedDateObj.isoDate,
+                      }));
+                    }
+                  }}
                   className={cn(
-                    "p-2.5 rounded-xl border text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center",
-                    isSelected
-                      ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] font-bold shadow-sm scale-102"
-                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/30"
+                    "p-2.5 rounded-xl border text-center transition-all duration-200 flex flex-col items-center justify-center relative",
+                    booked
+                      ? "opacity-50 bg-[#14160E] border-red-500/25 text-[#A4AA93]/60 cursor-not-allowed select-none"
+                      : isSelected
+                      ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] font-bold shadow-sm scale-102 cursor-pointer"
+                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/30 cursor-pointer"
                   )}
                 >
-                  <span className="font-mono text-xs font-bold text-[#FAF0E2]">{slot.time}</span>
-                  <span className="text-[8.5px] font-mono text-[#AA8B63] opacity-80 mt-0.5">{slot.period}</span>
+                  <div className="flex items-center gap-1">
+                    {booked && <Lock className="h-3 w-3 text-red-400 shrink-0" />}
+                    <span
+                      className={cn(
+                        "font-mono text-xs font-bold",
+                        booked ? "line-through text-[#A4AA93]/60" : "text-[#FAF0E2]"
+                      )}
+                    >
+                      {slot.time}
+                    </span>
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[8.5px] font-mono mt-0.5",
+                      booked ? "text-red-400 font-bold" : "text-[#AA8B63] opacity-80"
+                    )}
+                  >
+                    {booked ? "Booked · Airtable" : slot.period}
+                  </span>
                 </button>
               );
             })}
           </div>
+
+          {isAllSlotsReserved && (
+            <div className="mt-3 text-center text-xs font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-500/40 p-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md">
+              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
+              <span>All arrival windows on {selectedDateObj.dayLabel}, {selectedDateObj.month} {selectedDateObj.dayNum} are reserved in Airtable. Please choose another date above.</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

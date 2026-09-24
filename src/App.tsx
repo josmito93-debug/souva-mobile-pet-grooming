@@ -214,10 +214,10 @@ function AppContent() {
   }, []);
 
   const scrollToBookingFlow = () => {
-    const el = document.getElementById("book");
+    const el = document.getElementById("booking-flow-card") || document.getElementById("book");
     if (el) {
-      const yOffset = -75;
-      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      const headerOffset = 80;
+      const y = el.getBoundingClientRect().top + window.scrollY - headerOffset;
       window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
     } else {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -303,23 +303,9 @@ function AppContent() {
           </div>
 
           <div className="relative z-10 max-w-6xl mx-auto w-full">
-            <div
-              className={cn(
-                "transition-all duration-500",
-                flowStatus.currentStep !== undefined && flowStatus.currentStep >= 2
-                  ? "grid grid-cols-1"
-                  : "grid lg:grid-cols-12 gap-8 lg:gap-12 items-center"
-              )}
-            >
-              {/* Left Side: Brand Story & Value Prop (Collapses on step >= 2 to center cockpit) */}
-              <div
-                className={cn(
-                  "hero-left-content flex flex-col justify-between py-2 space-y-6 transition-all duration-500",
-                  flowStatus.currentStep !== undefined && flowStatus.currentStep >= 2
-                    ? "hidden"
-                    : "lg:col-span-5"
-                )}
-              >
+            <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              {/* Left Side: Brand Story & Value Prop */}
+              <div className="hero-left-content lg:col-span-5 flex flex-col justify-between py-2 space-y-6">
                 <div>
                   {/* Location Status Badge */}
                   <div className="inline-flex items-center gap-2 rounded-full border border-[#FAF0E2]/15 bg-[#202419]/80 backdrop-blur-md px-4 py-1.5 text-xs font-medium tracking-wide text-[#FAF0E2]">
@@ -382,7 +368,7 @@ function AppContent() {
                         Official Luxury Spa Partner
                       </span>
                       <span className="text-sm font-display font-bold text-[#FAF0E2] mt-0.5">
-                        HYDRA® by Pet Society
+                        Botanical Pet Cosmetics
                       </span>
                       <span className="text-[11px] text-[#A4AA93]">
                         Professional sulfate-free botanical pet cosmetics
@@ -391,7 +377,7 @@ function AppContent() {
                     <div className="p-2 rounded-xl bg-[#14160F] border border-[#FAF0E2]/15 shrink-0 flex items-center justify-center">
                       <img
                         src="/assets/shampoo-logo-white.png"
-                        alt="Hydra by Pet Society White Logo"
+                        alt="Pet Society White Logo"
                         className="h-11 sm:h-12 w-auto object-contain filter drop-shadow-[0_0_10px_rgba(255,255,255,0.6)]"
                       />
                     </div>
@@ -402,23 +388,9 @@ function AppContent() {
                 <TrustPillars />
               </div>
 
-              {/* Right Side: The Interactive Cockpit Card (Centered when step >= 2) */}
-              <div
-                className={cn(
-                  "flex flex-col justify-center transition-all duration-500",
-                  flowStatus.currentStep !== undefined && flowStatus.currentStep >= 2
-                    ? "col-span-12 max-w-2xl mx-auto w-full"
-                    : "hero-right-content lg:col-span-7"
-                )}
-              >
-                <div
-                  className={cn(
-                    "relative w-full transition-all duration-500",
-                    flowStatus.currentStep !== undefined && flowStatus.currentStep >= 2
-                      ? "max-w-2xl mx-auto"
-                      : "max-w-xl mx-auto lg:mr-0"
-                  )}
-                >
+              {/* Right Side: The Interactive Cockpit Card */}
+              <div id="booking-flow-card" className="hero-right-content lg:col-span-7 flex flex-col justify-center">
+                <div className="relative w-full max-w-xl mx-auto lg:mr-0">
                   <div
                     className={cn(
                       "absolute -inset-3 blur-3xl rounded-[3rem] transition-colors duration-700",
@@ -536,8 +508,9 @@ function AppContent() {
                 return (
                   <div
                     key={pkg.id}
+                    onClick={scrollToBookingFlow}
                     className={cn(
-                      "p-6 rounded-3xl border flex flex-col justify-between transition-all duration-300 relative group",
+                      "p-6 rounded-3xl border flex flex-col justify-between transition-all duration-300 relative group cursor-pointer hover:scale-[1.01]",
                       pkg.popular
                         ? "bg-[#22261A] border-[#AA8B63] shadow-[0_16px_40px_rgba(0,0,0,0.6)]"
                         : "bg-[#1B1E15] border-[#FAF0E2]/10 hover:border-[#AA8B63]/40"
@@ -616,7 +589,8 @@ function AppContent() {
                 {SPA_UPGRADES.map((upgrade) => (
                   <div
                     key={upgrade.id}
-                    className="p-5 rounded-2xl bg-[#1D2016] border border-[#FAF0E2]/10 hover:border-[#AA8B63]/40 transition-colors flex flex-col justify-between"
+                    onClick={scrollToBookingFlow}
+                    className="p-5 rounded-2xl bg-[#1D2016] border border-[#FAF0E2]/10 hover:border-[#AA8B63]/60 transition-all cursor-pointer flex flex-col justify-between hover:scale-[1.01]"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -753,7 +727,7 @@ function AppContent() {
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
                     src="/assets/souva-products.png"
-                    alt="HYDRA Professional Pet Shampoo & Spa Line"
+                    alt="Artisan Botanical Pet Cosmetics"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
@@ -761,22 +735,22 @@ function AppContent() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
-                        HYDRA® Professional Spa Line
+                        Artisan Botanical Product Line
                       </h4>
                       <span className="text-[11px] font-mono font-bold text-[#AA8B63] block">
-                        Official Partner: HYDRA® by Pet Society
+                        Professional Botanical Pet Care
                       </span>
                     </div>
                     <div className="p-2 rounded-xl bg-[#161811] border border-[#FAF0E2]/15 shrink-0 flex items-center justify-center">
                       <img
                         src="/assets/shampoo-logo-white.png"
-                        alt="Official Shampoo Brand - Hydra by Pet Society"
+                        alt="Official Botanical Brand Logo"
                         className="h-9 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
                       />
                     </div>
                   </div>
                   <p className="text-xs text-[#A4AA93] mt-2 leading-relaxed">
-                    Official salon-grade Hydra® botanical shampoos: Colloidal Oatmeal Moisturizing, Chamomile Gentle, Aloe Deshedding, and Silky Conditioner without harsh sulfates or parabens.
+                    Official salon-grade botanical shampoos: Colloidal Oatmeal Moisturizing, Chamomile Gentle, Aloe Deshedding, and Silky Conditioner without harsh sulfates or parabens.
                   </p>
                 </div>
               </div>

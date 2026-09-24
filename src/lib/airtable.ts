@@ -8,6 +8,7 @@ export interface AirtableBookingPayload {
   serviceZone?: string;
   parkingNotes?: string;
   scheduledDate: string;
+  scheduledDateIso?: string;
   scheduledTime: string;
   dogCount: number;
   dogNames: string;
@@ -30,6 +31,93 @@ export interface AirtableBookingPayload {
   signatureUrl?: string | null;
 }
 
+export interface BookedSlot {
+  id?: string;
+  date: string; // ISO format "YYYY-MM-DD"
+  time: string; // "9:30 AM", "8:30 AM", etc.
+  status: string;
+}
+
+export function formatToIsoDate(dateStr: string): string {
+  if (!dateStr) return "";
+  const trimmed = dateStr.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  const now = new Date();
+  const lower = trimmed.toLowerCase();
+
+  let target = new Date(now);
+  if (lower.includes("today") || lower.includes("hoy")) {
+    target = new Date(now);
+  } else if (lower.includes("tomorrow") || lower.includes("mañana")) {
+    target = new Date(now);
+    target.setDate(now.getDate() + 1);
+  } else {
+    const monthNames: Record<string, number> = {
+      jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+      jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
+      ene: 0, abr: 3, ago: 7, dic: 11,
+    };
+    const parts = trimmed.replace(/,/g, " ").split(/\s+/).filter(Boolean);
+    let monthIdx = -1;
+    let dayNum = -1;
+    let year = now.getFullYear();
+
+    for (const p of parts) {
+      const pLower = p.toLowerCase().slice(0, 3);
+      if (monthNames[pLower] !== undefined && monthIdx === -1) {
+        monthIdx = monthNames[pLower];
+      } else {
+        const num = parseInt(p, 10);
+        if (!isNaN(num)) {
+          if (num > 2020) {
+            year = num;
+          } else if (dayNum === -1) {
+            dayNum = num;
+          }
+        }
+      }
+    }
+
+    if (monthIdx !== -1 && dayNum !== -1) {
+      target = new Date(year, monthIdx, dayNum);
+    }
+  }
+
+  const y = target.getFullYear();
+  const m = String(target.getMonth() + 1).padStart(2, "0");
+  const d = String(target.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+export function isTimeMatching(slotTime: string, bookedTime: string): boolean {
+  if (!slotTime || !bookedTime) return false;
+  const cleanSlot = slotTime.trim().toLowerCase().replace(/\s+/g, "");
+  const cleanBooked = bookedTime.trim().toLowerCase().replace(/\s+/g, "");
+
+  if (cleanSlot === cleanBooked) return true;
+  if (cleanBooked.includes(cleanSlot)) return true;
+
+  const parseHourMin = (str: string) => {
+    const match = str.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+    if (!match) return null;
+    const h = parseInt(match[1], 10);
+    const m = parseInt(match[2], 10);
+    const p = match[3] ? match[3].toLowerCase() : "";
+    return { h, m, p };
+  };
+
+  const pSlot = parseHourMin(slotTime);
+  const pBooked = parseHourMin(bookedTime);
+  if (pSlot && pBooked) {
+    const periodMatch = !pSlot.p || !pBooked.p || pSlot.p === pBooked.p;
+    return pSlot.h === pBooked.h && pSlot.m === pBooked.m && periodMatch;
+  }
+  return false;
+}
+
 const AIRTABLE_PAT = (
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_AIRTABLE_API_KEY) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_AIRTABLE_TOKEN) ||
@@ -41,9 +129,63 @@ const AIRTABLE_BASE_ID = (
 );
 const AIRTABLE_TABLE = "Bookings";
 
+export async function fetchBookedSlots(): Promise<BookedSlot[]> {
+  try {
+    // 1. Try serverless API first
+    try {
+      const apiRes = await fetch("/api/booked-slots");
+      if (apiRes.ok) {
+        const json = await apiRes.json();
+        if (json && Array.isArray(json.slots)) {
+          return json.slots;
+        }
+      }
+    } catch {
+      // fallback to direct fetch below
+    }
+
+    // 2. Direct Airtable query fallback
+    const filterFormula = "AND({Scheduled Date} != '', IS_AFTER({Scheduled Date}, DATEADD(TODAY(), -1, 'days')), {Status} != 'Cancelled', {Status} != 'Cancelada', {Status} != 'Refunded')";
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?fields%5B%5D=Scheduled+Date&fields%5B%5D=Scheduled+Time+Window&fields%5B%5D=Status&filterByFormula=${encodeURIComponent(filterFormula)}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_PAT}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.warn("Airtable fetchBookedSlots failed:", await response.text());
+      return [];
+    }
+
+    const data = await response.json();
+    const records: any[] = data.records || [];
+    return records
+      .map((r) => {
+        const d = r.fields?.["Scheduled Date"];
+        const t = r.fields?.["Scheduled Time Window"];
+        const s = r.fields?.["Status"] || "Confirmed";
+        if (!d) return null;
+        return {
+          id: r.id,
+          date: formatToIsoDate(d),
+          time: t || "",
+          status: s,
+        };
+      })
+      .filter(Boolean) as BookedSlot[];
+  } catch (err) {
+    console.warn("Failed to fetch booked slots from Airtable:", err);
+    return [];
+  }
+}
+
 export async function createAirtableBooking(payload: AirtableBookingPayload): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
     const bookingId = payload.bookingId || `SOU-${Math.floor(1000 + Math.random() * 9000)}`;
+    const isoDate = payload.scheduledDateIso || formatToIsoDate(payload.scheduledDate);
 
     // Normalize sizes to match Airtable single/multi-select choices
     const normalizedSizes = payload.dogSizes.map((s) => {
@@ -77,6 +219,7 @@ export async function createAirtableBooking(payload: AirtableBookingPayload): Pr
       "Doorstep Address": payload.address || "",
       "ZIP Code": payload.zipCode || "",
       "Parking Notes": payload.parkingNotes || "Driveway available",
+      "Scheduled Date": isoDate,
       "Scheduled Time Window": payload.scheduledTime || "9:30 AM",
       "Number of Dogs": payload.dogCount || 1,
       "Dog Names": payload.dogNames || "Pet",

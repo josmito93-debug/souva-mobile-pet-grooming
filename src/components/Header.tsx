@@ -47,7 +47,7 @@ export function Header({ onBookClick }: HeaderProps) {
 
   const navItems = [
     { label: "Book Now", href: "#book", action: onBookClick, icon: Calendar, highlight: true },
-    { label: "Services & Pricing", href: "#services", icon: Scissors },
+    { label: "Services & Pricing", href: "#book", action: onBookClick, icon: Scissors },
     { label: "About SOUVA", href: "#about", icon: Users },
     { label: "Coverage Areas", href: "#coverage", icon: MapPin },
     { label: "Gallery", href: "#gallery", icon: Camera },
@@ -126,9 +126,13 @@ export function Header({ onBookClick }: HeaderProps) {
           >
             <span>Book Now</span>
           </button>
-          <a href="#services" className="hover:text-[#AA8B63] transition-colors">
+          <button
+            type="button"
+            onClick={onBookClick}
+            className="hover:text-[#AA8B63] transition-colors cursor-pointer"
+          >
             Services & Pricing
-          </a>
+          </button>
           <a href="#about" className="hover:text-[#AA8B63] transition-colors">
             About SOUVA
           </a>

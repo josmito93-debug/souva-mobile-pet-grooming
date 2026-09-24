@@ -106,13 +106,14 @@ export default async function handler(req: any, res: any) {
     const cleanPetName = petName.replace(/[^a-zA-Z0-9]/g, "-");
     const pdfFileName = `SOUVA-Invoice-${cleanPetName}-${Date.now().toString().slice(-4)}.pdf`;
 
-    // 1.5 Save record to Airtable on Vercel Backend if credentials configured
+    // 1.5 Save record to Airtable on Vercel Backend if credentials configured and not already created by client
     const airtableKey = (process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TOKEN || "").trim();
     const airtableBaseId = (process.env.AIRTABLE_BASE_ID || "apptb52dkVCyq2rPA").trim();
     const airtableTable = (process.env.AIRTABLE_TABLE_NAME || "Bookings").trim();
 
-    if (airtableKey) {
+    if (airtableKey && !booking.airtableRecordId) {
       try {
+        const scheduledDateIso = booking.scheduledDateIso || formatToIsoDate(scheduledDate);
         await fetch(`https://api.airtable.com/v0/${airtableBaseId}/${airtableTable}`, {
           method: "POST",
           headers: {
@@ -132,6 +133,7 @@ export default async function handler(req: any, res: any) {
                   "ZIP Code": booking.zipCode || "",
                   "Service Zone": booking.serviceZone || "San Francisco – Select",
                   "Parking Notes": parkingNotes || "Driveway available",
+                  "Scheduled Date": scheduledDateIso,
                   "Scheduled Time Window": scheduledTime,
                   "Number of Dogs": Number(booking.dogCount) || 1,
                   "Dog Names": petName,
@@ -514,6 +516,61 @@ Concierge / WhatsApp: +1 (850) 960-0034 · info@souvagrooming.com`;
     console.error("Invoice / Email generation error:", error);
     return res.status(500).json({ error: error.message || "Failed to process booking invoice" });
   }
+}
+
+/* -------------------- HELPER: FORMAT TO ISO DATE (YYYY-MM-DD) -------------------- */
+function formatToIsoDate(dateStr: string): string {
+  if (!dateStr) return "";
+  const trimmed = dateStr.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  const now = new Date();
+  const lower = trimmed.toLowerCase();
+
+  let target = new Date(now);
+  if (lower.includes("today") || lower.includes("hoy")) {
+    target = new Date(now);
+  } else if (lower.includes("tomorrow") || lower.includes("mañana")) {
+    target = new Date(now);
+    target.setDate(now.getDate() + 1);
+  } else {
+    const monthNames: Record<string, number> = {
+      jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+      jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
+      ene: 0, abr: 3, ago: 7, dic: 11,
+    };
+    const parts = trimmed.replace(/,/g, " ").split(/\s+/).filter(Boolean);
+    let monthIdx = -1;
+    let dayNum = -1;
+    let year = now.getFullYear();
+
+    for (const p of parts) {
+      const pLower = p.toLowerCase().slice(0, 3);
+      if (monthNames[pLower] !== undefined && monthIdx === -1) {
+        monthIdx = monthNames[pLower];
+      } else {
+        const num = parseInt(p, 10);
+        if (!isNaN(num)) {
+          if (num > 2020) {
+            year = num;
+          } else if (dayNum === -1) {
+            dayNum = num;
+          }
+        }
+      }
+    }
+
+    if (monthIdx !== -1 && dayNum !== -1) {
+      target = new Date(year, monthIdx, dayNum);
+    }
+  }
+
+  const y = target.getFullYear();
+  const m = String(target.getMonth() + 1).padStart(2, "0");
+  const d = String(target.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 /* -------------------- HELPER: PARSE APPOINTMENT DATETIME -------------------- */
