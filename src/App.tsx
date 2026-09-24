@@ -283,7 +283,7 @@ function AppContent() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col relative z-10">
         {/* HERO SECTION WITH THE COCKPIT MODAL */}
-        <section id="book" className="relative isolate px-4 py-8 md:py-12 md:px-8 flex-1 flex flex-col justify-center w-full overflow-hidden">
+        <section id="book" className="relative isolate px-3 sm:px-4 py-6 md:py-12 md:px-8 flex-1 flex flex-col justify-center w-full overflow-hidden">
           <div className="hero-spa-ambient" aria-hidden="true" />
           <div className="hero-gold-glow" aria-hidden="true" />
 
@@ -389,11 +389,11 @@ function AppContent() {
               </div>
 
               {/* Right Side: The Interactive Cockpit Card */}
-              <div id="booking-flow-card" className="hero-right-content lg:col-span-7 flex flex-col justify-center">
-                <div className="relative w-full max-w-xl mx-auto lg:mr-0">
+              <div id="booking-flow-card" className="hero-right-content lg:col-span-7 flex flex-col justify-center w-full min-w-0 max-w-full">
+                <div className="relative w-full max-w-full lg:max-w-xl mx-auto lg:mr-0 min-w-0">
                   <div
                     className={cn(
-                      "absolute -inset-3 blur-3xl rounded-[3rem] transition-colors duration-700",
+                      "absolute -inset-3 blur-3xl rounded-[3rem] transition-colors duration-700 pointer-events-none",
                       flowStatus.dispatched ? "bg-[#AA8B63]/25" : "bg-[#AA8B63]/10"
                     )}
                   />
@@ -404,7 +404,7 @@ function AppContent() {
                     live={flowStatus.dispatched}
                     celebrate={burst}
                     enableSparks={flowStatus.dispatched}
-                    className="p-4 sm:p-6"
+                    className="p-3 sm:p-6 w-full max-w-full min-w-0"
                   >
                     <GroomingFlow onStatus={setFlowStatus} />
                   </InteractiveTile>

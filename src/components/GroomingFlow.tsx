@@ -282,10 +282,10 @@ function StepHeader({
           {eyebrow}
         </span>
       </div>
-      <h3 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-[#FAF0E2]">
+      <h3 className="font-display text-lg sm:text-2xl font-bold tracking-tight text-[#FAF0E2] break-words">
         {title}
       </h3>
-      <p className="text-xs text-[#A4AA93] leading-relaxed max-w-xl">
+      <p className="text-xs text-[#A4AA93] leading-relaxed max-w-xl break-words">
         {subtitle}
       </p>
     </div>
@@ -827,21 +827,21 @@ export function GroomingFlow({
   };
 
   return (
-    <div ref={flowTopRef} className="w-full">
+    <div ref={flowTopRef} className="w-full max-w-full min-w-0">
       {/* Membrete Oficial: RESERVA AQUÍ */}
-      <div className="mb-3.5 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-[#22271A] via-[#2A2419] to-[#22271A] border border-[#AA8B63]/60 shadow-[0_2px_14px_rgba(170,139,99,0.2)] flex items-center justify-between select-none">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
+      <div className="mb-3.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-gradient-to-r from-[#22271A] via-[#2A2419] to-[#22271A] border border-[#AA8B63]/60 shadow-[0_2px_14px_rgba(170,139,99,0.2)] flex items-center justify-between select-none max-w-full min-w-0">
+        <div className="flex items-center gap-2 min-w-0 shrink-0">
+          <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#AA8B63] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#AA8B63]" />
+            <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-[#AA8B63]" />
           </span>
-          <span className="text-xs sm:text-sm font-mono font-black tracking-widest text-[#FAF0E2] uppercase">
+          <span className="text-[11px] sm:text-xs font-mono font-black tracking-wider sm:tracking-widest text-[#FAF0E2] uppercase whitespace-nowrap">
             RESERVA AQUÍ
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] font-mono text-[#AA8B63] font-bold uppercase tracking-wider">
-          <Sparkles className="h-3 w-3 text-[#AA8B63]" />
-          <span>Doorstep Mobile Spa</span>
+        <div className="flex items-center gap-1 text-[9px] sm:text-[10px] font-mono text-[#AA8B63] font-bold uppercase tracking-wider min-w-0 truncate">
+          <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#AA8B63] shrink-0" />
+          <span className="truncate">Doorstep Spa</span>
         </div>
       </div>
 
@@ -2310,7 +2310,7 @@ function StepBookingCalendar({
           </div>
 
           {/* Days of Selected Month */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none w-full max-w-full">
             {visibleDays.map((d) => {
               const isSelected = data.scheduledDate === d.fullDate;
               const full = isDateFull(d);
@@ -2324,7 +2324,7 @@ function StepBookingCalendar({
                   disabled={full}
                   onClick={() => handleSelectDate(d)}
                   className={cn(
-                    "min-w-[72px] p-2.5 rounded-2xl border text-center transition-all duration-200 shrink-0 flex flex-col items-center justify-center relative",
+                    "min-w-[62px] sm:min-w-[72px] p-2 sm:p-2.5 rounded-2xl border text-center transition-all duration-200 shrink-0 flex flex-col items-center justify-center relative",
                     full
                       ? "opacity-40 bg-[#161811]/60 border-stone-800 text-[#A4AA93]/40 cursor-not-allowed"
                       : isSelected
@@ -2569,10 +2569,10 @@ function StepDisclaimerConfirm({
         </div>
 
         {/* ── THE MULTI-DOG DECISION PROMPT CARD (AS REQUESTED) ────── */}
-        <div className="p-4 rounded-3xl bg-gradient-to-br from-[#202517] to-[#14160E] border-2 border-[#AA8B63]/60 shadow-xl space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <h4 className="font-display font-bold text-base text-[#FAF0E2]">
+        <div className="p-3.5 sm:p-4 rounded-3xl bg-gradient-to-br from-[#202517] to-[#14160E] border-2 border-[#AA8B63]/60 shadow-xl space-y-3 min-w-0 max-w-full">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <h4 className="font-display font-bold text-sm sm:text-base text-[#FAF0E2] leading-snug">
               Ready to finish, or would you like to add another dog?
             </h4>
           </div>
@@ -2587,9 +2587,9 @@ function StepDisclaimerConfirm({
             <button
               type="button"
               onClick={onAddAnotherDog}
-              className="py-3 px-3.5 rounded-2xl bg-[#252C1D] border border-[#AA8B63]/70 hover:bg-[#AA8B63]/30 text-[#FAF0E2] text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md group"
+              className="py-3 px-3 rounded-2xl bg-[#252C1D] border border-[#AA8B63]/70 hover:bg-[#AA8B63]/30 text-[#FAF0E2] text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md group text-center"
             >
-              <PlusCircle className="h-4 w-4 text-[#AA8B63] group-hover:scale-110 transition-transform" />
+              <PlusCircle className="h-4 w-4 text-[#AA8B63] group-hover:scale-110 transition-transform shrink-0" />
               <span>➕ Add Another Dog (+20% OFF)</span>
             </button>
 
@@ -2598,17 +2598,17 @@ function StepDisclaimerConfirm({
               type="button"
               disabled={isSubmitting || !data.agreedToTerms}
               onClick={onFinalize}
-              className="py-3 px-3.5 rounded-2xl bg-[#AA8B63] text-[#161811] hover:bg-[#C4A67E] text-xs font-mono font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-50"
+              className="py-3 px-3 rounded-2xl bg-[#AA8B63] text-[#161811] hover:bg-[#C4A67E] text-xs font-mono font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg disabled:opacity-50 text-center"
             >
               {isSubmitting ? (
                 <span>Confirming in System...</span>
               ) : (
-                <>
-                  <CheckCircle2 className="h-4 w-4" />
+                <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
                   <span>
                     ✓ Confirm Booking ({totalDogsInSession} dog{totalDogsInSession > 1 ? "s" : ""}) · ${grandTotal}
                   </span>
-                </>
+                </div>
               )}
             </button>
           </div>
@@ -2864,9 +2864,9 @@ ${totalSavings > 0 ? `\n🎉 Multi-Dog Discount Applied: -$${totalSavings}.00\n`
           />
         </div>
 
-        <div className="text-[11px] font-bold uppercase tracking-widest text-emerald-400 flex items-center justify-center gap-1.5 font-mono">
-          <CheckCircle2 className="h-3.5 w-3.5" />
-          <span>Doorstep Appointment Confirmed & Saved in Airtable!</span>
+        <div className="text-[10.5px] sm:text-[11px] font-bold uppercase tracking-normal sm:tracking-widest text-emerald-400 flex flex-wrap items-center justify-center gap-1.5 font-mono text-center px-2">
+          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+          <span>Doorstep Appointment Confirmed & Saved!</span>
         </div>
 
         <h3 className="font-display text-2xl sm:text-3xl font-bold mt-1 tracking-tight text-[#FAF0E2]">

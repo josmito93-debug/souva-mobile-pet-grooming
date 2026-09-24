@@ -198,6 +198,9 @@
   position: relative;
   overflow: hidden;
   border-radius: 30px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   border: 1px solid rgba(250, 240, 226, 0.08);
   background:
     linear-gradient(180deg, rgba(250, 240, 226, 0.04) 0%, transparent 20%),
@@ -422,8 +425,8 @@
    STATUS LED GRID TRACKER (6 STEPS)
    ════════════════════════════════════════════════════════════════ */
 .ledgrid__track {
-  --cols: 6;
-  --gap: 5px;
+  --cols: 8;
+  --gap: 4px;
   position: relative;
   border-radius: 16px;
   background: #14160E;
@@ -432,21 +435,26 @@
     inset 0 1px 0 rgba(250, 240, 226, 0.03),
     inset 0 2px 8px rgba(0, 0, 0, 0.7);
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
 .lg-row {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
   gap: var(--gap);
   padding: var(--gap);
+  width: 100%;
 }
 
 .lg-cell-wrap {
   position: relative;
   border-radius: 10px;
   padding: 1px;
+  min-width: 0;
+  overflow: hidden;
   background: linear-gradient(135deg,
     rgba(250, 240, 226, 0.06) 0%,
     rgba(250, 240, 226, 0.02) 50%,
@@ -476,13 +484,17 @@
 
 .lg-cell {
   position: relative;
-  aspect-ratio: 1.2 / 1;
-  display: grid;
-  place-items: center;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   color: #616654;
   border-radius: 9px;
   background: #1A1D14;
   overflow: hidden;
+  padding: 4px 0;
   transition: color 0.35s var(--e-swift), background 0.4s var(--e-swift);
 }
 
@@ -501,8 +513,8 @@
 }
 
 .lg-cell svg {
-  width: 19px;
-  height: 19px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
@@ -542,10 +554,11 @@
 .lg-corner--br { bottom: 4px; right: 4px; }
 
 @media (max-width: 760px) {
-  .ledgrid__track { --gap: 4px; }
-  .lg-cell, .lg-cell-wrap { border-radius: 8px; }
-  .lg-cell { border-radius: 7px; }
-  .lg-cell svg { width: 16px; height: 16px; }
+  .ledgrid__track { --gap: 2px; border-radius: 12px; margin-bottom: 0.85rem; }
+  .lg-cell, .lg-cell-wrap { border-radius: 6px; }
+  .lg-cell { border-radius: 5px; padding: 3px 0; }
+  .lg-cell svg { width: 13px; height: 13px; }
+  .lg-corner { display: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════

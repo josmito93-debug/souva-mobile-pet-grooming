@@ -115,7 +115,7 @@ export function InteractiveTile({
       ref={ref}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      className={cn("tile", live && "is-live", className)}
+      className={cn("tile w-full max-w-full min-w-0 box-border", live && "is-live", className)}
       style={
         {
           "--tile-beam": beamColor,
@@ -126,7 +126,7 @@ export function InteractiveTile({
       }
     >
       <span className="t-glow" aria-hidden="true" />
-      <div className="relative z-10 w-full">
+      <div className="relative z-10 w-full min-w-0 max-w-full">
         {children}
       </div>
     </div>
