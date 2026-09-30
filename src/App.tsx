@@ -778,7 +778,7 @@ function AppContent() {
 
         {/* TESTIMONIALS */}
         <section id="reviews" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 bg-[#161811]">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <div className="text-center max-w-xl mx-auto mb-12">
               <span className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase block mb-2">
                 {"// VERIFIED PET PARENT REVIEWS //"}
@@ -788,37 +788,47 @@ function AppContent() {
               </h2>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {[
                 {
                   petName: "Teddy",
-                  breed: "Apricot Doodle",
+                  breed: "Apricot Toy Poodle",
                   author: "Sarah M.",
                   image: "/assets/reviews/review-1.jpg",
                   tag: "Teddy Cut & Spa Bath",
-                  text: "The most seamless grooming experience we've ever had in San Francisco. Teddy used to dread cage dryers at traditional salons. SOUVA parked right at our driveway, and he came back calm, fluffy, and smelling heavenly with his holiday bandana!",
+                  text: "The most seamless grooming experience we've ever had in San Francisco. Teddy used to dread cage dryers at salons. SOUVA parked right at our driveway, and he came back calm, fluffy, and smelling heavenly with his fresh bandana!",
                   stars: 5,
                   city: "Pacific Heights, SF",
                 },
                 {
-                  petName: "Mocha",
-                  breed: "Chocolate Labradoodle",
+                  petName: "Marcel",
+                  breed: "French Bulldog",
                   author: "David L.",
                   image: "/assets/reviews/review-2.jpg",
-                  tag: "Asian Fusion Scissor Trim",
-                  text: "His scissor cut was immaculate. The eco-friendly solar van is whisper quiet, and knowing they use official Hydra botanical products gave us total peace of mind. Hands down the premier mobile grooming service in Burlingame.",
+                  tag: "Spa Bath & Facial Wrinkle Care",
+                  text: "Marcel looked and smelled incredible! The mobile solar van was whisper-quiet on our Burlingame street, and knowing they use official Hydra botanical products gave us total peace of mind. Hands down the premier mobile grooming service in Peninsula.",
                   stars: 5,
                   city: "Burlingame, CA",
                 },
                 {
-                  petName: "Rusty",
-                  breed: "Red Mini Doodle",
+                  petName: "Bella",
+                  breed: "Apricot Mini Doodle",
                   author: "Elena & Marcus K.",
                   image: "/assets/reviews/review-3.jpg",
-                  tag: "Hypoallergenic Spa Therapy",
-                  text: "Rusty has delicate skin and allergy folds. SOUVA's gentle colloidal oat wash and blueberry facial kept his coat shiny, calm, and fluffy without any redness. Worth every single penny.",
+                  tag: "Asian Fusion Scissor Trim",
+                  text: "Bella has delicate skin and dense curly fur. SOUVA's gentle colloidal oat wash and blueberry facial kept her coat shiny, soft, and fluffy without any redness. The signature pink paw bandana was the cutest touch!",
                   stars: 5,
                   city: "San Mateo, CA",
+                },
+                {
+                  petName: "Winston",
+                  breed: "Bernedoodle",
+                  author: "Claire & Jason T.",
+                  image: "/assets/reviews/review-4.jpg",
+                  tag: "Full Luxury Spa & Scissor Styling",
+                  text: "Our gentle giant Winston is usually timid around other dogs, so 1-on-1 private mobile care in our driveway was an absolute dream. He came out looking like a plush teddy bear, perfectly scissor-trimmed and completely relaxed.",
+                  stars: 5,
+                  city: "Palo Alto, CA",
                 },
               ].map((rev, idx) => (
                 <div
