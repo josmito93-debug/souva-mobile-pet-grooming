@@ -8,7 +8,7 @@
   <!-- Main Homepage -->
   <url>
     <loc>https://souva-mobile-pet-grooming.vercel.app/</loc>
-    <lastmod>2026-09-23</lastmod>
+    <lastmod>2026-09-30</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -25,7 +25,7 @@
   <!-- Service Coverage Areas & ZIP Codes -->
   <url>
     <loc>https://souva-mobile-pet-grooming.vercel.app/#coverage</loc>
-    <lastmod>2026-09-23</lastmod>
+    <lastmod>2026-09-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -33,7 +33,7 @@
   <!-- Services & Pricing Menu -->
   <url>
     <loc>https://souva-mobile-pet-grooming.vercel.app/#services</loc>
-    <lastmod>2026-09-23</lastmod>
+    <lastmod>2026-09-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -41,7 +41,7 @@
   <!-- Before and After Grooming Transformations -->
   <url>
     <loc>https://souva-mobile-pet-grooming.vercel.app/#before-after</loc>
-    <lastmod>2026-09-23</lastmod>
+    <lastmod>2026-09-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
     <image:image>
@@ -61,7 +61,7 @@
   <!-- Verified Pet Parent Reviews -->
   <url>
     <loc>https://souva-mobile-pet-grooming.vercel.app/#reviews</loc>
-    <lastmod>2026-09-23</lastmod>
+    <lastmod>2026-09-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
@@ -70,18 +70,22 @@
     </image:image>
     <image:image>
       <image:loc>https://souva-mobile-pet-grooming.vercel.app/assets/reviews/review-2.jpg</image:loc>
-      <image:title>Verified Customer Review Dog Mocha Chocolate Labradoodle</image:title>
+      <image:title>Verified Customer Review Dog Marcel French Bulldog</image:title>
     </image:image>
     <image:image>
       <image:loc>https://souva-mobile-pet-grooming.vercel.app/assets/reviews/review-3.jpg</image:loc>
-      <image:title>Verified Customer Review Dog Rusty Red Mini Doodle</image:title>
+      <image:title>Verified Customer Review Dog Bella Apricot Mini Doodle</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://souva-mobile-pet-grooming.vercel.app/assets/reviews/review-4.jpg</image:loc>
+      <image:title>Verified Customer Review Dog Winston Bernedoodle</image:title>
     </image:image>
   </url>
 
   <!-- About SOUVA Philosophy & Solar Fleet -->
   <url>
     <loc>https://souva-mobile-pet-grooming.vercel.app/#about</loc>
-    <lastmod>2026-09-23</lastmod>
+    <lastmod>2026-09-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -89,7 +93,7 @@
   <!-- Solar Salon Fleet Gallery -->
   <url>
     <loc>https://souva-mobile-pet-grooming.vercel.app/#gallery</loc>
-    <lastmod>2026-09-23</lastmod>
+    <lastmod>2026-09-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
