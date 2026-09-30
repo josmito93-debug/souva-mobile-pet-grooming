@@ -13,6 +13,8 @@ import {
   Star,
   ArrowRight,
   MessageCircle,
+  Instagram,
+  Facebook,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { cn } from "@/lib/utils";
@@ -149,7 +151,31 @@ export function Header({ onBookClick }: HeaderProps) {
         </nav>
 
         {/* Action Controls & Phone */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Social Icons (Instagram & Facebook) */}
+          <div className="hidden md:flex items-center gap-1.5 border-r border-[#FAF0E2]/15 pr-2.5">
+            <a
+              href="https://www.instagram.com/souvagrooming"
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 rounded-full bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] hover:scale-105 transition-all shadow-sm"
+              aria-label="Instagram"
+              title="Follow us on Instagram (@souvagrooming)"
+            >
+              <Instagram className="h-3.5 w-3.5" />
+            </a>
+            <a
+              href="https://www.facebook.com/souvagrooming"
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 rounded-full bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] hover:scale-105 transition-all shadow-sm"
+              aria-label="Facebook"
+              title="Follow us on Facebook (@souvagrooming)"
+            >
+              <Facebook className="h-3.5 w-3.5" />
+            </a>
+          </div>
+
           {/* Phone Call Link (Prominent Call Us) */}
           <a
             href="tel:+18509600034"
@@ -315,6 +341,36 @@ export function Header({ onBookClick }: HeaderProps) {
                   <MessageCircle className="h-4 w-4" />
                   <span>WhatsApp Concierge</span>
                 </a>
+              </div>
+
+              {/* Follow SOUVA on Instagram & Facebook */}
+              <div className="p-3.5 rounded-2xl bg-[#1C2016] border border-[#FAF0E2]/15 flex items-center justify-between gap-2">
+                <span className="text-xs font-mono text-[#FAF0E2] font-semibold flex items-center gap-1.5">
+                  <Camera className="h-3.5 w-3.5 text-[#AA8B63]" />
+                  <span>Follow @souvagrooming:</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <a
+                    href="https://www.instagram.com/souvagrooming"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-2 rounded-xl bg-[#25281D] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] transition-colors flex items-center gap-1.5 text-xs font-mono"
+                    aria-label="Instagram"
+                  >
+                    <Instagram className="h-4 w-4 text-[#AA8B63]" />
+                    <span className="hidden sm:inline">Instagram</span>
+                  </a>
+                  <a
+                    href="https://www.facebook.com/souvagrooming"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-2 rounded-xl bg-[#25281D] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] transition-colors flex items-center gap-1.5 text-xs font-mono"
+                    aria-label="Facebook"
+                  >
+                    <Facebook className="h-4 w-4 text-[#AA8B63]" />
+                    <span className="hidden sm:inline">Facebook</span>
+                  </a>
+                </div>
               </div>
 
               <div className="text-center pt-2 text-[10px] font-mono text-[#A4AA93]/60">

@@ -302,22 +302,24 @@ export function Footer({ onOpenAdmin, onBookClick }: FooterProps) {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-[11px] text-[#A4AA93]">Follow SOUVA:</span>
+            <span className="text-[11px] text-[#A4AA93] font-medium">Follow SOUVA:</span>
             <a
-              href="https://instagram.com"
+              href="https://www.instagram.com/souvagrooming"
               target="_blank"
               rel="noreferrer"
-              className="p-2 rounded-full bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] transition-colors"
+              className="p-2.5 rounded-full bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] hover:scale-105 transition-all shadow-sm"
               aria-label="Instagram"
+              title="Follow us on Instagram (@souvagrooming)"
             >
               <Instagram className="h-4 w-4" />
             </a>
             <a
-              href="https://facebook.com"
+              href="https://www.facebook.com/souvagrooming"
               target="_blank"
               rel="noreferrer"
-              className="p-2 rounded-full bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] transition-colors"
+              className="p-2.5 rounded-full bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] hover:scale-105 transition-all shadow-sm"
               aria-label="Facebook"
+              title="Follow us on Facebook (@souvagrooming)"
             >
               <Facebook className="h-4 w-4" />
             </a>

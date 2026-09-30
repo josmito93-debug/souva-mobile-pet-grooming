@@ -689,6 +689,27 @@ export function GroomingFlow({
       status: "pending",
       signature: data.signature,
       notes: `Booked for ${data.scheduledDate} (${resolvedIsoDate}) @ ${data.scheduledTime}. Dogs (${allPets.length}): ${finalDogNames}. Parking: ${data.parkingNotes}.`,
+      pets: allPets.map((p) => ({
+        id: p.id,
+        petName: p.petName,
+        breed: p.breed,
+        size: p.size,
+        gender: p.gender,
+        petAge: p.petAge,
+        packageId: p.packageId,
+        packageName: p.packageName,
+        addons: p.addons,
+        petCondition: p.petCondition,
+        temperament: p.temperament,
+        vaccinated: p.vaccinated,
+        medicalConditions: p.medicalConditions,
+        groomerNotes: p.groomerNotes,
+        petPhoto: p.petPhoto,
+        basePrice: p.basePrice,
+        addonsCost: p.addonsCost,
+        discount: p.discount,
+        totalPrice: p.totalPrice,
+      })),
     });
 
     // 6. SAVE RECORD DIRECTLY TO AIRTABLE
@@ -828,7 +849,7 @@ export function GroomingFlow({
 
   return (
     <div ref={flowTopRef} className="w-full max-w-full min-w-0">
-      {/* Membrete Oficial: RESERVA AQUÍ */}
+      {/* Official Header: BOOK HERE */}
       <div className="mb-3.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-gradient-to-r from-[#22271A] via-[#2A2419] to-[#22271A] border border-[#AA8B63]/60 shadow-[0_2px_14px_rgba(170,139,99,0.2)] flex items-center justify-between select-none max-w-full min-w-0">
         <div className="flex items-center gap-2 min-w-0 shrink-0">
           <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5 shrink-0">
@@ -836,7 +857,7 @@ export function GroomingFlow({
             <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-[#AA8B63]" />
           </span>
           <span className="text-[11px] sm:text-xs font-mono font-black tracking-wider sm:tracking-widest text-[#FAF0E2] uppercase whitespace-nowrap">
-            RESERVA AQUÍ
+            BOOK HERE
           </span>
         </div>
         <div className="flex items-center gap-1 text-[9px] sm:text-[10px] font-mono text-[#AA8B63] font-bold uppercase tracking-wider min-w-0 truncate">
@@ -974,6 +995,9 @@ export function GroomingFlow({
             <StepBookingCalendar
               data={data}
               setData={setData}
+              savedPets={savedPets}
+              currentDogTotal={currentDogTotal}
+              grandTotal={grandEstimatedTotal}
               dates={availableDates}
               isSlotBooked={isSlotBooked}
               isLoadingSlots={isLoadingSlots}
@@ -1528,10 +1552,10 @@ function StepLocationCoverage({
             <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
             <div className="space-y-0.5">
               <span className="text-xs font-bold text-emerald-300 block">
-                ✓ ¡Excelente noticia! Cubrimos tu área en {coverage.cityArea} ({coverage.zone})
+                ✓ Great news! We cover your area in {coverage.cityArea} ({coverage.zone})
               </span>
               <p className="text-[11.5px] text-emerald-200/90 leading-snug">
-                Nuestra van solar autónoma llega directamente a la puerta de tu hogar en el ZIP {coverage.zipCode}.
+                Our autonomous solar mobile spa van arrives directly at your doorstep in ZIP {coverage.zipCode}.
               </p>
             </div>
           </div>
@@ -2157,6 +2181,9 @@ function StepDogCareCondition({
 function StepBookingCalendar({
   data,
   setData,
+  savedPets = [],
+  currentDogTotal = 0,
+  grandTotal = 0,
   dates,
   isSlotBooked,
   isLoadingSlots,
@@ -2164,12 +2191,41 @@ function StepBookingCalendar({
 }: {
   data: GroomingFlowState;
   setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
+  savedPets?: CompletedPet[];
+  currentDogTotal?: number;
+  grandTotal?: number;
   dates: AvailableDate[];
   isSlotBooked: (isoDate: string, time: string) => boolean;
   isLoadingSlots: boolean;
   onRefreshSlots: () => void;
 }) {
   const selectedDateObj = dates.find((d) => d.fullDate === data.scheduledDate) || dates[0];
+
+  const currentPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId);
+  const allPetsList: CompletedPet[] = [...savedPets];
+  if (data.petName?.trim() || data.packageId) {
+    allPetsList.push({
+      id: "active-calendar-dog",
+      petName: data.petName?.trim() || `Dog #${savedPets.length + 1}`,
+      size: data.size,
+      breed: data.breed?.trim() || "Mix",
+      petAge: data.petAge,
+      gender: data.gender,
+      packageId: data.packageId,
+      packageName: currentPkg?.name || "Signature Grooming",
+      addons: [...data.addons],
+      petCondition: data.petCondition,
+      temperament: data.temperament,
+      vaccinated: data.vaccinated,
+      medicalConditions: data.medicalConditions,
+      groomerNotes: data.groomerNotes,
+      petPhoto: data.petPhoto,
+      basePrice: currentDogTotal,
+      addonsCost: 0,
+      discount: savedPets.length > 0 ? Math.round(currentDogTotal * 0.2) : 0,
+      totalPrice: currentDogTotal,
+    });
+  }
 
   // Derive unique months across the whole year (365 days)
   const months = useMemo(() => {
@@ -2264,6 +2320,114 @@ function StepBookingCalendar({
             <strong className="text-[#AA8B63]">24-Hour Advance Booking Policy:</strong> Appointments open for the entire year (365 days). Daily slots prepared with autonomous clean solar suites.
           </div>
         </div>
+
+        {/* ── MULTI-DOG INDIVIDUAL BREAKDOWN CARD (2+ DOGS BOOKED) ── */}
+        {allPetsList.length >= 2 ? (
+          <div className="p-3.5 sm:p-4 rounded-3xl bg-gradient-to-br from-[#1E2317] to-[#14160E] border-2 border-[#AA8B63]/60 shadow-xl space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-[#FAF0E2]/10">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🐕🐕</span>
+                <div>
+                  <h4 className="font-display font-bold text-sm sm:text-base text-[#FAF0E2] leading-none">
+                    Multi-Dog Session · {allPetsList.length} Dogs Scheduled
+                  </h4>
+                  <span className="text-[10px] font-mono text-[#A4AA93]">
+                    Back-to-back solar spa visit for both companions at your doorstep
+                  </span>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 font-mono text-[10px] font-bold shadow-sm">
+                ✓ 20% OFF 2nd Dog Applied
+              </span>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              {allPetsList.map((pet, idx) => (
+                <div
+                  key={pet.id || idx}
+                  className="p-3 rounded-2xl bg-[#171A11] border border-[#FAF0E2]/15 space-y-2 relative shadow-md"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono font-bold uppercase text-[#AA8B63] px-2 py-0.5 rounded bg-[#25281D] border border-[#AA8B63]/30">
+                      Dog #{idx + 1} {idx === 1 ? "· 20% OFF" : ""}
+                    </span>
+                    <span className="font-display font-black text-sm text-[#FAF0E2]">
+                      ${pet.totalPrice}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-10 w-10 rounded-xl bg-[#22271A] border border-[#FAF0E2]/15 flex items-center justify-center overflow-hidden shrink-0">
+                      {pet.petPhoto ? (
+                        <img src={pet.petPhoto} alt={pet.petName} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-base">🐾</span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-display font-bold text-xs sm:text-sm text-[#FAF0E2] truncate">
+                        {pet.petName}
+                      </div>
+                      <div className="text-[10.5px] text-[#A4AA93] truncate font-mono">
+                        {pet.breed || "Mix"} · {SIZE_GUIDE.find((s) => s.id === pet.size)?.label || pet.size}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-[10.5px] font-mono space-y-1 pt-1.5 border-t border-[#FAF0E2]/10">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[#A4AA93]">Service:</span>
+                      <strong className="text-[#FAF0E2] truncate max-w-[170px]">{pet.packageName}</strong>
+                    </div>
+                    {pet.addons && pet.addons.length > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#A4AA93]">Add-ons:</span>
+                        <span className="text-[#AA8B63] font-bold truncate max-w-[170px]">{pet.addons.join(", ")}</span>
+                      </div>
+                    )}
+                    {idx === 1 && pet.discount > 0 && (
+                      <div className="flex justify-between items-center text-emerald-400">
+                        <span>Promo savings:</span>
+                        <span className="font-bold">-${pet.discount} (20% OFF)</span>
+                      </div>
+                    )}
+                    {pet.temperament && (
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-[#A4AA93]">Care Note:</span>
+                        <span className="text-[#A4AA93] truncate max-w-[170px]">{pet.temperament}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-1 flex items-center justify-between text-xs font-mono text-[#A4AA93] border-t border-[#FAF0E2]/10">
+              <span>Combined Appointment Window:</span>
+              <strong className="text-[#FAF0E2] text-sm">
+                ${grandTotal || allPetsList.reduce((s, p) => s + p.totalPrice, 0)} Estimated Total
+              </strong>
+            </div>
+          </div>
+        ) : allPetsList.length === 1 && (data.petName?.trim() || data.packageId) ? (
+          <div className="p-3 rounded-2xl bg-[#1C2016] border border-[#FAF0E2]/15 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-base">🐕</span>
+              <div className="truncate">
+                <span className="font-bold text-[#FAF0E2]">{data.petName || "Your Dog"}</span>
+                <span className="text-[#A4AA93] text-[11px] ml-1.5">
+                  ({data.breed || "Mix"} · {SIZE_GUIDE.find((s) => s.id === data.size)?.label || data.size})
+                </span>
+                <span className="text-[#AA8B63] text-[11px] ml-1.5 font-mono">
+                  · {currentPkg?.name || "Selected Service"}
+                </span>
+              </div>
+            </div>
+            <span className="text-xs font-mono text-[#FAF0E2] font-black shrink-0 ml-2">
+              ${grandTotal || currentDogTotal}
+            </span>
+          </div>
+        ) : null}
 
         {/* ── FULL YEAR MONTH NAVIGATOR + JUMP TO ANY DATE ── */}
         <div>

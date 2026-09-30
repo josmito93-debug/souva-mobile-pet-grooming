@@ -9,6 +9,28 @@ export type RequestStatus =
   | "completed"
   | "cancelled";
 
+export interface DispatchPet {
+  id?: string;
+  petName: string;
+  breed: string;
+  size: PetSize;
+  gender?: string;
+  petAge?: string;
+  packageId?: string;
+  packageName?: string;
+  addons?: string[];
+  petCondition?: string;
+  temperament?: string;
+  vaccinated?: string;
+  medicalConditions?: string;
+  groomerNotes?: string;
+  petPhoto?: string | null;
+  basePrice?: number;
+  addonsCost?: number;
+  discount?: number;
+  totalPrice?: number;
+}
+
 export interface DispatchRequest {
   id: string;
   customerName: string;
@@ -45,6 +67,12 @@ export interface DispatchRequest {
   status: RequestStatus;
   createdAt: string;
   notes?: string;
+  pets?: DispatchPet[];
+  cancellationReason?: string;
+  cancelledAt?: string;
+  completedAt?: string;
+  rescheduledAt?: string;
+  archived?: boolean;
 }
 
 const STORAGE_KEY = "souva_dispatch_requests_v2";
@@ -102,30 +130,73 @@ export const INITIAL_REQUESTS: DispatchRequest[] = [
     id: "SOU-8403",
     customerName: "Claire Vance",
     phone: "+1 (510) 640-3391",
+    email: "claire.vance@example.com",
     address: "1401 S Main St, Walnut Creek, CA 94596",
     lat: 37.9101,
     lng: -122.0652,
     petName: "Luna & Rocky",
     breed: "Poodle (Toy)",
     size: "small",
-    temperament: "Shy or Anxious",
+    dogCount: 2,
+    temperament: "Luna: Shy or Anxious | Rocky: Playful / Energetic",
     petPhoto: null,
     packageId: "bath-brush",
-    packageName: "Bath & Fluff Brush",
-    addons: ["Deep Deshedding Treatment"],
+    packageName: "Bath & Fluff Brush + Bath & Fluff Brush",
+    addons: ["Deep Deshedding Treatment", "Blueberry Facial"],
     coatCondition: "Moderate Tangles / Dense Coat",
     preferredTime: "Today 2:30 PM",
+    scheduledDate: new Date().toISOString().split("T")[0],
+    scheduledTime: "2:30 PM",
     etaMinutes: 60,
     vanId: "VAN-02",
     vanName: "Van 02 (East Bay Fleet)",
     status: "pending",
     createdAt: new Date(Date.now() - 80 * 60000).toISOString(),
-    notes: "Quiet dremel filing requested.",
+    notes: "Quiet dremel filing requested. 2 dogs booked back-to-back.",
+    pets: [
+      {
+        id: "pet-luna",
+        petName: "Luna",
+        breed: "Poodle (Toy)",
+        size: "small",
+        gender: "Female",
+        petAge: "Adult (3 yrs)",
+        packageName: "Bath & Fluff Brush",
+        addons: ["Deep Deshedding Treatment"],
+        temperament: "Shy or Anxious",
+        vaccinated: "yes",
+        medicalConditions: "Sensitive Skin",
+        groomerNotes: "Quiet dremel filing requested.",
+        basePrice: 135,
+        addonsCost: 20,
+        discount: 0,
+        totalPrice: 155,
+      },
+      {
+        id: "pet-rocky",
+        petName: "Rocky",
+        breed: "Poodle (Toy)",
+        size: "small",
+        gender: "Male",
+        petAge: "Puppy (8 mos)",
+        packageName: "Bath & Fluff Brush",
+        addons: ["Blueberry Facial"],
+        temperament: "Playful / Energetic",
+        vaccinated: "yes",
+        medicalConditions: "None / Healthy",
+        groomerNotes: "Gentle warm air dry.",
+        basePrice: 135,
+        addonsCost: 15,
+        discount: 27,
+        totalPrice: 123,
+      },
+    ],
   },
   {
     id: "SOU-8400",
     customerName: "Marcus Chang",
     phone: "+1 (925) 780-4510",
+    email: "marcus.c@example.com",
     address: "6000 Bollinger Canyon Rd, San Ramon, CA 94583",
     lat: 37.7799,
     lng: -121.9780,
@@ -139,11 +210,15 @@ export const INITIAL_REQUESTS: DispatchRequest[] = [
     addons: ["Blueberry Facial"],
     coatCondition: "Smooth & Tangle-Free",
     preferredTime: "Today 08:30 AM",
+    scheduledDate: new Date().toISOString().split("T")[0],
+    scheduledTime: "08:30 AM",
     etaMinutes: 0,
     vanId: "VAN-02",
     vanName: "Van 02 (East Bay Fleet)",
     status: "completed",
-    createdAt: new Date(Date.now() - 180 * 60000).toISOString(),
+    archived: true,
+    completedAt: new Date(Date.now() - 180 * 60000).toISOString(),
+    createdAt: new Date(Date.now() - 240 * 60000).toISOString(),
     notes: "Regular client. Loved the blueberry facial.",
   },
 ];
@@ -191,7 +266,84 @@ export function updateRequestETA(id: string, newEta: number): void {
 
 export function updateRequestStatus(id: string, newStatus: RequestStatus): void {
   const current = getStoredRequests();
-  const updated = current.map((r) => (r.id === id ? { ...r, status: newStatus } : r));
+  const updated = current.map((r) => {
+    if (r.id === id) {
+      const isArchived = newStatus === "completed" || newStatus === "cancelled";
+      return {
+        ...r,
+        status: newStatus,
+        archived: isArchived,
+        completedAt: newStatus === "completed" ? new Date().toISOString() : r.completedAt,
+        cancelledAt: newStatus === "cancelled" ? new Date().toISOString() : r.cancelledAt,
+      };
+    }
+    return r;
+  });
+  saveStoredRequests(updated);
+}
+
+export function rescheduleAppointment(
+  id: string,
+  newDate: string,
+  newTime: string,
+  notes?: string
+): void {
+  const current = getStoredRequests();
+  const updated = current.map((r) => {
+    if (r.id === id) {
+      const rescheduleNote = notes || `Rescheduled to ${newDate} @ ${newTime}`;
+      return {
+        ...r,
+        scheduledDate: newDate,
+        scheduledTime: newTime,
+        preferredTime: `${newDate} at ${newTime}`,
+        rescheduledAt: new Date().toISOString(),
+        notes: r.notes ? `${r.notes} | ${rescheduleNote}` : rescheduleNote,
+        // If it was cancelled or completed, restore to pending or assigned
+        status: (r.status === "cancelled" || r.status === "completed" ? "assigned" : r.status) as RequestStatus,
+        archived: false,
+      };
+    }
+    return r;
+  });
+  saveStoredRequests(updated);
+}
+
+export function cancelAppointment(id: string, reason?: string): void {
+  const current = getStoredRequests();
+  const updated = current.map((r) => {
+    if (r.id === id) {
+      return {
+        ...r,
+        status: "cancelled" as RequestStatus,
+        cancellationReason: reason || "Cancelled by client/admin",
+        cancelledAt: new Date().toISOString(),
+        archived: true,
+      };
+    }
+    return r;
+  });
+  saveStoredRequests(updated);
+}
+
+export function restoreAppointment(id: string, newStatus: RequestStatus = "pending"): void {
+  const current = getStoredRequests();
+  const updated = current.map((r) => {
+    if (r.id === id) {
+      return {
+        ...r,
+        status: newStatus,
+        archived: false,
+      };
+    }
+    return r;
+  });
+  saveStoredRequests(updated);
+}
+
+export function archiveAppointment(id: string, archived: boolean = true): void {
+  const current = getStoredRequests();
+  const updated = current.map((r) => (r.id === id ? { ...r, archived } : r));
   saveStoredRequests(updated);
 }
 
