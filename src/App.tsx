@@ -327,9 +327,7 @@ function AppContent() {
                   {/* Official User Copy */}
                   <p className="mt-4 text-sm sm:text-[15px] text-[#E2D7C5] leading-relaxed">
                     A private, one-on-one mobile grooming experience designed around your pet’s
-                    comfort and individual needs. Our solar-powered van and thoughtfully selected
-                    premium products support a more eco-conscious approach, while delivering
-                    personalized care and beautifully tailored results directly to your doorstep.
+                    comfort and individual needs.
                   </p>
 
                   {/* Highlighted CALL US Banner */}
