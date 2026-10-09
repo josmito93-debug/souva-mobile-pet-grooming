@@ -40,7 +40,7 @@ export const SOUVA_COVERAGE_ZONES: CoverageAreaItem[] = [
   { zone: "South Peninsula", cityArea: "Mountain View", zipCodes: ["94040", "94041", "94043"] },
 
   // Coastside
-  { zone: "Coastside Peninsula", cityArea: "Half Moon Bay", zipCodes: ["94019"] },
+  { zone: "Coastside", cityArea: "Half Moon Bay", zipCodes: ["94019"] },
 ];
 
 // All distinct covered 5-digit ZIP codes

@@ -143,12 +143,12 @@ export const SOUVA_TERMS: {
     },
     {
       number: 13,
-      title: "Photos and Privacy",
+      title: "Photos, Videos and Social Media Consent",
       paragraphs: [
-        "SOUVA may take photographs when reasonably necessary to document a dog’s coat condition, matting, skin condition, grooming concerns, or completed service.",
-        "Permission to use a dog’s photographs or videos for SOUVA’s website, social media, advertising, or other promotional purposes will be requested separately.",
-        "Declining marketing photo consent will not affect the client’s ability to receive grooming services.",
-        "SOUVA will not intentionally publish a client’s home address, phone number, email address, or other private contact information as part of pet marketing content.",
+        "By booking our services, the client grants SOUVA permission to take photographs and record videos of their pet during and after the grooming appointment.",
+        "The client authorizes SOUVA to use these photographs and videos for promotional and commercial purposes, including but not limited to SOUVA’s website, social media channels (such as Instagram, Facebook, TikTok), portfolio showcases, and marketing materials.",
+        "SOUVA will not publish a client’s home address, phone number, email address, or other private personal information as part of any photo, video, or social media content.",
+        "SOUVA may also take photographs when reasonably necessary to document a dog’s coat condition, matting, skin health, or completed styling.",
       ],
     },
     {
@@ -177,6 +177,7 @@ export const SOUVA_TERMS: {
         "they are authorized to make grooming and care decisions for the dog;",
         "the information provided about the dog is accurate to the best of their knowledge;",
         "they have disclosed known medical, behavioral, and handling concerns relevant to grooming;",
+        "they authorize SOUVA to take photographs and videos of their pet for social media, marketing, and promotional use;",
         "they authorize SOUVA to perform the selected grooming service; and",
         "they have read and agree to these Terms & Conditions of Service.",
       ],

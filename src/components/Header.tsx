@@ -26,6 +26,17 @@ interface HeaderProps {
 export function Header({ onBookClick }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const handleScrollToServices = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    setMobileMenuOpen(false);
+    const servicesEl = document.getElementById("services");
+    if (servicesEl) {
+      servicesEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.location.hash = "#services";
+    }
+  };
+
   // Close mobile menu on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -49,7 +60,7 @@ export function Header({ onBookClick }: HeaderProps) {
 
   const navItems = [
     { label: "Book Now", href: "#book", action: onBookClick, icon: Calendar, highlight: true },
-    { label: "Services & Pricing", href: "#book", action: onBookClick, icon: Scissors },
+    { label: "Services & Pricing", href: "#services", action: handleScrollToServices, icon: Scissors },
     { label: "About SOUVA", href: "#about", icon: Users },
     { label: "Coverage Areas", href: "#coverage", icon: MapPin },
     { label: "Gallery", href: "#gallery", icon: Camera },
@@ -128,13 +139,13 @@ export function Header({ onBookClick }: HeaderProps) {
           >
             <span>Book Now</span>
           </button>
-          <button
-            type="button"
-            onClick={onBookClick}
+          <a
+            href="#services"
+            onClick={handleScrollToServices}
             className="hover:text-[#AA8B63] transition-colors cursor-pointer"
           >
             Services & Pricing
-          </button>
+          </a>
           <a href="#about" className="hover:text-[#AA8B63] transition-colors">
             About SOUVA
           </a>

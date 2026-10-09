@@ -713,9 +713,9 @@ export function GroomingFlow({
     });
 
     // 6. SAVE RECORD DIRECTLY TO AIRTABLE
+    const coverage = checkCoverage(data.zipCode);
     let createdAirtableId: string | undefined;
     try {
-      const coverage = checkCoverage(data.zipCode);
       const airRes = await createAirtableBooking({
         bookingId,
         customerName: resolvedOwnerName,
@@ -773,14 +773,21 @@ export function GroomingFlow({
         phone: data.phone,
         address: data.address,
         zipCode: data.zipCode,
+        serviceZone: coverage.zone,
         dogCount: allPets.length,
         parkingNotes: data.parkingNotes,
         petName: finalDogNames,
+        dogNames: finalDogNames,
         breed: finalBreeds,
+        breeds: finalBreeds,
         size: data.size,
+        dogSizes: finalSizes,
         gender: data.gender,
+        genders: finalGenders,
         petAge: data.petAge,
+        dogAges: finalAges,
         petCondition: allPets.map((p) => `${p.petName}: ${p.temperament}`).join(" | "),
+        temperament: allPets.map((p) => p.temperament),
         vaccinated: data.vaccinated,
         medicalConditions: data.medicalConditions,
         groomerNotes: data.groomerNotes,
@@ -792,6 +799,7 @@ export function GroomingFlow({
         multiDogDiscount: totalMultiDiscount,
         addonsCost: allPets.reduce((s, p) => s + p.addonsCost, 0),
         addons: finalAddons,
+        spaUpgrades: finalAddons,
         sizeLabel: SIZE_GUIDE.find((s) => s.id === data.size)?.label || data.size,
         sizeWeight: SIZE_GUIDE.find((s) => s.id === data.size)?.weight || "",
         estimatedTotal: finalTotal,
@@ -2669,6 +2677,7 @@ function StepDisclaimerConfirm({
           <div className="space-y-1 text-[11px] text-[#E2D7C5]/90">
             <p>• <strong>Health & Comfort:</strong> Pet safety always takes priority over coat styling. We never crate or rush.</p>
             <p>• <strong>Rabies & Vaccinations:</strong> Up-to-date rabies vaccination compliance confirmed.</p>
+            <p>• <strong>Photo & Video Consent:</strong> You authorize SOUVA to take photos and videos of your pet for social media showcases and portfolio.</p>
             <p>• <strong>Parking & Access:</strong> Safe, legal van parking required within reasonable distance.</p>
             <p>• <strong>Cancellation Policy:</strong> 24-hour advance notice required for schedule modifications.</p>
             <p>• <strong>Payment at Doorstep:</strong> Cash, Check, Card, or Zelle upon completion.</p>
@@ -2704,9 +2713,10 @@ function StepDisclaimerConfirm({
               className="text-[#AA8B63] underline font-semibold hover:text-[#C4A67E] cursor-pointer"
             >
               Terms & Conditions of Service
-            </span>{" "}
-            and authorize mobile spa grooming for{" "}
-            <strong className="text-[#AA8B63]">{data.petName || "my pet"}</strong>.
+            </span>
+            , authorize mobile spa grooming for{" "}
+            <strong className="text-[#AA8B63]">{data.petName || "my pet"}</strong>
+            , and give permission to take photos and videos of my pet for social media use.
           </span>
         </label>
 

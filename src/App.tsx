@@ -450,7 +450,7 @@ function AppContent() {
         </section>
 
         {/* SERVICES & PRICING SECTION */}
-        <section id="services" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 bg-[#191C13]/75 relative">
+        <section id="services" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 bg-[#191C13]/75 relative scroll-mt-20">
           <div className="max-w-6xl mx-auto">
             {/* Section Header */}
             <div className="text-center max-w-2xl mx-auto mb-10">

@@ -82,6 +82,9 @@ export function formatToIsoDate(dateStr: string): string {
     }
 
     if (monthIdx !== -1 && dayNum !== -1) {
+      if (monthIdx < now.getMonth() && year === now.getFullYear()) {
+        year += 1;
+      }
       target = new Date(year, monthIdx, dayNum);
     }
   }
@@ -187,28 +190,74 @@ export async function createAirtableBooking(payload: AirtableBookingPayload): Pr
     const bookingId = payload.bookingId || `SOU-${Math.floor(1000 + Math.random() * 9000)}`;
     const isoDate = payload.scheduledDateIso || formatToIsoDate(payload.scheduledDate);
 
+    // Normalize Service Zone to exact Airtable single-select choices
+    let serviceZone = "San Francisco – Select";
+    const rawZone = (payload.serviceZone || "").toLowerCase();
+    const rawAddress = (payload.address || "").toLowerCase();
+    const rawZip = (payload.zipCode || "");
+
+    if (rawZone.includes("coastside") || rawAddress.includes("half moon") || rawZip === "94019") {
+      serviceZone = "Coastside";
+    } else if (rawZone.includes("north") || /94014|94015|94005|94080|94066|94044/.test(rawZip)) {
+      serviceZone = "North Peninsula";
+    } else if (rawZone.includes("central") || /94030|94010|94401|94402|94403|94404|94002|94070/.test(rawZip)) {
+      serviceZone = "Central Peninsula";
+    } else if (rawZone.includes("south") || /94061|94062|94063|94065|94027|94025|94301|94303|94304|94306|94040|94041|94043/.test(rawZip)) {
+      serviceZone = "South Peninsula";
+    }
+
+    // Normalize Service Package to exact Airtable single-select choices
+    const VALID_PACKAGES = [
+      "Signature Grooming",
+      "Essential Full Groom",
+      "Bath & Tidy",
+      "Bath & Refresh",
+      "Premium Bath",
+      "Standard Bath",
+      "Deluxe Spa",
+    ];
+    let servicePackage = "Signature Grooming";
+    const rawPkg = (payload.servicePackage || "").toLowerCase();
+    for (const p of VALID_PACKAGES) {
+      if (rawPkg.includes(p.toLowerCase())) {
+        servicePackage = p;
+        break;
+      }
+    }
+
     // Normalize sizes to match Airtable single/multi-select choices
-    const normalizedSizes = payload.dogSizes.map((s) => {
-      const lower = s.toLowerCase();
-      if (lower.includes("small")) return "Small (Up to 15 lb)";
-      if (lower.includes("medium")) return "Medium (16–35 lb)";
-      if (lower.includes("large") && !lower.includes("x-large")) return "Large (36–50 lb)";
-      if (lower.includes("x-large") || lower.includes("xlarge")) return "X-Large (Over 50 lb)";
-      return "Small (Up to 15 lb)";
-    });
+    const rawSizes = Array.isArray(payload.dogSizes) ? payload.dogSizes : [payload.dogSizes].filter(Boolean);
+    const normalizedSizes: string[] = [];
+    for (const s of rawSizes) {
+      const sl = String(s).toLowerCase();
+      if (sl.includes("small") || sl.includes("toy") || sl.includes("15")) {
+        normalizedSizes.push("Small (Up to 15 lb)");
+      } else if (sl.includes("medium") || sl.includes("35")) {
+        normalizedSizes.push("Medium (16–35 lb)");
+      } else if (sl.includes("large") && !sl.includes("xl") && !sl.includes("x-large") && !sl.includes("50")) {
+        normalizedSizes.push("Large (36–50 lb)");
+      } else if (sl.includes("xl") || sl.includes("x-large") || sl.includes("giant") || sl.includes("50")) {
+        normalizedSizes.push("X-Large (Over 50 lb)");
+      }
+    }
+    const finalSizes = normalizedSizes.length > 0 ? Array.from(new Set(normalizedSizes)) : ["Small (Up to 15 lb)"];
 
     // Normalize temperament to match Airtable choices
-    const normalizedTemperament = payload.temperament.map((t) => {
-      const lower = t.toLowerCase();
-      if (lower.includes("ansioso") || lower.includes("anxious")) return "Ansioso / Sensible";
-      if (lower.includes("tranquilo") || lower.includes("calm")) return "Tranquilo";
-      if (lower.includes("activo") || lower.includes("playful") || lower.includes("energetic")) return "Activo / Juguetón";
-      if (lower.includes("tímido") || lower.includes("shy")) return "Tímido";
-      return "Amigable";
-    });
+    const rawTemp = Array.isArray(payload.temperament) ? payload.temperament : [payload.temperament].filter(Boolean);
+    const normTemp: string[] = [];
+    for (const t of rawTemp) {
+      const tl = String(t).toLowerCase();
+      if (tl.includes("ansioso") || tl.includes("anxious") || tl.includes("sensib")) normTemp.push("Ansioso / Sensible");
+      else if (tl.includes("tranquilo") || tl.includes("calm")) normTemp.push("Tranquilo");
+      else if (tl.includes("activo") || tl.includes("playful") || tl.includes("juguet")) normTemp.push("Activo / Juguetón");
+      else if (tl.includes("tímido") || tl.includes("shy")) normTemp.push("Tímido");
+      else normTemp.push("Amigable");
+    }
+    const finalTemp = normTemp.length > 0 ? Array.from(new Set(normTemp)) : ["Amigable"];
 
     // Normalize rabies vaccine status
-    const vaccineChoice = payload.vaccinated === "yes" ? "Al día (Up to Date)" : "En trámite (In Progress)";
+    const isVaccinated = payload.vaccinated === "yes" || String(payload.vaccinated).includes("Al día") || String(payload.vaccinated) === "true";
+    const vaccineChoice = isVaccinated ? "Al día (Up to Date)" : "En trámite (In Progress)";
 
     const fields: Record<string, any> = {
       "Booking ID": bookingId,
@@ -218,34 +267,30 @@ export async function createAirtableBooking(payload: AirtableBookingPayload): Pr
       "Email": payload.email || "",
       "Doorstep Address": payload.address || "",
       "ZIP Code": payload.zipCode || "",
+      "Service Zone": serviceZone,
       "Parking Notes": payload.parkingNotes || "Driveway available",
       "Scheduled Date": isoDate,
       "Scheduled Time Window": payload.scheduledTime || "9:30 AM",
-      "Number of Dogs": payload.dogCount || 1,
+      "Number of Dogs": Number(payload.dogCount) || 1,
       "Dog Names": payload.dogNames || "Pet",
       "Breeds": payload.breeds || "Canine",
-      "Dog Sizes": normalizedSizes.length > 0 ? normalizedSizes : ["Small (Up to 15 lb)"],
+      "Dog Sizes": finalSizes,
       "Dog Ages": payload.dogAges || "Adult (1–7 yrs)",
       "Genders": payload.genders || "Macho",
       "Rabies Vaccine": vaccineChoice,
-      "Temperament": normalizedTemperament.length > 0 ? normalizedTemperament : ["Amigable"],
+      "Temperament": finalTemp,
       "Medical Conditions": payload.medicalConditions || "None / Healthy",
       "Groomer Notes": payload.groomerNotes || "Doorstep service",
-      "Service Package": payload.servicePackage || "Signature Grooming",
-      "Base Price": payload.basePrice || 0,
-      "Addons Total": payload.addonsTotal || 0,
-      "Discount 20% 2nd Dog": payload.multiDogDiscount || 0,
-      "Estimated Total": payload.estimatedTotal || 0,
+      "Service Package": servicePackage,
+      "Base Price": Number(payload.basePrice) || 0,
+      "Addons Total": Number(payload.addonsTotal) || 0,
+      "Discount 20% 2nd Dog": Number(payload.multiDogDiscount) || 0,
+      "Estimated Total": Number(payload.estimatedTotal) || 0,
       "Payment Status": payload.paymentStatus || "Pendiente en Puerta",
       "Agreement Accepted": payload.agreementAccepted ?? true,
     };
 
-    if (payload.serviceZone) {
-      fields["Service Zone"] = payload.serviceZone;
-    }
-
     if (payload.spaUpgrades && payload.spaUpgrades.length > 0) {
-      // Filter only matching allowed options
       const validUpgrades = [
         "Nail Grinding",
         "Teeth Brushing",
@@ -256,7 +301,7 @@ export async function createAirtableBooking(payload: AirtableBookingPayload): Pr
       ];
       const matched = payload.spaUpgrades
         .map((u) => validUpgrades.find((v) => v.toLowerCase().includes(u.toLowerCase()) || u.toLowerCase().includes(v.toLowerCase())))
-        .filter(Boolean);
+        .filter(Boolean) as string[];
       if (matched.length > 0) {
         fields["Spa Upgrades"] = Array.from(new Set(matched));
       }

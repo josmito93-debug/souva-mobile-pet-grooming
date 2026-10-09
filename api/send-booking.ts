@@ -106,59 +106,66 @@ export default async function handler(req: any, res: any) {
     const cleanPetName = petName.replace(/[^a-zA-Z0-9]/g, "-");
     const pdfFileName = `SOUVA-Invoice-${cleanPetName}-${Date.now().toString().slice(-4)}.pdf`;
 
-    // 1.5 Save record to Airtable on Vercel Backend if credentials configured and not already created by client
-    const airtableKey = (process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TOKEN || "").trim();
+    // 1.5 Save record to Airtable on Vercel Backend with strict schema normalization
+    const airtableKey = (
+      process.env.AIRTABLE_API_KEY ||
+      process.env.VITE_AIRTABLE_API_KEY ||
+      process.env.AIRTABLE_TOKEN ||
+      ""
+    ).trim();
     const airtableBaseId = (process.env.AIRTABLE_BASE_ID || "apptb52dkVCyq2rPA").trim();
     const airtableTable = (process.env.AIRTABLE_TABLE_NAME || "Bookings").trim();
 
-    if (airtableKey && !booking.airtableRecordId) {
+    let airtableRecordId = booking.airtableRecordId || null;
+    let airtableSynced = false;
+
+    if (airtableKey) {
       try {
-        const scheduledDateIso = booking.scheduledDateIso || formatToIsoDate(scheduledDate);
-        await fetch(`https://api.airtable.com/v0/${airtableBaseId}/${airtableTable}`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${airtableKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            records: [
-              {
-                fields: {
-                  "Booking ID": booking.bookingId || `SOU-${Math.floor(1000 + Math.random() * 9000)}`,
-                  "Status": "Pendiente",
-                  "Customer Name": ownerName,
-                  "Phone": phone,
-                  "Email": email,
-                  "Doorstep Address": address,
-                  "ZIP Code": booking.zipCode || "",
-                  "Service Zone": booking.serviceZone || "San Francisco – Select",
-                  "Parking Notes": parkingNotes || "Driveway available",
-                  "Scheduled Date": scheduledDateIso,
-                  "Scheduled Time Window": scheduledTime,
-                  "Number of Dogs": Number(booking.dogCount) || 1,
-                  "Dog Names": petName,
-                  "Breeds": breed,
-                  "Dog Sizes": [sizeLabel ? `${sizeLabel} (${sizeWeight})` : "Small (Up to 15 lb)"],
-                  "Dog Ages": petAge,
-                  "Genders": gender === "male" ? "Macho" : "Hembra",
-                  "Rabies Vaccine": vaccinated === "yes" ? "Al día (Up to Date)" : "En trámite (In Progress)",
-                  "Temperament": ["Amigable"],
-                  "Medical Conditions": medicalConditions || "None / Healthy",
-                  "Groomer Notes": groomerNotes || "Doorstep service",
-                  "Service Package": packageName || "Signature Grooming",
-                  "Base Price": Number(basePrice) || 0,
-                  "Addons Total": Number(booking.addonsCost) || 0,
-                  "Discount 20% 2nd Dog": Number(booking.multiDogDiscount) || 0,
-                  "Estimated Total": Number(estimatedTotal) || 0,
-                  "Payment Status": "Pendiente en Puerta",
-                  "Agreement Accepted": true,
-                },
-              },
-            ],
-          }),
-        });
+        const airtableFields = normalizeAirtableBooking(booking);
+
+        if (airtableRecordId) {
+          // Attempt to update/confirm existing record created by client
+          const updateRes = await fetch(`https://api.airtable.com/v0/${airtableBaseId}/${airtableTable}/${airtableRecordId}`, {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${airtableKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ fields: airtableFields }),
+          });
+          if (updateRes.ok) {
+            airtableSynced = true;
+            console.log("Airtable record verified/updated successfully:", airtableRecordId);
+          } else {
+            console.warn("Airtable patch failed, creating fresh record instead:", await updateRes.text());
+            airtableRecordId = null; // Will trigger create below
+          }
+        }
+
+        if (!airtableRecordId) {
+          // Create new record in Airtable
+          const createRes = await fetch(`https://api.airtable.com/v0/${airtableBaseId}/${airtableTable}`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${airtableKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              records: [{ fields: airtableFields }],
+            }),
+          });
+          if (createRes.ok) {
+            const createData = await createRes.json();
+            airtableRecordId = createData.records?.[0]?.id || null;
+            airtableSynced = true;
+            console.log("Airtable record created successfully:", airtableRecordId);
+          } else {
+            const errBody = await createRes.text();
+            console.error("Airtable record create failed:", createRes.status, errBody);
+          }
+        }
       } catch (airtableErr) {
-        console.warn("Airtable backend sync error:", airtableErr);
+        console.error("Airtable backend sync error:", airtableErr);
       }
     }
 
@@ -167,6 +174,8 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({
         success: false,
         emailSent: false,
+        airtableRecordId,
+        airtableSynced,
         message: "RESEND_API_KEY environment variable is not configured in Vercel. Please check Project Settings -> Environment Variables.",
         fileName: pdfFileName,
         pdfBase64,
@@ -428,14 +437,15 @@ Concierge / WhatsApp: +1 (850) 960-0034 · info@souvagrooming.com`;
       }
     }
 
-    // 3. Schedule 30-minute reminder email with Resend
+    // 3. Schedule 30-minute reminder email with Resend (exact California Pacific Time)
     if (email && scheduledDate && scheduledTime) {
       try {
-        const appointmentDate = parseAppointmentTime(scheduledDate, scheduledTime);
+        const appointmentDate = parseAppointmentTime(scheduledDate, scheduledTime, booking.scheduledDateIso);
         if (appointmentDate) {
+          // Exactly 30 minutes before appointment
           const reminderTime = new Date(appointmentDate.getTime() - 30 * 60 * 1000);
           const now = new Date();
-          const maxSchedule = new Date(now.getTime() + 71 * 60 * 60 * 1000);
+          const maxSchedule = new Date(now.getTime() + 71 * 60 * 60 * 1000); // Resend maximum schedule horizon: 72 hours
 
           if (reminderTime > now && reminderTime <= maxSchedule) {
             const reminderHtml = `
@@ -481,7 +491,7 @@ Concierge / WhatsApp: +1 (850) 960-0034 · info@souvagrooming.com`;
               </div>
             `;
 
-            await fetch("https://api.resend.com/emails", {
+            const schedRes = await fetch("https://api.resend.com/emails", {
               method: "POST",
               headers: {
                 "Authorization": `Bearer ${apiKey}`,
@@ -495,6 +505,11 @@ Concierge / WhatsApp: +1 (850) 960-0034 · info@souvagrooming.com`;
                 html: reminderHtml,
               }),
             });
+            if (schedRes.ok) {
+              console.log("30-minute reminder scheduled via Resend for:", reminderTime.toISOString());
+            } else {
+              console.warn("Resend reminder schedule response:", await schedRes.text());
+            }
           }
         }
       } catch (schedErr) {
@@ -502,10 +517,12 @@ Concierge / WhatsApp: +1 (850) 960-0034 · info@souvagrooming.com`;
       }
     }
 
-    // Return the generated PDF base64 so client can download it directly as well
+    // Return the generated PDF base64 and sync status so client can download it directly as well
     return res.status(200).json({
       success: true,
       emailSent,
+      airtableRecordId,
+      airtableSynced,
       resendStatus: resendResponse.status,
       resendError: resendResponse.ok ? null : resendData,
       hint,
@@ -516,6 +533,192 @@ Concierge / WhatsApp: +1 (850) 960-0034 · info@souvagrooming.com`;
     console.error("Invoice / Email generation error:", error);
     return res.status(500).json({ error: error.message || "Failed to process booking invoice" });
   }
+}
+
+/* -------------------- AIRTABLE NORMALIZATION (STRICT SCHEMA COMPLIANCE) -------------------- */
+function normalizeAirtableBooking(booking: any): Record<string, any> {
+  const {
+    ownerName = "Valued Pet Parent",
+    customerName,
+    email = "",
+    phone = "",
+    address = "Client Doorstep",
+    parkingNotes = "",
+    petName = "Pet",
+    dogNames,
+    breed = "Canine",
+    breeds,
+    size = "medium",
+    sizeLabel,
+    dogSizes,
+    gender = "N/A",
+    genders,
+    petAge = "Adult (1–7 yrs)",
+    dogAges,
+    vaccinated = "yes",
+    medicalConditions = "None / Healthy",
+    groomerNotes = "",
+    packageName = "Signature Grooming",
+    servicePackage,
+    basePrice = 125,
+    addonsCost = 0,
+    addonsTotal,
+    addons = [],
+    spaUpgrades,
+    multiDogDiscount = 0,
+    estimatedTotal = 125,
+    scheduledDate = "",
+    scheduledDateIso,
+    scheduledTime = "9:30 AM",
+    serviceZone: rawServiceZone,
+    zipCode = "",
+    dogCount,
+    allPets,
+  } = booking;
+
+  // 1. Service Zone (Strict single-select in Airtable)
+  let serviceZone = "San Francisco – Select";
+  const zoneStr = (rawServiceZone || "").toLowerCase();
+  const addrStr = (address || "").toLowerCase();
+  const zipStr = (zipCode || "").trim();
+
+  if (zoneStr.includes("coastside") || addrStr.includes("half moon") || zipStr === "94019") {
+    serviceZone = "Coastside";
+  } else if (zoneStr.includes("north") || /94014|94015|94005|94080|94066|94044/.test(zipStr)) {
+    serviceZone = "North Peninsula";
+  } else if (zoneStr.includes("central") || /94030|94010|94401|94402|94403|94404|94002|94070/.test(zipStr)) {
+    serviceZone = "Central Peninsula";
+  } else if (zoneStr.includes("south") || /94061|94062|94063|94065|94027|94025|94301|94303|94304|94306|94040|94041|94043/.test(zipStr)) {
+    serviceZone = "South Peninsula";
+  }
+
+  // 2. Service Package (Strict single-select in Airtable)
+  const VALID_PACKAGES = [
+    "Signature Grooming",
+    "Essential Full Groom",
+    "Bath & Tidy",
+    "Bath & Refresh",
+    "Premium Bath",
+    "Standard Bath",
+    "Deluxe Spa",
+  ];
+  let pkgChoice = "Signature Grooming";
+  const pkgStr = (servicePackage || packageName || "").toLowerCase();
+  for (const p of VALID_PACKAGES) {
+    if (pkgStr.includes(p.toLowerCase())) {
+      pkgChoice = p;
+      break;
+    }
+  }
+
+  // 3. Dog Sizes (Strict multi-select in Airtable)
+  const rawSizeList: any[] = [];
+  if (Array.isArray(dogSizes)) rawSizeList.push(...dogSizes);
+  if (Array.isArray(allPets)) {
+    for (const p of allPets) {
+      if (p?.size) rawSizeList.push(p.size);
+    }
+  }
+  if (rawSizeList.length === 0) {
+    if (size) rawSizeList.push(size);
+    if (sizeLabel) rawSizeList.push(sizeLabel);
+  }
+
+  const normalizedSizes: string[] = [];
+  for (const s of rawSizeList) {
+    const sl = String(s).toLowerCase();
+    if (sl.includes("small") || sl.includes("toy") || sl.includes("15")) {
+      normalizedSizes.push("Small (Up to 15 lb)");
+    } else if (sl.includes("medium") || sl.includes("35")) {
+      normalizedSizes.push("Medium (16–35 lb)");
+    } else if (sl.includes("large") && !sl.includes("xl") && !sl.includes("x-large") && !sl.includes("50")) {
+      normalizedSizes.push("Large (36–50 lb)");
+    } else if (sl.includes("xl") || sl.includes("x-large") || sl.includes("giant") || sl.includes("50")) {
+      normalizedSizes.push("X-Large (Over 50 lb)");
+    }
+  }
+  const finalSizes = normalizedSizes.length > 0 ? Array.from(new Set(normalizedSizes)) : ["Small (Up to 15 lb)"];
+
+  // 4. Rabies Vaccine (Strict single-select in Airtable)
+  const isVaccinated = vaccinated === "yes" || vaccinated === true || String(vaccinated).toLowerCase().includes("al día") || String(vaccinated).toLowerCase().includes("up to date");
+  const rabiesVaccine = isVaccinated ? "Al día (Up to Date)" : "En trámite (In Progress)";
+
+  // 5. Temperament (Strict multi-select in Airtable)
+  const rawTemp: any[] = [];
+  if (Array.isArray(booking.temperament)) rawTemp.push(...booking.temperament);
+  if (booking.petCondition) rawTemp.push(booking.petCondition);
+  if (Array.isArray(allPets)) {
+    for (const p of allPets) {
+      if (p?.temperament) rawTemp.push(p.temperament);
+    }
+  }
+  const normTemp: string[] = [];
+  for (const t of rawTemp) {
+    const tl = String(t).toLowerCase();
+    if (tl.includes("ansioso") || tl.includes("anxious") || tl.includes("sensib")) normTemp.push("Ansioso / Sensible");
+    else if (tl.includes("tranquilo") || tl.includes("calm")) normTemp.push("Tranquilo");
+    else if (tl.includes("activo") || tl.includes("playful") || tl.includes("juguet")) normTemp.push("Activo / Juguetón");
+    else if (tl.includes("tímido") || tl.includes("shy")) normTemp.push("Tímido");
+    else normTemp.push("Amigable");
+  }
+  const finalTemp = normTemp.length > 0 ? Array.from(new Set(normTemp)) : ["Amigable"];
+
+  // 6. Spa Upgrades (Strict multi-select in Airtable)
+  const VALID_SPA = [
+    "Nail Grinding", "Teeth Brushing", "Paw & Nose Balm", "Deep Conditioning", "Sensitive Skin", "De-Shedding"
+  ];
+  const rawSpa = Array.isArray(spaUpgrades) ? spaUpgrades : (Array.isArray(addons) ? addons : []);
+  const matchedSpa: string[] = [];
+  for (const s of rawSpa) {
+    const sl = String(s).toLowerCase();
+    for (const v of VALID_SPA) {
+      if (sl.includes(v.toLowerCase()) || v.toLowerCase().includes(sl)) {
+        matchedSpa.push(v);
+      }
+    }
+  }
+
+  // 7. Scheduled Date ISO (Strict YYYY-MM-DD for Airtable Calendar)
+  const isoDate = scheduledDateIso && /^\d{4}-\d{2}-\d{2}$/.test(scheduledDateIso.trim())
+    ? scheduledDateIso.trim()
+    : formatToIsoDate(scheduledDate);
+
+  const fields: Record<string, any> = {
+    "Booking ID": booking.bookingId || `SOU-${Math.floor(1000 + Math.random() * 9000)}`,
+    "Status": "Pendiente",
+    "Customer Name": customerName || ownerName,
+    "Phone": phone,
+    "Email": email,
+    "Doorstep Address": address,
+    "ZIP Code": zipStr,
+    "Service Zone": serviceZone,
+    "Parking Notes": parkingNotes || "Driveway available",
+    "Scheduled Date": isoDate,
+    "Scheduled Time Window": scheduledTime || "9:30 AM",
+    "Number of Dogs": Number(dogCount) || (Array.isArray(allPets) ? allPets.length : 1),
+    "Dog Names": dogNames || petName,
+    "Breeds": breeds || breed,
+    "Dog Sizes": finalSizes,
+    "Dog Ages": dogAges || petAge,
+    "Genders": genders || (gender === "female" ? "Hembra" : "Macho"),
+    "Rabies Vaccine": rabiesVaccine,
+    "Temperament": finalTemp,
+    "Medical Conditions": medicalConditions || "None / Healthy",
+    "Groomer Notes": groomerNotes || "Doorstep service",
+    "Service Package": pkgChoice,
+    "Base Price": Number(basePrice) || 0,
+    "Addons Total": Number(addonsTotal ?? addonsCost) || 0,
+    "Discount 20% 2nd Dog": Number(multiDogDiscount) || 0,
+    "Estimated Total": Number(estimatedTotal) || 0,
+    "Payment Status": "Pendiente en Puerta",
+    "Agreement Accepted": true,
+  };
+
+  if (matchedSpa.length > 0) {
+    fields["Spa Upgrades"] = Array.from(new Set(matchedSpa));
+  }
+
+  return fields;
 }
 
 /* -------------------- HELPER: FORMAT TO ISO DATE (YYYY-MM-DD) -------------------- */
@@ -555,7 +758,7 @@ function formatToIsoDate(dateStr: string): string {
         if (!isNaN(num)) {
           if (num > 2020) {
             year = num;
-          } else if (dayNum === -1) {
+          } else if (dayNum === -1 && num >= 1 && num <= 31) {
             dayNum = num;
           }
         }
@@ -563,6 +766,9 @@ function formatToIsoDate(dateStr: string): string {
     }
 
     if (monthIdx !== -1 && dayNum !== -1) {
+      if (monthIdx < now.getMonth() && year === now.getFullYear()) {
+        year += 1;
+      }
       target = new Date(year, monthIdx, dayNum);
     }
   }
@@ -573,34 +779,13 @@ function formatToIsoDate(dateStr: string): string {
   return `${y}-${m}-${d}`;
 }
 
-/* -------------------- HELPER: PARSE APPOINTMENT DATETIME -------------------- */
-function parseAppointmentTime(scheduledDate: string, scheduledTime: string): Date | null {
+/* -------------------- HELPER: PARSE APPOINTMENT DATETIME (CALIFORNIA PACIFIC TIME) -------------------- */
+function parseAppointmentTime(scheduledDate: string, scheduledTime: string, scheduledDateIso?: string): Date | null {
   try {
-    const now = new Date();
-    let target = new Date(now);
-
-    const lowerDate = (scheduledDate || "").toLowerCase();
-    if (lowerDate.includes("today")) {
-      target = new Date(now);
-    } else if (lowerDate.includes("tomorrow")) {
-      target = new Date(now);
-      target.setDate(now.getDate() + 1);
-    } else {
-      const parts = scheduledDate.split(",");
-      const monthDay = (parts[1] || parts[0]).trim();
-      const tokens = monthDay.split(" ");
-      if (tokens.length >= 2) {
-        const month = tokens[0];
-        const day = parseInt(tokens[1], 10);
-        if (!isNaN(day)) {
-          const year = now.getFullYear();
-          const d = new Date(`${month} ${day}, ${year}`);
-          if (!isNaN(d.getTime())) {
-            target = d;
-          }
-        }
-      }
-    }
+    const isoDate = scheduledDateIso && /^\d{4}-\d{2}-\d{2}$/.test(scheduledDateIso.trim())
+      ? scheduledDateIso.trim()
+      : formatToIsoDate(scheduledDate);
+    if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return null;
 
     const match = (scheduledTime || "").match(/(\d+):(\d+)\s*(AM|PM)/i);
     if (!match) return null;
@@ -612,7 +797,34 @@ function parseAppointmentTime(scheduledDate: string, scheduledTime: string): Dat
     if (period === "PM" && h < 12) h += 12;
     if (period === "AM" && h === 12) h = 0;
 
-    target.setHours(h, m, 0, 0);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const timeFormatted = `${pad(h)}:${pad(m)}:00`;
+
+    // California Pacific Time: America/Los_Angeles (PDT = UTC-7, PST = UTC-8)
+    const tempDate = new Date(`${isoDate}T12:00:00Z`);
+    let offsetHours = 7;
+    try {
+      const formatter = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Los_Angeles",
+        timeZoneName: "shortOffset",
+      });
+      const parts = formatter.formatToParts(tempDate);
+      const tzPart = parts.find((p) => p.type === "timeZoneName");
+      if (tzPart && tzPart.value) {
+        const offsetMatch = tzPart.value.match(/GMT([+-]\d+)/);
+        if (offsetMatch) {
+          offsetHours = Math.abs(parseInt(offsetMatch[1], 10));
+        }
+      }
+    } catch {
+      const monthNum = parseInt(isoDate.split("-")[1], 10);
+      offsetHours = monthNum >= 4 && monthNum <= 10 ? 7 : 8;
+    }
+
+    const offsetStr = `-${pad(offsetHours)}:00`;
+    const target = new Date(`${isoDate}T${timeFormatted}${offsetStr}`);
+    if (isNaN(target.getTime())) return null;
+
     return target;
   } catch {
     return null;
@@ -1163,7 +1375,7 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
   curY -= 6;
 
   // Agreement Terms Text Box
-  const agreeHeight = 65;
+  const agreeHeight = 72;
   page.drawRectangle({
     x: margin,
     y: curY - agreeHeight,
@@ -1178,6 +1390,7 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
     "• Pets are accepted for grooming only under the circumstances that the pet is fit and healthy.",
     "• Grooming on an elderly or infirm pet is at owner's risk and may expose pre-existing conditions for which Souva is not liable.",
     "• Pet's rabies vaccine is confirmed up to date (as required by law) unless otherwise discussed.",
+    "• Owner authorizes Souva to take photos and videos of the pet for social media and promotional use.",
     "• In an emergency in your absence, owner authorizes Souva to contact the nearest Vet and treat the pet at owner's expense.",
     "• Payment is to be made at time of service via Cash, Check, Credit Card or Zelle.",
   ];
