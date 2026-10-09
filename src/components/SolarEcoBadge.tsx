@@ -7,8 +7,6 @@ export function SolarEcoFeature({ className }: { className?: string }) {
   const panelRef = useRef<SVGSVGElement>(null);
   const sunRayRef = useRef<SVGGElement>(null);
   const energyFlowRef = useRef<SVGPathElement>(null);
-  const glowLightRef = useRef<HTMLDivElement>(null);
-  const leafGlowRef = useRef<SVGGElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -32,30 +30,6 @@ export function SolarEcoFeature({ className }: { className?: string }) {
           duration: 2,
           repeat: -1,
           ease: "none",
-        });
-      }
-
-      // 3. Glowing eco badge ambient breathing light
-      if (glowLightRef.current) {
-        gsap.to(glowLightRef.current, {
-          boxShadow: "0 0 24px rgba(52, 211, 153, 0.45), 0 0 45px rgba(170, 139, 99, 0.3)",
-          scale: 1.02,
-          duration: 2,
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut",
-        });
-      }
-
-      // 4. Eco Leaf pulsating illumination
-      if (leafGlowRef.current) {
-        gsap.to(leafGlowRef.current, {
-          scale: 1.15,
-          transformOrigin: "center center",
-          duration: 1.6,
-          repeat: -1,
-          yoyo: true,
-          ease: "power1.inOut",
         });
       }
     });
@@ -163,90 +137,20 @@ export function SolarEcoFeature({ className }: { className?: string }) {
 
         {/* Text Content */}
         <div className="text-xs flex-1 min-w-0">
-          <div className="font-display font-bold text-[#FAF0E2] flex items-center gap-1.5">
-            <span className="truncate">100% Solar-Powered & Autonomous</span>
-            <Zap className="h-3 w-3 text-[#AA8B63] fill-[#AA8B63] shrink-0" />
+          <div className="font-display font-bold text-[#FAF0E2] flex items-center justify-between gap-1.5">
+            <span className="truncate">100% Solar-Powered</span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-[9.5px] font-mono font-bold text-emerald-300">
+                <Leaf className="h-2.5 w-2.5 text-emerald-400 fill-emerald-400/40" />
+                <span>Eco</span>
+              </span>
+              <Zap className="h-3 w-3 text-[#AA8B63] fill-[#AA8B63]" />
+            </div>
           </div>
           <p className="text-[11px] text-[#A4AA93] mt-0.5 leading-snug">
             Zero electrical or water hookups required from your home. Completely self-contained luxury.
           </p>
         </div>
-      </div>
-
-      {/* ── 2. "WE ARE AN ECO-FRIENDLY COMPANY" GLOWING ANIMATED BADGE ── */}
-      <div
-        ref={glowLightRef}
-        className="p-3 rounded-2xl bg-gradient-to-r from-[#17251B] via-[#1C2317] to-[#1E2015] border border-emerald-500/40 max-w-md shadow-[0_0_20px_rgba(52,211,153,0.2)] flex items-center justify-between gap-3 select-none"
-      >
-        <div className="flex items-center gap-3">
-          {/* Animated Glowing Leaf & Solar Earth Icon */}
-          <div className="relative h-10 w-10 rounded-xl bg-[#142318] border border-emerald-400/50 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(52,211,153,0.4)]">
-            <svg
-              viewBox="0 0 36 36"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-7 h-7 overflow-visible"
-            >
-              <defs>
-                <radialGradient id="leafGlowGrad" cx="50%" cy="50%" r="50%">
-                  <stop stopColor="#34D399" stopOpacity="0.6" />
-                  <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
-                </radialGradient>
-              </defs>
-
-              {/* Radiant Light Halo */}
-              <circle cx="18" cy="18" r="14" fill="url(#leafGlowGrad)" />
-
-              {/* Concentric Eco Orbit */}
-              <circle cx="18" cy="18" r="13" stroke="#34D399" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
-
-              {/* Glowing Leaf Sprout (GSAP Animated) */}
-              <g ref={leafGlowRef} id="ecoLeaf">
-                <path
-                  d="M18 27C18 27 12 24 11 18C10 13 14 9 19 9C24 9 27 12 27 17C27 22 22 26 18 27Z"
-                  fill="rgba(52, 211, 153, 0.25)"
-                  stroke="#34D399"
-                  strokeWidth="1.6"
-                  strokeLinejoin="round"
-                />
-                {/* Leaf Central Vein */}
-                <path
-                  d="M14 22C17 21 21 16 23 12"
-                  stroke="#FAF0E2"
-                  strokeWidth="1.2"
-                  strokeLinecap="round"
-                />
-                {/* Secondary Vein */}
-                <path
-                  d="M18 19C20 19 22 17 23 15"
-                  stroke="#34D399"
-                  strokeWidth="0.9"
-                  strokeLinecap="round"
-                />
-              </g>
-
-              {/* Solar Sparkle Star */}
-              <circle cx="26" cy="10" r="1.5" fill="#FAF0E2" />
-            </svg>
-          </div>
-
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="font-display font-bold text-xs sm:text-[13px] text-[#FAF0E2] tracking-wide">
-                We are an eco-friendly company
-              </span>
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-            </div>
-            <p className="text-[10px] text-emerald-300/80 mt-0.5 leading-snug">
-              100% solar fleet · Zero carbon idle · Biodegradable botanicals
-            </p>
-          </div>
-        </div>
-
-        {/* Certified Green Pill Badge */}
-        <span className="text-[9px] font-mono font-bold text-emerald-300 bg-emerald-950/70 border border-emerald-500/40 px-2 py-1 rounded-lg shrink-0 uppercase tracking-wider shadow-sm">
-          Eco·Safe
-        </span>
       </div>
     </div>
   );

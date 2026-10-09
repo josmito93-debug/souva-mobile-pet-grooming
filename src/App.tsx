@@ -16,12 +16,12 @@ import {
   ChevronRight,
   Droplets,
   Zap,
+  Leaf,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { Header } from "@/components/Header";
 import { AboutSection } from "@/components/AboutSection";
 import { CoverageSection } from "@/components/CoverageSection";
-import { TrustPillars } from "@/components/TrustPillars";
 import { SolarEcoFeature } from "@/components/SolarEcoBadge";
 import { InteractiveTile } from "@/components/InteractiveTile";
 import { GroomingFlow } from "@/components/GroomingFlow";
@@ -307,13 +307,20 @@ function AppContent() {
               {/* Left Side: Brand Story & Value Prop */}
               <div className="hero-left-content lg:col-span-5 flex flex-col justify-between py-2 space-y-6">
                 <div>
-                  {/* Location Status Badge */}
-                  <div className="inline-flex items-center gap-2 rounded-full border border-[#FAF0E2]/15 bg-[#202419]/80 backdrop-blur-md px-4 py-1.5 text-xs font-medium tracking-wide text-[#FAF0E2]">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#AA8B63]" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FAF0E2]" />
-                    </span>
-                    <span>San Francisco Bay Area & Peninsula CA</span>
+                  {/* Location & Eco-Friendly Status Badges */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[#FAF0E2]/15 bg-[#202419]/80 backdrop-blur-md px-4 py-1.5 text-xs font-medium tracking-wide text-[#FAF0E2]">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#AA8B63]" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FAF0E2]" />
+                      </span>
+                      <span>San Francisco Bay Area & Peninsula CA</span>
+                    </div>
+
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-[#142318]/90 backdrop-blur-md px-3 py-1.5 text-xs font-mono text-emerald-300 shadow-sm" title="100% Solar-Powered & Eco-Friendly Fleet">
+                      <Leaf className="h-3.5 w-3.5 text-emerald-400 fill-emerald-400/30" />
+                      <span className="text-[11px] font-semibold text-emerald-200">Eco-Friendly</span>
+                    </div>
                   </div>
 
                   {/* Main Display Headline */}
@@ -381,9 +388,6 @@ function AppContent() {
                     </div>
                   </div>
                 </div>
-
-                {/* 3 Core Animated Trust Pillars (GSAP) */}
-                <TrustPillars />
               </div>
 
               {/* Right Side: The Interactive Cockpit Card */}
