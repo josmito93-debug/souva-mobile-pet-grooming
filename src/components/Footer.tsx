@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { TermsModal } from "@/components/TermsModal";
+import { WhatsAppIcon, PhoneConciergeIcon } from "@/components/BrandIcons";
 import { COVERED_ZIP_CODES } from "@/data/coverage";
 
 interface FooterProps {
@@ -239,7 +240,7 @@ export function Footer({ onOpenAdmin, onBookClick }: FooterProps) {
                 href="tel:+18509600034"
                 className="flex items-center gap-2.5 text-xs text-[#FAF0E2] hover:text-[#AA8B63] transition-colors font-semibold"
               >
-                <Phone className="h-4 w-4 text-[#AA8B63] shrink-0" />
+                <PhoneConciergeIcon className="h-4 w-4 text-[#AA8B63] shrink-0" />
                 <span>+1 (850) 960-0034</span>
               </a>
 
@@ -247,10 +248,10 @@ export function Footer({ onOpenAdmin, onBookClick }: FooterProps) {
                 href="https://wa.me/18509600034?text=Hello%20SOUVA%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#25D366]/20 border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366] hover:text-black font-mono font-bold text-xs transition-all shadow-sm"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#142318] border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366] hover:text-black font-mono font-bold text-xs transition-all shadow-sm group"
               >
-                <MessageCircle className="h-3.5 w-3.5" />
-                <span>WhatsApp Concierge</span>
+                <WhatsAppIcon variant="badge" className="h-4 w-4" />
+                <span className="text-[#FAF0E2] group-hover:text-black transition-colors">WhatsApp Concierge</span>
               </a>
 
               <a

@@ -38,6 +38,7 @@ import {
 import { cn } from "@/lib/utils";
 import { PetBlueprint } from "@/components/PetBlueprint";
 import { TermsModal } from "@/components/TermsModal";
+import { WhatsAppIcon } from "@/components/BrandIcons";
 import breedsList from "@/data/breeds.json";
 import { SOUVA_PACKAGES, SPA_UPGRADES, SIZE_GUIDE, type PetSize } from "@/data/services";
 import { checkCoverage, SOUVA_COVERAGE_ZONES, SUGGESTED_AREAS } from "@/data/coverage";
@@ -3132,9 +3133,10 @@ ${totalSavings > 0 ? `\n🎉 Multi-Dog Discount Applied: -$${totalSavings}.00\n`
           href={waUrl}
           target="_blank"
           rel="noreferrer"
-          className="w-full py-3.5 rounded-full bg-[#25D366] text-black font-bold text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg hover:bg-[#20bd5a] transition-colors"
+          className="w-full py-3.5 rounded-full bg-[#182319] border-2 border-[#25D366] text-[#FAF0E2] hover:bg-[#25D366] hover:text-black font-bold text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-lg transition-all group"
         >
-          <span>Send Booking Confirmation via WhatsApp</span>
+          <WhatsAppIcon variant="badge" className="h-5 w-5" />
+          <span className="group-hover:text-black transition-colors">Send Booking Confirmation via WhatsApp</span>
           <ArrowRight className="h-4 w-4" />
         </a>
 

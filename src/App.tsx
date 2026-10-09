@@ -24,6 +24,7 @@ import { AboutSection } from "@/components/AboutSection";
 import { CoverageSection } from "@/components/CoverageSection";
 import { SolarEcoFeature } from "@/components/SolarEcoBadge";
 import { InteractiveTile } from "@/components/InteractiveTile";
+import { WhatsAppIcon, PhoneConciergeIcon } from "@/components/BrandIcons";
 import { GroomingFlow } from "@/components/GroomingFlow";
 import { StepCard } from "@/components/StepCard";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
@@ -340,8 +341,8 @@ function AppContent() {
                   {/* Highlighted CALL US Banner */}
                   <div className="mt-4 p-3.5 rounded-2xl bg-gradient-to-r from-[#2A2418] via-[#23271A] to-[#1C1F15] border-2 border-[#AA8B63] shadow-[0_0_25px_rgba(170,139,99,0.35)] flex items-center justify-between gap-3 max-w-md">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-xl bg-[#AA8B63] text-[#161811] flex items-center justify-center shrink-0 shadow-md">
-                        <Phone className="h-5 w-5 fill-[#161811] animate-bounce" />
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#C4A67E] to-[#AA8B63] text-[#161811] flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(170,139,99,0.4)]">
+                        <PhoneConciergeIcon className="h-5 w-5 text-[#161811]" />
                       </div>
                       <div className="min-w-0">
                         <span className="text-[10px] font-mono uppercase tracking-widest text-[#AA8B63] font-bold block truncate">
@@ -357,9 +358,10 @@ function AppContent() {
                     </div>
                     <a
                       href="tel:+18509600034"
-                      className="px-3.5 py-1.5 rounded-xl bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-black text-xs uppercase tracking-wider shrink-0 transition-colors shadow-md"
+                      className="px-3.5 py-1.5 rounded-xl bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-black text-xs uppercase tracking-wider shrink-0 transition-colors shadow-md flex items-center gap-1.5"
                     >
-                      CALL US
+                      <PhoneConciergeIcon className="h-3 w-3 text-[#161811]" showWaves={false} />
+                      <span>CALL US</span>
                     </a>
                   </div>
 
@@ -918,25 +920,14 @@ function AppContent() {
         href="https://wa.me/18509600034?text=Hello%20SOUVA%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
         target="_blank"
         rel="noreferrer"
-        className="fixed bottom-5 right-5 z-40 p-3.5 rounded-full bg-[#25D366] text-black shadow-[0_0_25px_rgba(37,211,102,0.5)] hover:bg-[#20bd5a] hover:scale-108 active:scale-95 transition-all flex items-center gap-2 group cursor-pointer"
+        className="fixed bottom-5 right-5 z-40 p-2.5 rounded-full bg-[#182319]/95 backdrop-blur-md border border-[#25D366]/40 text-white shadow-[0_4px_25px_rgba(37,211,102,0.35)] hover:border-[#25D366] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group cursor-pointer"
         aria-label="Chat with SOUVA on WhatsApp"
+        title="Chat with SOUVA on WhatsApp"
       >
-        <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 text-xs font-mono font-bold text-black px-0 group-hover:px-1">
-          WhatsApp +1 (850) 960-0034
+        <WhatsAppIcon variant="badge" className="h-8 w-8" />
+        <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 text-xs font-mono font-bold text-[#FAF0E2] pr-0 group-hover:pr-2">
+          WhatsApp Concierge
         </span>
-        <svg
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-          stroke="currentColor"
-          strokeWidth="2"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-6 w-6 fill-black stroke-black"
-        >
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-        </svg>
       </a>
 
       {/* Robust Footer */}

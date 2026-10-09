@@ -30,7 +30,10 @@ import {
   ChevronRight,
   Shield,
   FileText,
+  Download,
+  TrendingUp,
 } from "lucide-react";
+import { WhatsAppIcon, PhoneConciergeIcon } from "@/components/BrandIcons";
 import {
   DispatchRequest,
   DispatchPet,
@@ -721,9 +724,9 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
                             <button
                               type="button"
                               onClick={() => handleNotifyClientWhatsApp(req)}
-                              className="px-2 py-1 rounded-lg bg-[#25D366]/20 border border-[#25D366]/50 text-[#25D366] text-[10.5px] font-mono font-bold flex items-center gap-1 hover:bg-[#25D366] hover:text-[#071F10] transition-colors cursor-pointer"
+                              className="px-2 py-1 rounded-lg bg-[#25D366]/20 border border-[#25D366]/50 text-[#25D366] text-[10.5px] font-mono font-bold flex items-center gap-1.5 hover:bg-[#25D366] hover:text-[#071F10] transition-colors cursor-pointer"
                             >
-                              <MessageCircle className="h-3 w-3" />
+                              <WhatsAppIcon variant="badge" className="h-3.5 w-3.5" />
                               <span>WhatsApp</span>
                             </button>
                           </div>

@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   MessageCircle,
 } from "lucide-react";
+import { WhatsAppIcon } from "@/components/BrandIcons";
 import { useCart } from "@/lib/cartContext";
 
 export function CartDrawer() {
@@ -296,7 +297,7 @@ Please confirm order fulfillment and payment link. Thank you! ✨🐾`;
                   onClick={handleWhatsAppCheckout}
                   className="w-full py-3.5 rounded-xl bg-[#25D366] text-[#071F10] font-bold text-xs font-mono tracking-wide uppercase cursor-pointer hover:bg-[#20bd5a] transition-all flex items-center justify-center gap-2 shadow-lg"
                 >
-                  <MessageCircle className="h-4 w-4 fill-current" />
+                  <WhatsAppIcon variant="monochrome" className="h-4 w-4 fill-current" />
                   <span>Order Directly via WhatsApp</span>
                 </button>
 

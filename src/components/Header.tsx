@@ -17,6 +17,7 @@ import {
   Facebook,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
+import { WhatsAppIcon, PhoneConciergeIcon } from "@/components/BrandIcons";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -65,7 +66,7 @@ export function Header({ onBookClick }: HeaderProps) {
     { label: "Coverage Areas", href: "#coverage", icon: MapPin },
     { label: "Gallery", href: "#gallery", icon: Camera },
     { label: "Reviews", href: "#reviews", icon: Star },
-    { label: "Call Us to Reserve · +1 (850) 960-0034", href: "tel:+18509600034", icon: Phone },
+    { label: "Call Us to Reserve · +1 (850) 960-0034", href: "tel:+18509600034", icon: PhoneConciergeIcon },
   ];
 
   return (
@@ -108,7 +109,7 @@ export function Header({ onBookClick }: HeaderProps) {
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 hover:bg-emerald-950 border border-yellow-300/60 text-white font-sans font-black text-[11px] transition-colors shadow-sm"
               title="Call SOUVA Concierge to Reserve"
             >
-              <Phone className="h-3 w-3 text-yellow-300 animate-pulse" />
+              <PhoneConciergeIcon className="h-3 w-3 text-yellow-300" showWaves={false} />
               <span>Call Us: +1 (850) 960-0034</span>
             </a>
           </div>
@@ -197,7 +198,7 @@ export function Header({ onBookClick }: HeaderProps) {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#AA8B63] opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[#AA8B63]" />
             </span>
-            <Phone className="h-3.5 w-3.5 text-[#AA8B63] group-hover:text-[#161811] transition-colors" />
+            <PhoneConciergeIcon className="h-3.5 w-3.5 text-[#AA8B63] group-hover:text-[#161811] transition-colors" />
             <span className="tracking-wide">CALL US: +1 (850) 960-0034</span>
           </a>
 
@@ -253,7 +254,7 @@ export function Header({ onBookClick }: HeaderProps) {
                 href="tel:+18509600034"
                 className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#AA8B63] via-[#C4A67E] to-[#AA8B63] text-[#161811] text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(170,139,99,0.4)] hover:brightness-110 active:scale-98 transition-all"
               >
-                <Phone className="h-4 w-4 fill-[#161811] stroke-[#161811] animate-bounce" />
+                <PhoneConciergeIcon className="h-4 w-4 fill-[#161811] text-[#161811]" />
                 <span>CALL US TO RESERVE: +1 (850) 960-0034</span>
               </a>
 
@@ -339,7 +340,7 @@ export function Header({ onBookClick }: HeaderProps) {
                   href="tel:+18509600034"
                   className="w-full py-3 px-4 rounded-xl bg-[#25281D] border border-[#FAF0E2]/15 text-[#FAF0E2] text-xs font-mono font-bold flex items-center justify-center gap-2 hover:border-[#AA8B63] transition-colors"
                 >
-                  <Phone className="h-4 w-4 text-[#AA8B63]" />
+                  <PhoneConciergeIcon className="h-4 w-4 text-[#AA8B63]" />
                   <span>Call Us to Reserve: +1 (850) 960-0034</span>
                 </a>
 
@@ -347,10 +348,10 @@ export function Header({ onBookClick }: HeaderProps) {
                   href="https://wa.me/18509600034?text=Hello%20Souva%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full py-3 px-4 rounded-xl bg-[#25D366] text-black text-xs font-mono font-bold flex items-center justify-center gap-2 hover:bg-[#20bd5a] transition-colors shadow-md"
+                  className="w-full py-3 px-4 rounded-xl bg-[#142318] border border-[#25D366]/50 text-[#25D366] hover:bg-[#25D366] hover:text-black text-xs font-mono font-bold flex items-center justify-center gap-2.5 transition-all shadow-md group"
                 >
-                  <MessageCircle className="h-4 w-4" />
-                  <span>WhatsApp Concierge</span>
+                  <WhatsAppIcon variant="badge" className="h-5 w-5" />
+                  <span className="text-[#FAF0E2] group-hover:text-black transition-colors">WhatsApp Concierge</span>
                 </a>
               </div>
 
