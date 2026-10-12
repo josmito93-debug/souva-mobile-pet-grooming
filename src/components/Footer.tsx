@@ -26,9 +26,10 @@ import { COVERED_ZIP_CODES } from "@/data/coverage";
 interface FooterProps {
   onOpenAdmin: () => void;
   onBookClick?: () => void;
+  onOpenQuickLinks?: () => void;
 }
 
-export function Footer({ onOpenAdmin, onBookClick }: FooterProps) {
+export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks }: FooterProps) {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
@@ -92,8 +93,8 @@ export function Footer({ onOpenAdmin, onBookClick }: FooterProps) {
       {/* ── MAIN MULTI-COLUMN DIRECTORY ─────────────────────────────── */}
       <div className="max-w-6xl mx-auto px-5 sm:px-8 py-14 sm:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10">
-          {/* Brand & Mission Column (Col span 4) */}
-          <div className="lg:col-span-4 space-y-4">
+          {/* Brand & Mission Column (Col span 3) */}
+          <div className="lg:col-span-3 space-y-4">
             <div className="flex items-center gap-3">
               <SouvaLogo />
             </div>
@@ -136,10 +137,70 @@ export function Footer({ onOpenAdmin, onBookClick }: FooterProps) {
             </div>
           </div>
 
-          {/* Column 2: Experiences & Services (Col span 3) */}
-          <div className="lg:col-span-3 space-y-3">
+          {/* Column 2: Quick Links / Fast Access (Col span 2) */}
+          <div className="lg:col-span-2 space-y-3">
             <span className="text-[10px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold block">
-              Grooming Experiences
+              Quick Links
+            </span>
+            <ul className="space-y-2 text-xs">
+              {onOpenQuickLinks && (
+                <li>
+                  <button
+                    type="button"
+                    onClick={onOpenQuickLinks}
+                    className="text-[#AA8B63] hover:underline transition-colors font-bold flex items-center gap-1 cursor-pointer text-left"
+                  >
+                    <Sparkles className="h-3 w-3 shrink-0" />
+                    <span>Quick Links Hub</span>
+                  </button>
+                </li>
+              )}
+              <li>
+                <a href="#book" onClick={onBookClick} className="hover:text-[#FAF0E2] transition-colors block">
+                  Book Doorstep Van
+                </a>
+              </li>
+              <li>
+                <a href="#services" className="hover:text-[#FAF0E2] transition-colors block">
+                  Services & Pricing
+                </a>
+              </li>
+              <li>
+                <a href="#coverage" className="hover:text-[#FAF0E2] transition-colors block">
+                  38 Covered ZIP Codes
+                </a>
+              </li>
+              <li>
+                <a href="#before-after" className="hover:text-[#FAF0E2] transition-colors block">
+                  Before & After Results
+                </a>
+              </li>
+              <li>
+                <a href="#reviews" className="hover:text-[#FAF0E2] transition-colors block">
+                  5-Star Client Reviews
+                </a>
+              </li>
+              <li>
+                <a href="#gallery" className="hover:text-[#FAF0E2] transition-colors block">
+                  Solar Fleet Specs
+                </a>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => setShowTermsModal(true)}
+                  className="hover:text-[#FAF0E2] transition-colors block text-left cursor-pointer"
+                >
+                  SOUVA Terms (16 Articles)
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 3: Experiences & Services (Col span 2) */}
+          <div className="lg:col-span-2 space-y-3">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold block">
+              Grooming Packages
             </span>
             <ul className="space-y-2 text-xs">
               <li>
@@ -159,22 +220,22 @@ export function Footer({ onOpenAdmin, onBookClick }: FooterProps) {
               </li>
               <li>
                 <a href="#services" className="hover:text-[#FAF0E2] transition-colors block">
-                  Signature SOUVA Long Scissor Sculpt
+                  Signature Scissor Sculpt
                 </a>
               </li>
               <li>
                 <a href="#services" className="hover:text-[#FAF0E2] transition-colors block">
-                  Asian Fusion & Teddy Bear Styling
+                  Asian Fusion & Teddy Bear
                 </a>
               </li>
               <li>
                 <a href="#services" className="hover:text-[#FAF0E2] transition-colors block">
-                  Hydra® Colloidal Oat Spa Wash
+                  Hydra® Colloidal Oat Spa
                 </a>
               </li>
               <li>
                 <a href="#services" className="text-[#AA8B63] hover:underline transition-colors block font-semibold">
-                  🐾 20% Multi-Dog Promotion
+                  🐾 20% Multi-Dog Offer
                 </a>
               </li>
             </ul>

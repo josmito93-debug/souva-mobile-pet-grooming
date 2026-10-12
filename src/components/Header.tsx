@@ -22,9 +22,10 @@ import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   onBookClick: () => void;
+  onOpenQuickLinks?: () => void;
 }
 
-export function Header({ onBookClick }: HeaderProps) {
+export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleScrollToServices = (e?: React.MouseEvent) => {
@@ -61,6 +62,7 @@ export function Header({ onBookClick }: HeaderProps) {
 
   const navItems = [
     { label: "Book Now", href: "#book", action: onBookClick, icon: Calendar, highlight: true },
+    { label: "Quick Links Hub", href: "#quick-links", action: onOpenQuickLinks, icon: Sparkles },
     { label: "Services & Pricing", href: "#services", action: handleScrollToServices, icon: Scissors },
     { label: "About SOUVA", href: "#about", icon: Users },
     { label: "Coverage Areas", href: "#coverage", icon: MapPin },
@@ -160,6 +162,17 @@ export function Header({ onBookClick }: HeaderProps) {
           <a href="#reviews" className="hover:text-[#AA8B63] transition-colors">
             Reviews
           </a>
+          {onOpenQuickLinks && (
+            <button
+              type="button"
+              onClick={onOpenQuickLinks}
+              className="px-2.5 py-1 rounded-full bg-[#1C2016] border border-[#AA8B63]/40 hover:border-[#AA8B63] hover:text-[#AA8B63] transition-colors cursor-pointer flex items-center gap-1.5 text-[11px] font-mono text-[#FAF0E2]"
+              title="Open SOUVA Quick Links Hub"
+            >
+              <Sparkles className="h-3 w-3 text-[#AA8B63]" />
+              <span>Quick Links</span>
+            </button>
+          )}
         </nav>
 
         {/* Action Controls & Phone */}

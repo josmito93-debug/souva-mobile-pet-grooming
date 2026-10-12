@@ -31,6 +31,8 @@ import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { LocalSeoDirectory } from "@/components/LocalSeoDirectory";
 import { Footer } from "@/components/Footer";
+import { QuickLinks, QuickLinksFloatingButton } from "@/components/QuickLinks";
+import { TermsModal } from "@/components/TermsModal";
 import {
   SOUVA_PACKAGES,
   SPA_UPGRADES,
@@ -46,7 +48,7 @@ export default function App() {
 }
 
 function AppContent() {
-  const [currentView, setCurrentView] = useState<"site" | "admin">(() => {
+  const [currentView, setCurrentView] = useState<"site" | "admin" | "links">(() => {
     if (typeof window !== "undefined") {
       if (
         window.location.pathname.startsWith("/admin") ||
@@ -54,11 +56,21 @@ function AppContent() {
       ) {
         return "admin";
       }
+      if (
+        window.location.pathname.startsWith("/links") ||
+        window.location.pathname.startsWith("/quick-links") ||
+        window.location.search.includes("links") ||
+        window.location.search.includes("quick-links")
+      ) {
+        return "links";
+      }
     }
     return "site";
   });
 
   const [loading, setLoading] = useState(true);
+  const [showQuickLinksModal, setShowQuickLinksModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [previewSize, setPreviewSize] = useState<PetSize>("small");
   const [flowStatus, setFlowStatus] = useState<{ armed: boolean; dispatched: boolean; currentStep?: number }>({
     armed: false,
@@ -83,6 +95,13 @@ function AppContent() {
         window.location.search.includes("admin")
       ) {
         setCurrentView("admin");
+      } else if (
+        window.location.pathname.startsWith("/links") ||
+        window.location.pathname.startsWith("/quick-links") ||
+        window.location.search.includes("links") ||
+        window.location.search.includes("quick-links")
+      ) {
+        setCurrentView("links");
       } else {
         setCurrentView("site");
       }
@@ -103,6 +122,12 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const navigateToLinks = () => {
+    window.history.pushState({}, "", "/links");
+    setCurrentView("links");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   useEffect(() => {
     if (flowStatus.dispatched && !prevDispatched.current) {
       setBurst((b) => b + 1);
@@ -118,6 +143,34 @@ function AppContent() {
 
   if (currentView === "admin") {
     return <AdminDashboard onBackToSite={navigateToSite} />;
+  }
+
+  if (currentView === "links") {
+    return (
+      <>
+        <QuickLinks
+          isModal={false}
+          onBookClick={() => {
+            navigateToSite();
+            setTimeout(() => {
+              scrollToBookingFlow();
+            }, 120);
+          }}
+          onNavigateToSection={(sectionId) => {
+            navigateToSite();
+            setTimeout(() => {
+              const el = document.getElementById(sectionId);
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }, 120);
+          }}
+          onOpenAdmin={navigateToAdmin}
+          onOpenTerms={() => setShowTermsModal(true)}
+        />
+        <TermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
+      </>
+    );
   }
 
   // High-end GSAP entrance animations with BG Video playing until second 8
@@ -279,7 +332,10 @@ function AppContent() {
       )}
 
       {/* Header */}
-      <Header onBookClick={scrollToBookingFlow} />
+      <Header
+        onBookClick={scrollToBookingFlow}
+        onOpenQuickLinks={() => setShowQuickLinksModal(true)}
+      />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col relative z-10">
@@ -915,6 +971,9 @@ function AppContent() {
         <LocalSeoDirectory onBookClick={scrollToBookingFlow} />
       </main>
 
+      {/* Floating Quick Links Launcher */}
+      <QuickLinksFloatingButton onClick={() => setShowQuickLinksModal(true)} />
+
       {/* Floating WhatsApp Quick Concierge Button */}
       <a
         href="https://wa.me/18509600034?text=Hello%20SOUVA%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
@@ -931,7 +990,38 @@ function AppContent() {
       </a>
 
       {/* Robust Footer */}
-      <Footer onOpenAdmin={navigateToAdmin} onBookClick={scrollToBookingFlow} />
+      <Footer
+        onOpenAdmin={navigateToAdmin}
+        onBookClick={scrollToBookingFlow}
+        onOpenQuickLinks={() => setShowQuickLinksModal(true)}
+      />
+
+      {/* Quick Links Interactive Modal */}
+      <QuickLinks
+        isModal={true}
+        isOpen={showQuickLinksModal}
+        onClose={() => setShowQuickLinksModal(false)}
+        onBookClick={() => {
+          setShowQuickLinksModal(false);
+          scrollToBookingFlow();
+        }}
+        onNavigateToSection={(sectionId) => {
+          setShowQuickLinksModal(false);
+          const el = document.getElementById(sectionId);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }}
+        onOpenAdmin={navigateToAdmin}
+        onOpenTerms={() => {
+          setShowQuickLinksModal(false);
+          setShowTermsModal(true);
+        }}
+      />
+
+      {/* Terms & Conditions Modal */}
+      <TermsModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+      />
     </div>
   );
 }
