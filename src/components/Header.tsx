@@ -15,6 +15,7 @@ import {
   MessageCircle,
   Instagram,
   Facebook,
+  HelpCircle,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { WhatsAppIcon, PhoneConciergeIcon } from "@/components/BrandIcons";
@@ -64,6 +65,7 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
     { label: "Book Now", href: "#book", action: onBookClick, icon: Calendar, highlight: true },
     { label: "Quick Links Hub", href: "#quick-links", action: onOpenQuickLinks, icon: Sparkles },
     { label: "Services & Pricing", href: "#services", action: handleScrollToServices, icon: Scissors },
+    { label: "FAQs & Inquiries", href: "#faq", icon: HelpCircle },
     { label: "About SOUVA", href: "#about", icon: Users },
     { label: "Coverage Areas", href: "#coverage", icon: MapPin },
     { label: "Gallery", href: "#gallery", icon: Camera },
@@ -148,6 +150,9 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
             className="hover:text-[#AA8B63] transition-colors cursor-pointer"
           >
             Services & Pricing
+          </a>
+          <a href="#faq" className="hover:text-[#AA8B63] transition-colors">
+            FAQs
           </a>
           <a href="#about" className="hover:text-[#AA8B63] transition-colors">
             About SOUVA

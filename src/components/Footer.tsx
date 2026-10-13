@@ -166,6 +166,11 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks }: FooterPro
                 </a>
               </li>
               <li>
+                <a href="#faq" className="hover:text-[#FAF0E2] transition-colors block">
+                  Client FAQs & Ask Box
+                </a>
+              </li>
+              <li>
                 <a href="#coverage" className="hover:text-[#FAF0E2] transition-colors block">
                   38 Covered ZIP Codes
                 </a>

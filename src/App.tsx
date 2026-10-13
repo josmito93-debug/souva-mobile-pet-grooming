@@ -21,6 +21,7 @@ import {
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { Header } from "@/components/Header";
 import { AboutSection } from "@/components/AboutSection";
+import { FaqSection } from "@/components/FaqSection";
 import { CoverageSection } from "@/components/CoverageSection";
 import { SolarEcoFeature } from "@/components/SolarEcoBadge";
 import { InteractiveTile } from "@/components/InteractiveTile";
@@ -723,6 +724,9 @@ function AppContent() {
             </div>
           </div>
         </section>
+
+        {/* CLIENT FAQS & ASK CONCIERGE BOX (POWERED BY RESEND) */}
+        <FaqSection onBookClick={scrollToBookingFlow} />
 
         {/* QUIÉNES SOMOS SECTION */}
         <AboutSection onBookClick={scrollToBookingFlow} />

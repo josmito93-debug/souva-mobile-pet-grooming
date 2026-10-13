@@ -26,6 +26,7 @@ import {
   AlertCircle,
   Instagram,
   Facebook,
+  HelpCircle,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { WhatsAppIcon, PhoneConciergeIcon } from "@/components/BrandIcons";
@@ -610,7 +611,29 @@ export function QuickLinks({
           <ChevronRight className="h-4 w-4 text-[#AA8B63] group-hover:translate-x-0.5 transition-transform shrink-0" />
         </button>
 
-        {/* 5. Official Hydra® Botanical Cosmetics Partner */}
+        {/* 5. FAQs & Ask Our Concierge (Resend) */}
+        <button
+          type="button"
+          onClick={() => handleNavigate("faq")}
+          className="w-full p-3.5 rounded-2xl bg-[#1A1D13] border border-[#FAF0E2]/15 hover:border-[#AA8B63]/60 hover:bg-[#202517] transition-all flex items-center justify-between text-left cursor-pointer group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-[#252B1C] border border-[#AA8B63]/30 text-[#AA8B63] flex items-center justify-center shrink-0">
+              <HelpCircle className="h-4 w-4 text-[#AA8B63]" />
+            </div>
+            <div>
+              <span className="font-display font-bold text-sm text-[#FAF0E2] group-hover:text-[#AA8B63] transition-colors block">
+                FAQs & Ask Concierge Box
+              </span>
+              <span className="text-[11px] text-[#A4AA93]">
+                Cage-free policy, hookups, senior handling & direct message dispatch
+              </span>
+            </div>
+          </div>
+          <ChevronRight className="h-4 w-4 text-[#AA8B63] group-hover:translate-x-0.5 transition-transform shrink-0" />
+        </button>
+
+        {/* 6. Official Hydra® Botanical Cosmetics Partner */}
         <div className="p-3.5 rounded-2xl bg-[#1B1E14] border border-[#AA8B63]/30 flex items-center justify-between gap-3 shadow-sm">
           <div className="space-y-0.5">
             <span className="text-[9.5px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold block">

@@ -82,6 +82,14 @@
     </image:image>
   </url>
 
+  <!-- Client FAQs & Concierge Inquiry Desk -->
+  <url>
+    <loc>https://souva-mobile-pet-grooming.vercel.app/#faq</loc>
+    <lastmod>2026-10-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
   <!-- About SOUVA Philosophy & Solar Fleet -->
   <url>
     <loc>https://souva-mobile-pet-grooming.vercel.app/#about</loc>
