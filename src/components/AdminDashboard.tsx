@@ -39,6 +39,7 @@ import {
   DispatchPet,
   RequestStatus,
   getStoredRequests,
+  saveStoredRequests,
   updateRequestETA,
   updateRequestStatus,
   rescheduleAppointment,
@@ -84,6 +85,8 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
   const [cancelTarget, setCancelTarget] = useState<DispatchRequest | null>(null);
 
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
+  const [isAirtableLoading, setIsAirtableLoading] = useState(false);
+  const [airtableSyncStatus, setAirtableSyncStatus] = useState<"synced" | "syncing" | "offline">("syncing");
 
   const showToast = (msg: string) => {
     setNotificationToast(msg);
@@ -92,14 +95,60 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
     }, 4500);
   };
 
-  const refreshData = () => {
-    const data = getStoredRequests();
-    setRequests(data);
-    if (!selectedRequest && data.length > 0) {
-      setSelectedRequest(data[0]);
-    } else if (selectedRequest) {
-      const found = data.find((r) => r.id === selectedRequest.id);
-      if (found) setSelectedRequest(found);
+  const refreshData = async () => {
+    // 1. First render local data immediately
+    const local = getStoredRequests();
+    if (requests.length === 0 && local.length > 0) {
+      setRequests(local);
+      if (!selectedRequest) setSelectedRequest(local[0]);
+    }
+
+    // 2. Fetch live data from Airtable via serverless API
+    setIsAirtableLoading(true);
+    setAirtableSyncStatus("syncing");
+    try {
+      const res = await fetch("/api/admin-bookings");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.requests) && data.requests.length > 0) {
+          const airtableMap = new Map<string, DispatchRequest>();
+          data.requests.forEach((r: DispatchRequest) => {
+            airtableMap.set(r.id, r);
+          });
+
+          // Retain any pending locally created requests that aren't old mocks
+          local.forEach((lr) => {
+            if (!airtableMap.has(lr.id) && !lr.id.startsWith("SOU-840")) {
+              airtableMap.set(lr.id, lr);
+            }
+          });
+
+          const merged = Array.from(airtableMap.values());
+          merged.sort((a, b) => {
+            const dateA = a.scheduledDate || a.createdAt || "";
+            const dateB = b.scheduledDate || b.createdAt || "";
+            return dateB.localeCompare(dateA);
+          });
+
+          setRequests(merged);
+          saveStoredRequests(merged);
+          setAirtableSyncStatus("synced");
+
+          if (!selectedRequest && merged.length > 0) {
+            setSelectedRequest(merged[0]);
+          } else if (selectedRequest) {
+            const found = merged.find((r) => r.id === selectedRequest.id);
+            if (found) setSelectedRequest(found);
+          }
+          return;
+        }
+      }
+      setAirtableSyncStatus("offline");
+    } catch (err) {
+      console.warn("Airtable sync fallback to local store:", err);
+      setAirtableSyncStatus("offline");
+    } finally {
+      setIsAirtableLoading(false);
     }
   };
 
@@ -137,14 +186,25 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
 
   const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
 
-  const handleStatusChange = (id: string, newStatus: RequestStatus) => {
+  const handleStatusChange = async (id: string, newStatus: RequestStatus) => {
     updateRequestStatus(id, newStatus);
     refreshData();
 
+    // Sync status change directly to Airtable
+    try {
+      await fetch("/api/admin-bookings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: id, status: newStatus }),
+      });
+    } catch (e) {
+      console.warn("Airtable status update warning:", e);
+    }
+
     if (newStatus === "completed") {
-      showToast(`Appointment ${id} completed and archived to the Completed folder.`);
+      showToast(`Appointment ${id} completed and synced to Airtable.`);
     } else if (newStatus === "cancelled") {
-      showToast(`Appointment ${id} cancelled and archived.`);
+      showToast(`Appointment ${id} cancelled and synced to Airtable.`);
     }
 
     if (newStatus === "en_route") {
@@ -367,10 +427,16 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
 
         {/* Operations Badges & Actions */}
         <div className="flex items-center gap-3">
-          <div className="hidden xl:flex items-center gap-4 text-xs font-mono">
+          <div className="hidden xl:flex items-center gap-3 text-xs font-mono">
+            {/* Live Airtable Sync Badge */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#142318] border border-emerald-500/40 text-emerald-300">
+              <span className={cn("h-2 w-2 rounded-full bg-emerald-400", isAirtableLoading ? "animate-spin" : "animate-pulse")} />
+              <span>{airtableSyncStatus === "synced" ? `Airtable Live (${requests.length})` : isAirtableLoading ? "Syncing Airtable..." : "Airtable Local"}</span>
+            </div>
+
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#22261A] border border-[#FAF0E2]/10">
               <Truck className="h-4 w-4 text-[#AA8B63]" />
-              <span>2 Solar Vans Active</span>
+              <span>2 Solar Vans</span>
             </div>
 
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#22261A] border border-[#FAF0E2]/10">
@@ -386,11 +452,12 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
 
           <button
             type="button"
-            onClick={refreshData}
+            onClick={() => refreshData()}
+            disabled={isAirtableLoading}
             className="p-2 rounded-xl bg-[#22261A] border border-[#FAF0E2]/10 hover:border-[#AA8B63] text-[#FAF0E2] cursor-pointer"
-            title="Refresh requests"
+            title="Sync latest bookings from Airtable"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={cn("h-4 w-4", isAirtableLoading && "animate-spin text-[#AA8B63]")} />
           </button>
 
           <button
@@ -1010,12 +1077,28 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
             setRescheduleModalOpen(false);
             setRescheduleTarget(null);
           }}
-          onConfirm={(id, newDate, newTime, note) => {
+          onConfirm={async (id, newDate, newTime, note) => {
             rescheduleAppointment(id, newDate, newTime, note);
             showToast(`Appointment ${id} successfully rescheduled to ${newDate} @ ${newTime}`);
             refreshData();
             setRescheduleModalOpen(false);
             setRescheduleTarget(null);
+
+            // Sync to Airtable
+            try {
+              await fetch("/api/admin-bookings", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  bookingId: id,
+                  scheduledDate: newDate,
+                  scheduledTime: newTime,
+                  notes: note,
+                }),
+              });
+            } catch (err) {
+              console.warn("Airtable reschedule sync warning:", err);
+            }
           }}
         />
       )}
@@ -1028,12 +1111,27 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
             setCancelModalOpen(false);
             setCancelTarget(null);
           }}
-          onConfirm={(id, reason) => {
+          onConfirm={async (id, reason) => {
             cancelAppointment(id, reason);
             showToast(`Appointment ${id} has been cancelled and archived.`);
             refreshData();
             setCancelModalOpen(false);
             setCancelTarget(null);
+
+            // Sync to Airtable
+            try {
+              await fetch("/api/admin-bookings", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  bookingId: id,
+                  status: "cancelled",
+                  notes: `Cancelled: ${reason}`,
+                }),
+              });
+            } catch (err) {
+              console.warn("Airtable cancel sync warning:", err);
+            }
           }}
         />
       )}

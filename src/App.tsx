@@ -565,19 +565,30 @@ function AppContent() {
             {/* The 4 Packages Grid */}
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {SOUVA_PACKAGES.map((pkg) => {
-                const currentPrice = pkg.prices[previewSize];
+                const isFullGroom = pkg.id === "essential-full-groom";
+                const isOver50Lbs = previewSize === "large" || previewSize === "xlarge";
+                const promoPrice = isOver50Lbs ? 99 + 30 : 99;
+                const currentPrice = isFullGroom ? promoPrice : pkg.prices[previewSize];
+                const originalPrice = pkg.prices[previewSize];
+
                 return (
                   <div
                     key={pkg.id}
                     onClick={scrollToBookingFlow}
                     className={cn(
                       "p-6 rounded-3xl border flex flex-col justify-between transition-all duration-300 relative group cursor-pointer hover:scale-[1.01]",
-                      pkg.popular
+                      isFullGroom
+                        ? "bg-[#22261A] border-2 border-[#AA8B63] shadow-[0_16px_40px_rgba(170,139,99,0.35)]"
+                        : pkg.popular
                         ? "bg-[#22261A] border-[#AA8B63] shadow-[0_16px_40px_rgba(0,0,0,0.6)]"
                         : "bg-[#1B1E15] border-[#FAF0E2]/10 hover:border-[#AA8B63]/40"
                     )}
                   >
-                    {pkg.popular && (
+                    {isFullGroom ? (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[9.5px] font-black font-mono uppercase tracking-wider shadow-md whitespace-nowrap">
+                        ⚡ 1ST 50 BOOKINGS · $99 PROMO
+                      </span>
+                    ) : pkg.popular && (
                       <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[10px] font-bold font-mono uppercase tracking-wider shadow-md">
                         Signature Choice
                       </span>
@@ -590,10 +601,29 @@ function AppContent() {
                           {pkg.duration}
                         </span>
                         <div className="text-right">
-                          <span className="text-[10px] font-mono text-[#A4AA93] block">Starting at</span>
-                          <span className="font-display font-extrabold text-2xl text-[#FAF0E2]">
-                            ${currentPrice}
+                          <span className="text-[10px] font-mono text-[#A4AA93] block">
+                            {isFullGroom ? "Promo Rate" : "Starting at"}
                           </span>
+                          <div className="flex items-center gap-1.5 justify-end">
+                            {isFullGroom && (
+                              <span className="line-through text-xs font-mono text-[#A4AA93]/60">
+                                ${originalPrice}
+                              </span>
+                            )}
+                            <span
+                              className={cn(
+                                "font-display font-extrabold text-2xl",
+                                isFullGroom ? "text-amber-300" : "text-[#FAF0E2]"
+                              )}
+                            >
+                              ${currentPrice}
+                            </span>
+                          </div>
+                          {isFullGroom && isOver50Lbs && (
+                            <span className="text-[9.5px] font-mono text-[#AA8B63] block">
+                              +$30 Dogs over 50 lb
+                            </span>
+                          )}
                         </div>
                       </div>
 

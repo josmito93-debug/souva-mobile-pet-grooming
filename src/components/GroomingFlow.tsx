@@ -524,9 +524,13 @@ export function GroomingFlow({
 
   const activeIndex = completed ? 7 : step;
 
-  // Pricing calculations for current dog
+  // Pricing calculations for current dog (Includes First 50 Bookings New Customer Promo: Full Grooming $99, Large/XL +$30)
   const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId);
-  const currentBasePrice = selectedPkg?.prices[data.size as PetSize] || 0;
+  const isOver50Lbs = data.size === "large" || data.size === "xlarge";
+  const currentBasePrice =
+    data.packageId === "essential-full-groom"
+      ? (isOver50Lbs ? 99 + 30 : 99)
+      : (selectedPkg?.prices[data.size as PetSize] || 0);
   const currentAddonsCost = data.addons.reduce((sum, addId) => {
     const item = SPA_UPGRADES.find((u) => u.id === addId);
     if (!item) return sum;
@@ -1193,30 +1197,41 @@ function StepServicePackage({
     setData({ ...data, addons: next });
   };
 
+  const isOver50Lbs = data.size === "large" || data.size === "xlarge";
+  const fullGroomOriginalPrice =
+    SOUVA_PACKAGES.find((p) => p.id === "essential-full-groom")?.prices[data.size as PetSize] ||
+    (isOver50Lbs ? 150 : 110);
+  const fullGroomPromoPrice = isOver50Lbs ? 99 + 30 : 99; // $99 for small/medium, $129 for large/xlarge
+
   const services2x2 = [
     {
       id: "bath-refresh",
       title: "Bath & Brush",
       subtitle: "Bath, dry, nails, ears",
       rawPrice: SOUVA_PACKAGES.find((p) => p.id === "bath-refresh")?.prices[data.size as PetSize] || 65,
+      isPromo: false,
     },
     {
       id: "bath-tidy",
       title: "Bath & Tidy",
       subtitle: "+ sanitary, paw & face trim",
       rawPrice: SOUVA_PACKAGES.find((p) => p.id === "bath-tidy")?.prices[data.size as PetSize] || 80,
+      isPromo: false,
     },
     {
       id: "essential-full-groom",
       title: "Full Groom",
-      subtitle: "Short haircut / shave-down",
-      rawPrice: SOUVA_PACKAGES.find((p) => p.id === "essential-full-groom")?.prices[data.size as PetSize] || 110,
+      subtitle: isOver50Lbs ? "Short haircut / shave · Over 50 lb: +$30" : "Short haircut / shave-down",
+      rawPrice: fullGroomPromoPrice,
+      originalPrice: fullGroomOriginalPrice,
+      isPromo: true,
     },
     {
       id: "signature-grooming",
       title: "Signature Grooming",
       subtitle: 'Longer style ½"+ · Scissor finish',
       rawPrice: SOUVA_PACKAGES.find((p) => p.id === "signature-grooming")?.prices[data.size as PetSize] || 125,
+      isPromo: false,
     },
   ];
 
@@ -1227,6 +1242,31 @@ function StepServicePackage({
         title="Select Your Grooming Service"
         subtitle="Upfront pricing calibrated for your dog's size. Select any luxury spa upgrades."
       />
+
+      {/* October Promo Banner matching the flyer */}
+      <div className="mt-3 p-3 rounded-2xl bg-gradient-to-r from-[#292215] via-[#202517] to-[#181C12] border-2 border-[#AA8B63] shadow-[0_0_20px_rgba(170,139,99,0.35)] flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#AA8B63] to-[#826643] text-[#161811] flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
+            🐾
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[9.5px] font-mono font-black uppercase tracking-wider text-amber-300">
+                NEW CUSTOMERS ONLY
+              </span>
+              <span className="px-1.5 py-0.2 rounded-full bg-[#AA8B63]/25 border border-[#AA8B63]/50 text-[#FAF0E2] text-[8.5px] font-mono font-bold uppercase">
+                FIRST 50 BOOKINGS
+              </span>
+            </div>
+            <p className="text-[11.5px] text-[#FAF0E2] font-semibold mt-0.5 truncate">
+              Full Grooming Promo <strong className="text-amber-300 font-extrabold text-xs">$99</strong> {isOver50Lbs ? "(+$30 Over 50 lb = $129)" : "(Dogs over 50 lbs: +$30)"}
+            </p>
+          </div>
+        </div>
+        <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 font-mono text-[9.5px] font-bold uppercase shrink-0">
+          $99 Active
+        </span>
+      </div>
 
       {isSecondDog && (
         <div className="mt-3 p-2.5 rounded-2xl bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 text-xs flex items-center gap-2">
@@ -1247,13 +1287,22 @@ function StepServicePackage({
                 type="button"
                 onClick={() => setData({ ...data, packageId: item.id })}
                 className={cn(
-                  "p-4 rounded-2xl text-left transition-all duration-300 cursor-pointer select-none flex flex-col justify-between min-h-[96px]",
-                  isSelected
+                  "p-3.5 sm:p-4 rounded-2xl text-left transition-all duration-300 cursor-pointer select-none flex flex-col justify-between min-h-[105px] relative",
+                  item.isPromo
+                    ? isSelected
+                      ? "bg-[#FAF0E2] text-[#161811] border-2 border-[#AA8B63] shadow-[0_0_25px_rgba(170,139,99,0.5)] scale-[1.02]"
+                      : "bg-[#1C1F15] text-[#FAF0E2]/90 border-2 border-[#AA8B63] shadow-[0_0_18px_rgba(170,139,99,0.3)] hover:bg-[#25281D] hover:border-[#C4A67E]"
+                    : isSelected
                     ? "bg-[#FAF0E2] text-[#161811] shadow-[0_8px_20px_rgba(0,0,0,0.4)] scale-[1.02]"
                     : "bg-[#1C1F15]/60 text-[#FAF0E2]/90 hover:bg-[#25281D] hover:text-[#FAF0E2]"
                 )}
               >
                 <div>
+                  {item.isPromo && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[8px] sm:text-[8.5px] font-mono font-black uppercase tracking-wider shadow-sm mb-1 self-start">
+                      ⚡ 1ST 50 BOOKINGS · $99
+                    </span>
+                  )}
                   <div
                     className={cn(
                       "text-sm sm:text-base font-display font-bold leading-tight",
@@ -1264,7 +1313,7 @@ function StepServicePackage({
                   </div>
                   <div
                     className={cn(
-                      "text-[11px] font-mono mt-1 leading-snug",
+                      "text-[10.5px] font-mono mt-1 leading-snug",
                       isSelected ? "text-[#59593E] font-medium" : "text-[#A4AA93]"
                     )}
                   >
@@ -1275,20 +1324,30 @@ function StepServicePackage({
                 <div className="mt-2.5 pt-2 border-t border-current/10 flex items-center justify-between">
                   <span
                     className={cn(
-                      "text-[9.5px] font-mono uppercase tracking-wider",
+                      "text-[9px] font-mono uppercase tracking-wider",
                       isSelected ? "text-[#161811]/70" : "text-[#A4AA93]"
                     )}
                   >
-                    {isSecondDog ? "-20% OFF" : "From"}
+                    {isSecondDog ? "-20% OFF" : item.isPromo ? "PROMO" : "From"}
                   </span>
                   <div className="flex items-center gap-1.5">
+                    {item.isPromo && (
+                      <span
+                        className={cn(
+                          "line-through text-[10.5px] font-mono",
+                          isSelected ? "text-[#161811]/50" : "text-[#A4AA93]/60"
+                        )}
+                      >
+                        ${item.originalPrice}
+                      </span>
+                    )}
                     {isSecondDog && (
                       <span className="line-through opacity-50 text-[10px] font-mono">${item.rawPrice}</span>
                     )}
                     <span
                       className={cn(
-                        "font-mono font-extrabold text-sm",
-                        isSelected ? "text-[#161811]" : "text-[#AA8B63]"
+                        "font-mono font-black text-sm sm:text-base",
+                        isSelected ? "text-[#161811]" : item.isPromo ? "text-amber-300" : "text-[#AA8B63]"
                       )}
                     >
                       ${finalPrice}
