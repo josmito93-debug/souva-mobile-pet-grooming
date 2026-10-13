@@ -54,7 +54,7 @@ export default async function handler(req: any, res: any) {
         </div>
 
         <div style="text-align: center; color: #A4AA93; font-size: 11px; border-top: 1px solid rgba(250, 240, 226, 0.1); padding-top: 18px; line-height: 1.6;">
-          <p style="margin: 0;">Need immediate assistance or gate access instructions? Text or call our Concierge at <strong style="color: #FAF0E2;">+1 (850) 960-0034</strong></p>
+          <p style="margin: 0;">Need immediate assistance or gate access instructions? Text or call our Concierge at <strong style="color: #FAF0E2;">+1 (415) 375-5823</strong></p>
           <p style="margin: 4px 0 0 0;">SOUVA Mobile Pet Grooming LLC · San Francisco Bay Area & Select East Bay CA</p>
         </div>
       </div>

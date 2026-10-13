@@ -37,7 +37,7 @@ export function CartDrawer() {
   const total = subtotal + shippingCost;
 
   const handleWhatsAppCheckout = () => {
-    const waNumber = "18509600034";
+    const waNumber = "14153755823";
     const itemsList = items
       .map(
         (i) =>

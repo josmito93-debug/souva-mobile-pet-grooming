@@ -240,7 +240,7 @@ Attached to this email is your official SOUVA Service Agreement & Itemized Invoi
 Warm regards,
 SOUVA Mobile Pet Grooming LLC
 San Francisco Bay Area & Select East Bay Area CA
-Concierge / WhatsApp: +1 (850) 960-0034 · info@souvagrooming.com`;
+Concierge / WhatsApp: +1 (415) 375-5823 · info@souvagrooming.com`;
 
     const htmlContent = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 640px; margin: 0 auto; background-color: #14160E; color: #FAF0E2; padding: 36px 26px; border-radius: 20px; border: 1px solid rgba(250, 240, 226, 0.12); box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
@@ -372,7 +372,7 @@ Concierge / WhatsApp: +1 (850) 960-0034 · info@souvagrooming.com`;
         <div style="text-align: center; color: #A4AA93; font-size: 11px; border-top: 1px solid rgba(250, 240, 226, 0.1); padding-top: 20px; line-height: 1.6;">
           <p style="margin: 0; font-weight: 700; color: #FAF0E2;">SOUVA Mobile Pet Grooming LLC</p>
           <p style="margin: 2px 0;">San Francisco Bay Area & Select East Bay Area CA</p>
-          <p style="margin: 4px 0 0 0;">Concierge / WhatsApp: <strong style="color: #FAF0E2;">+1 (850) 960-0034</strong> · info@souvagrooming.com</p>
+          <p style="margin: 4px 0 0 0;">Concierge / WhatsApp: <strong style="color: #FAF0E2;">+1 (415) 375-5823</strong> · info@souvagrooming.com</p>
         </div>
       </div>
     `;
@@ -485,7 +485,7 @@ Concierge / WhatsApp: +1 (850) 960-0034 · info@souvagrooming.com`;
                 </div>
 
                 <div style="text-align: center; color: #A4AA93; font-size: 11px; border-top: 1px solid rgba(250, 240, 226, 0.1); padding-top: 18px; line-height: 1.6;">
-                  <p style="margin: 0;">Need immediate assistance? Call or text our Concierge at <strong style="color: #FAF0E2;">+1 (850) 960-0034</strong></p>
+                  <p style="margin: 0;">Need immediate assistance? Call or text our Concierge at <strong style="color: #FAF0E2;">+1 (415) 375-5823</strong></p>
                   <p style="margin: 4px 0 0 0;">SOUVA Mobile Pet Grooming LLC · San Francisco Bay Area & Select East Bay CA</p>
                 </div>
               </div>
@@ -917,7 +917,7 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
     color: cCream,
   });
 
-  page.drawText("San Francisco Bay Area & Select East Bay CA · +1 (850) 960-0034", {
+  page.drawText("San Francisco Bay Area & Select East Bay CA · +1 (415) 375-5823", {
     x: textLeftX,
     y: height - 67,
     size: 6.8,

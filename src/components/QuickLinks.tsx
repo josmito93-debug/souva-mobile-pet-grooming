@@ -307,7 +307,7 @@ export function QuickLinks({
       <div className="ql-stagger-item grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
         {/* Direct Phone Concierge */}
         <a
-          href="tel:+18509600034"
+          href="tel:+14153755823"
           className="p-3.5 rounded-2xl bg-[#1E2217] border border-[#AA8B63]/40 hover:border-[#AA8B63] hover:bg-[#252B1C] transition-all flex items-center justify-between gap-3 group shadow-md"
         >
           <div className="flex items-center gap-3 min-w-0">
@@ -319,7 +319,7 @@ export function QuickLinks({
                 Direct Phone Concierge
               </span>
               <span className="font-display font-bold text-sm text-[#FAF0E2] group-hover:text-[#AA8B63] transition-colors truncate block">
-                +1 (850) 960-0034
+                +1 (415) 375-5823
               </span>
             </div>
           </div>
@@ -328,7 +328,7 @@ export function QuickLinks({
 
         {/* Official WhatsApp Concierge */}
         <a
-          href="https://wa.me/18509600034?text=Hello%20SOUVA%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
+          href="https://wa.me/14153755823?text=Hello%20SOUVA%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
           target="_blank"
           rel="noreferrer"
           className="p-3.5 rounded-2xl bg-[#152318] border border-[#25D366]/40 hover:border-[#25D366] hover:bg-[#192E1D] transition-all flex items-center justify-between gap-3 group shadow-md"
@@ -446,7 +446,7 @@ export function QuickLinks({
                   </span>
                 ) : (
                   <span>
-                    Call +1 (850) 960-0034 to request a special custom route or neighborhood expansion!
+                    Call +1 (415) 375-5823 to request a special custom route or neighborhood expansion!
                   </span>
                 )}
               </div>
@@ -758,7 +758,7 @@ export function QuickLinks({
       </main>
 
       <footer className="border-t border-[#FAF0E2]/10 py-4 px-4 text-center text-[10.5px] font-mono text-[#A4AA93] relative z-10 bg-[#12140D]">
-        SOUVA CORP · San Francisco & Peninsula Mobile Grooming · +1 (850) 960-0034
+        SOUVA CORP · San Francisco & Peninsula Mobile Grooming · +1 (415) 375-5823
       </footer>
     </div>
   );

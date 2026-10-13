@@ -68,7 +68,7 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
     { label: "Coverage Areas", href: "#coverage", icon: MapPin },
     { label: "Gallery", href: "#gallery", icon: Camera },
     { label: "Reviews", href: "#reviews", icon: Star },
-    { label: "Call Us to Reserve · +1 (850) 960-0034", href: "tel:+18509600034", icon: PhoneConciergeIcon },
+    { label: "Call Us to Reserve · +1 (415) 375-5823", href: "tel:+14153755823", icon: PhoneConciergeIcon },
   ];
 
   return (
@@ -107,12 +107,12 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
             </button>
 
             <a
-              href="tel:+18509600034"
+              href="tel:+14153755823"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 hover:bg-emerald-950 border border-yellow-300/60 text-white font-sans font-black text-[11px] transition-colors shadow-sm"
               title="Call SOUVA Concierge to Reserve"
             >
               <PhoneConciergeIcon className="h-3 w-3 text-yellow-300" showWaves={false} />
-              <span>Call Us: +1 (850) 960-0034</span>
+              <span>Call Us: +1 (415) 375-5823</span>
             </a>
           </div>
         </div>
@@ -203,7 +203,7 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
 
           {/* Phone Call Link (Prominent Call Us) */}
           <a
-            href="tel:+18509600034"
+            href="tel:+14153755823"
             className="hidden sm:inline-flex items-center gap-2 rounded-full border-2 border-[#AA8B63] bg-[#22271A] px-4 py-1.5 text-xs font-mono font-black text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] transition-all shadow-[0_0_15px_rgba(170,139,99,0.35)] group"
             title="Call SOUVA to Reserve"
           >
@@ -212,7 +212,7 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[#AA8B63]" />
             </span>
             <PhoneConciergeIcon className="h-3.5 w-3.5 text-[#AA8B63] group-hover:text-[#161811] transition-colors" />
-            <span className="tracking-wide">CALL US: +1 (850) 960-0034</span>
+            <span className="tracking-wide">CALL US: +1 (415) 375-5823</span>
           </a>
 
           {/* Book Now Primary Button */}
@@ -264,11 +264,11 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {/* Call Us to Reserve Primary Hero Button */}
               <a
-                href="tel:+18509600034"
+                href="tel:+14153755823"
                 className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#AA8B63] via-[#C4A67E] to-[#AA8B63] text-[#161811] text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(170,139,99,0.4)] hover:brightness-110 active:scale-98 transition-all"
               >
                 <PhoneConciergeIcon className="h-4 w-4 fill-[#161811] text-[#161811]" />
-                <span>CALL US TO RESERVE: +1 (850) 960-0034</span>
+                <span>CALL US TO RESERVE: +1 (415) 375-5823</span>
               </a>
 
               {/* Promo Banner (Vibrant Green Pet-Friendly Style) */}
@@ -350,15 +350,15 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
                   Direct Concierge
                 </span>
                 <a
-                  href="tel:+18509600034"
+                  href="tel:+14153755823"
                   className="w-full py-3 px-4 rounded-xl bg-[#25281D] border border-[#FAF0E2]/15 text-[#FAF0E2] text-xs font-mono font-bold flex items-center justify-center gap-2 hover:border-[#AA8B63] transition-colors"
                 >
                   <PhoneConciergeIcon className="h-4 w-4 text-[#AA8B63]" />
-                  <span>Call Us to Reserve: +1 (850) 960-0034</span>
+                  <span>Call Us to Reserve: +1 (415) 375-5823</span>
                 </a>
 
                 <a
-                  href="https://wa.me/18509600034?text=Hello%20Souva%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
+                  href="https://wa.me/14153755823?text=Hello%20Souva%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
                   target="_blank"
                   rel="noreferrer"
                   className="w-full py-3 px-4 rounded-xl bg-[#142318] border border-[#25D366]/50 text-[#25D366] hover:bg-[#25D366] hover:text-black text-xs font-mono font-bold flex items-center justify-center gap-2.5 transition-all shadow-md group"

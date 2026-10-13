@@ -298,15 +298,15 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks }: FooterPro
 
             <div className="space-y-2.5">
               <a
-                href="tel:+18509600034"
+                href="tel:+14153755823"
                 className="flex items-center gap-2.5 text-xs text-[#FAF0E2] hover:text-[#AA8B63] transition-colors font-semibold"
               >
                 <PhoneConciergeIcon className="h-4 w-4 text-[#AA8B63] shrink-0" />
-                <span>+1 (850) 960-0034</span>
+                <span>+1 (415) 375-5823</span>
               </a>
 
               <a
-                href="https://wa.me/18509600034?text=Hello%20SOUVA%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
+                href="https://wa.me/14153755823?text=Hello%20SOUVA%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#142318] border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366] hover:text-black font-mono font-bold text-xs transition-all shadow-sm group"

@@ -2995,7 +2995,7 @@ function BookingSummaryView({
       ? `https://www.google.com/maps?q=${data.latitude},${data.longitude}`
       : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.address)}`;
 
-  const waNumber = "18509600034";
+  const waNumber = "14153755823";
   const petsSummaryText = allPetsList
     .map(
       (p, i) =>

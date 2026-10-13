@@ -405,15 +405,15 @@ function AppContent() {
                           Prefer to Book by Phone?
                         </span>
                         <a
-                          href="tel:+18509600034"
+                          href="tel:+14153755823"
                           className="text-sm font-display font-extrabold text-[#FAF0E2] hover:text-[#AA8B63] transition-colors block truncate"
                         >
-                          CALL US: +1 (850) 960-0034
+                          CALL US: +1 (415) 375-5823
                         </a>
                       </div>
                     </div>
                     <a
-                      href="tel:+18509600034"
+                      href="tel:+14153755823"
                       className="px-3.5 py-1.5 rounded-xl bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-black text-xs uppercase tracking-wider shrink-0 transition-colors shadow-md flex items-center gap-1.5"
                     >
                       <PhoneConciergeIcon className="h-3 w-3 text-[#161811]" showWaves={false} />
@@ -976,7 +976,7 @@ function AppContent() {
 
       {/* Floating WhatsApp Quick Concierge Button */}
       <a
-        href="https://wa.me/18509600034?text=Hello%20SOUVA%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
+        href="https://wa.me/14153755823?text=Hello%20SOUVA%20Mobile%20Grooming%2C%20I%20would%20like%20to%20inquire%20about%20booking%20an%20appointment!"
         target="_blank"
         rel="noreferrer"
         className="fixed bottom-5 right-5 z-40 p-2.5 rounded-full bg-[#182319]/95 backdrop-blur-md border border-[#25D366]/40 text-white shadow-[0_4px_25px_rgba(37,211,102,0.35)] hover:border-[#25D366] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group cursor-pointer"
