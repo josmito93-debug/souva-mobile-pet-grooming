@@ -566,7 +566,7 @@ function AppContent() {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
               {SOUVA_PACKAGES.map((pkg) => {
                 const isFullGroom = pkg.id === "essential-full-groom";
-                const isOver50Lbs = previewSize === "large" || previewSize === "xlarge";
+                const isOver50Lbs = previewSize === "xlarge";
                 const promoPrice = isOver50Lbs ? 99 + 30 : 99;
                 const currentPrice = isFullGroom ? promoPrice : pkg.prices[previewSize];
                 const originalPrice = pkg.prices[previewSize];

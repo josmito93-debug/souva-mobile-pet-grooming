@@ -524,9 +524,9 @@ export function GroomingFlow({
 
   const activeIndex = completed ? 7 : step;
 
-  // Pricing calculations for current dog (Includes First 50 Bookings New Customer Promo: Full Grooming $99, Large/XL +$30)
+  // Pricing calculations for current dog (Includes First 50 Bookings New Customer Promo: Full Grooming $99 for Small, Medium & Large; X-Large over 50 lb +$30)
   const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId);
-  const isOver50Lbs = data.size === "large" || data.size === "xlarge";
+  const isOver50Lbs = data.size === "xlarge";
   const currentBasePrice =
     data.packageId === "essential-full-groom"
       ? (isOver50Lbs ? 99 + 30 : 99)
@@ -1197,11 +1197,11 @@ function StepServicePackage({
     setData({ ...data, addons: next });
   };
 
-  const isOver50Lbs = data.size === "large" || data.size === "xlarge";
+  const isOver50Lbs = data.size === "xlarge";
   const fullGroomOriginalPrice =
     SOUVA_PACKAGES.find((p) => p.id === "essential-full-groom")?.prices[data.size as PetSize] ||
-    (isOver50Lbs ? 150 : 110);
-  const fullGroomPromoPrice = isOver50Lbs ? 99 + 30 : 99; // $99 for small/medium, $129 for large/xlarge
+    (isOver50Lbs ? 170 : 110);
+  const fullGroomPromoPrice = isOver50Lbs ? 99 + 30 : 99; // $99 for small, medium & large (up to 50 lb); $129 for xlarge (over 50 lb)
 
   const services2x2 = [
     {
