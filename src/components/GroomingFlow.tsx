@@ -1277,29 +1277,16 @@ function StepServicePackage({
 
       {/* 2x2 Segmented Grid */}
       <div className="mt-4 p-2 rounded-3xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-inner">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2.5 items-stretch">
           {services2x2.map((item) => {
             const isSelected = data.packageId === item.id;
             const finalPrice = isSecondDog ? Math.round(item.rawPrice * 0.8) : item.rawPrice;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setData({ ...data, packageId: item.id })}
-                className={cn(
-                  "p-3.5 sm:p-4 rounded-2xl text-left transition-all duration-300 cursor-pointer select-none flex flex-col justify-between min-h-[105px] relative",
-                  item.isPromo
-                    ? isSelected
-                      ? "bg-[#FAF0E2] text-[#161811] border-2 border-[#AA8B63] shadow-[0_0_25px_rgba(170,139,99,0.5)] scale-[1.02]"
-                      : "bg-[#1C1F15] text-[#FAF0E2]/90 border-2 border-[#AA8B63] shadow-[0_0_18px_rgba(170,139,99,0.3)] hover:bg-[#25281D] hover:border-[#C4A67E]"
-                    : isSelected
-                    ? "bg-[#FAF0E2] text-[#161811] shadow-[0_8px_20px_rgba(0,0,0,0.4)] scale-[1.02]"
-                    : "bg-[#1C1F15]/60 text-[#FAF0E2]/90 hover:bg-[#25281D] hover:text-[#FAF0E2]"
-                )}
-              >
+
+            const buttonContent = (
+              <>
                 <div>
                   {item.isPromo && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[8px] sm:text-[8.5px] font-mono font-black uppercase tracking-wider shadow-sm mb-1 self-start">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[8px] sm:text-[8.5px] font-mono font-black uppercase tracking-wider shadow-sm mb-1.5 self-start">
                       ⚡ 1ST 50 BOOKINGS · $99
                     </span>
                   )}
@@ -1354,6 +1341,45 @@ function StepServicePackage({
                     </span>
                   </div>
                 </div>
+              </>
+            );
+
+            if (item.isPromo) {
+              return (
+                <div
+                  key={item.id}
+                  className={cn("promo-gold-border-wrapper", isSelected && "scale-[1.02]")}
+                >
+                  <div className="promo-gold-border-beam" />
+                  <button
+                    type="button"
+                    onClick={() => setData({ ...data, packageId: item.id })}
+                    className={cn(
+                      "relative z-10 w-full h-full p-3.5 sm:p-4 rounded-[14px] text-left transition-all duration-300 cursor-pointer select-none flex flex-col justify-between min-h-[110px]",
+                      isSelected
+                        ? "bg-[#FAF0E2] text-[#161811] shadow-[0_8px_20px_rgba(0,0,0,0.4)]"
+                        : "bg-[#181B13] text-[#FAF0E2]/95 hover:bg-[#1F2318]"
+                    )}
+                  >
+                    {buttonContent}
+                  </button>
+                </div>
+              );
+            }
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setData({ ...data, packageId: item.id })}
+                className={cn(
+                  "p-3.5 sm:p-4 rounded-2xl text-left transition-all duration-300 cursor-pointer select-none flex flex-col justify-between min-h-[110px] relative",
+                  isSelected
+                    ? "bg-[#FAF0E2] text-[#161811] shadow-[0_8px_20px_rgba(0,0,0,0.4)] scale-[1.02]"
+                    : "bg-[#1C1F15]/60 text-[#FAF0E2]/90 hover:bg-[#25281D] hover:text-[#FAF0E2]"
+                )}
+              >
+                {buttonContent}
               </button>
             );
           })}

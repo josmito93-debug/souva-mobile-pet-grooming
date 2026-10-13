@@ -104,6 +104,63 @@
 }
 
 /* ════════════════════════════════════════════════════════════════
+   ANIMATED GOLD PROMO BORDER (BEAM & GLOW)
+   ════════════════════════════════════════════════════════════════ */
+@keyframes gold-beam-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gold-aura-breathe {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(170, 139, 99, 0.45), 0 0 32px rgba(170, 139, 99, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 230, 163, 0.75), 0 0 48px rgba(170, 139, 99, 0.45);
+  }
+}
+
+.promo-gold-border-wrapper {
+  position: relative;
+  border-radius: 1.125rem;
+  overflow: hidden;
+  padding: 2.5px;
+  animation: gold-aura-breathe 3s ease-in-out infinite;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  transition: transform 0.25s ease;
+}
+
+.promo-gold-border-beam {
+  position: absolute;
+  inset: -200%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    #AA8B63 40deg,
+    #FFE8A3 90deg,
+    #FFFFFF 100deg,
+    #AA8B63 150deg,
+    transparent 180deg,
+    transparent 220deg,
+    #AA8B63 260deg,
+    #FFE8A3 310deg,
+    #FFFFFF 320deg,
+    #AA8B63 350deg,
+    transparent 360deg
+  );
+  animation: gold-beam-rotate 3.2s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ════════════════════════════════════════════════════════════════
    HERO SPA ATMOSPHERE & BUBBLES
    ════════════════════════════════════════════════════════════════ */
 .hero-spa-ambient {

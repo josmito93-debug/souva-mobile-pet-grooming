@@ -563,7 +563,7 @@ function AppContent() {
             </div>
 
             {/* The 4 Packages Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
               {SOUVA_PACKAGES.map((pkg) => {
                 const isFullGroom = pkg.id === "essential-full-groom";
                 const isOver50Lbs = previewSize === "large" || previewSize === "xlarge";
@@ -571,21 +571,20 @@ function AppContent() {
                 const currentPrice = isFullGroom ? promoPrice : pkg.prices[previewSize];
                 const originalPrice = pkg.prices[previewSize];
 
-                return (
+                const cardInner = (
                   <div
-                    key={pkg.id}
                     onClick={scrollToBookingFlow}
                     className={cn(
-                      "p-6 rounded-3xl border flex flex-col justify-between transition-all duration-300 relative group cursor-pointer hover:scale-[1.01]",
+                      "p-6 flex flex-col justify-between transition-all duration-300 relative group cursor-pointer hover:scale-[1.01] h-full",
                       isFullGroom
-                        ? "bg-[#22261A] border-2 border-[#AA8B63] shadow-[0_16px_40px_rgba(170,139,99,0.35)]"
+                        ? "bg-[#202419] rounded-[22px] relative z-10"
                         : pkg.popular
-                        ? "bg-[#22261A] border-[#AA8B63] shadow-[0_16px_40px_rgba(0,0,0,0.6)]"
-                        : "bg-[#1B1E15] border-[#FAF0E2]/10 hover:border-[#AA8B63]/40"
+                        ? "bg-[#22261A] border-[#AA8B63] shadow-[0_16px_40px_rgba(0,0,0,0.6)] rounded-3xl border"
+                        : "bg-[#1B1E15] border-[#FAF0E2]/10 hover:border-[#AA8B63]/40 rounded-3xl border"
                     )}
                   >
                     {isFullGroom ? (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[9.5px] font-black font-mono uppercase tracking-wider shadow-md whitespace-nowrap">
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[9.5px] font-black font-mono uppercase tracking-wider shadow-md whitespace-nowrap z-20">
                         ⚡ 1ST 50 BOOKINGS · $99 PROMO
                       </span>
                     ) : pkg.popular && (
@@ -657,6 +656,21 @@ function AppContent() {
                       <span>Select This Service</span>
                       <ChevronRight className="h-3.5 w-3.5" />
                     </button>
+                  </div>
+                );
+
+                if (isFullGroom) {
+                  return (
+                    <div key={pkg.id} className="promo-gold-border-wrapper rounded-[26px]">
+                      <div className="promo-gold-border-beam" />
+                      {cardInner}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={pkg.id} className="h-full">
+                    {cardInner}
                   </div>
                 );
               })}
