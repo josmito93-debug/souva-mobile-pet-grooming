@@ -75,7 +75,7 @@ const FAQ_LIST: FAQItem[] = [
     category: "Payments & Policy",
     question: "How do payments and cancellations work?",
     answer:
-      "Payment is only collected at your doorstep once grooming is complete and you are 100% thrilled with your pup's finish. We accept Cash, Zelle, Visa, Mastercard, Apple Pay, and Check. We ask for a 48-hour courtesy notice for cancellations or rescheduling.",
+      "Payment is only collected at your doorstep once grooming is complete and you are 100% thrilled with your pup's finish. We accept Cash, Zelle, Visa, Mastercard, Apple Pay, and Check. You can easily reschedule or cancel at no charge directly from the self-service links in your confirmation email or via WhatsApp Concierge with 24-hour advance notice.",
   },
 ];
 

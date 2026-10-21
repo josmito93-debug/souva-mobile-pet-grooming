@@ -133,6 +133,15 @@ export interface AvailableDate {
   fullDate: string;
   isoDate: string;
   dayOfWeek: number;
+  isBlocked?: boolean;
+}
+
+export const BLOCKED_WEEK_START = "2026-10-19";
+export const BLOCKED_WEEK_END = "2026-10-25";
+
+export function isDateBlocked(isoDate: string): boolean {
+  if (!isoDate) return false;
+  return isoDate >= BLOCKED_WEEK_START && isoDate <= BLOCKED_WEEK_END;
 }
 
 export function getAvailableDates(): AvailableDate[] {
@@ -157,7 +166,8 @@ export function getAvailableDates(): AvailableDate[] {
     const monthNum = String(d.getMonth() + 1).padStart(2, "0");
     const dayPad = String(d.getDate()).padStart(2, "0");
     const isoDate = `${year}-${monthNum}-${dayPad}`;
-    dates.push({ dayLabel, month, monthFull, year, dayNum, fullDate, isoDate, dayOfWeek });
+    const isBlocked = isDateBlocked(isoDate);
+    dates.push({ dayLabel, month, monthFull, year, dayNum, fullDate, isoDate, dayOfWeek, isBlocked });
   }
   return dates;
 }
@@ -300,7 +310,7 @@ export function GroomingFlow({
   onStatus?: (s: { armed: boolean; dispatched: boolean; currentStep?: number }) => void;
 }) {
   const availableDates = useMemo(() => getAvailableDates(), []);
-  const initialDate = availableDates[0];
+  const initialDate = availableDates.find((d) => !isDateBlocked(d.isoDate)) || availableDates[0];
   const initialSlots = SCHEDULE_BY_DAY[initialDate?.dayOfWeek ?? 1] || [];
 
   const flowTopRef = useRef<HTMLDivElement>(null);
@@ -332,8 +342,8 @@ export function GroomingFlow({
     medicalConditions: "None / Healthy",
     groomerNotes: "",
     petPhoto: null,
-    scheduledDate: initialDate?.fullDate || "Tomorrow",
-    scheduledDateIso: initialDate?.isoDate || "",
+    scheduledDate: initialDate?.fullDate || "Monday, Oct 26",
+    scheduledDateIso: initialDate?.isoDate || "2026-10-26",
     scheduledTime: initialSlots[0]?.time || "9:30 AM",
     signature: null,
     agreedToTerms: true,
@@ -344,7 +354,15 @@ export function GroomingFlow({
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed?.data) return { ...initialDataState, ...parsed.data };
+        if (parsed?.data) {
+          const draftIso = parsed.data.scheduledDateIso || formatToIsoDate(parsed.data.scheduledDate || "");
+          if (isDateBlocked(draftIso)) {
+            parsed.data.scheduledDate = initialDate?.fullDate || "Monday, Oct 26";
+            parsed.data.scheduledDateIso = initialDate?.isoDate || "2026-10-26";
+            parsed.data.scheduledTime = initialSlots[0]?.time || "9:30 AM";
+          }
+          return { ...initialDataState, ...parsed.data };
+        }
       }
     } catch (e) {
       console.warn("Draft restore error", e);
@@ -410,6 +428,7 @@ export function GroomingFlow({
   const isSlotBooked = useCallback(
     (isoDate: string, time: string) => {
       if (!isoDate || !time) return false;
+      if (isDateBlocked(isoDate)) return true;
       const inAirtable = bookedSlots.some(
         (b) => b.date === isoDate && isTimeMatching(time, b.time)
       );
@@ -1244,9 +1263,9 @@ function StepServicePackage({
       />
 
       {/* October Promo Banner matching the flyer */}
-      <div className="mt-3 p-3 rounded-2xl bg-gradient-to-r from-[#292215] via-[#202517] to-[#181C12] border-2 border-[#AA8B63] shadow-[0_0_20px_rgba(170,139,99,0.35)] flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#AA8B63] to-[#826643] text-[#161811] flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
+      <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-r from-[#292215] via-[#202517] to-[#181C12] border-2 border-[#AA8B63] shadow-[0_0_20px_rgba(170,139,99,0.35)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#AA8B63] to-[#826643] text-[#161811] flex items-center justify-center font-black text-sm shrink-0 shadow-sm mt-0.5 sm:mt-0">
             🐾
           </div>
           <div className="min-w-0">
@@ -1254,17 +1273,22 @@ function StepServicePackage({
               <span className="text-[9.5px] font-mono font-black uppercase tracking-wider text-amber-300">
                 NEW CUSTOMERS ONLY
               </span>
-              <span className="px-1.5 py-0.2 rounded-full bg-[#AA8B63]/25 border border-[#AA8B63]/50 text-[#FAF0E2] text-[8.5px] font-mono font-bold uppercase">
+              <span className="px-2 py-0.5 rounded-full bg-[#AA8B63]/25 border border-[#AA8B63]/50 text-[#FAF0E2] text-[8.5px] font-mono font-bold uppercase">
                 FIRST 50 BOOKINGS
               </span>
             </div>
-            <p className="text-[11.5px] text-[#FAF0E2] font-semibold mt-0.5 truncate">
-              Full Grooming Promo <strong className="text-amber-300 font-extrabold text-xs">$99</strong> {isOver50Lbs ? "(+$30 Over 50 lb = $129)" : "(Dogs over 50 lbs: +$30)"}
+            <p className="text-[12px] text-[#FAF0E2] font-semibold mt-1 leading-snug">
+              Full Grooming Promo <strong className="text-amber-300 font-extrabold text-sm sm:text-base">$99</strong>{" "}
+              <span className="text-amber-200 font-mono font-bold text-[11px] block sm:inline">
+                {isOver50Lbs
+                  ? "(+$30 después de 50 lb · $129 Active)"
+                  : "(+$30 después de 50 lb · Over 50 lb: $129)"}
+              </span>
             </p>
           </div>
         </div>
-        <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 font-mono text-[9.5px] font-bold uppercase shrink-0">
-          $99 Active
+        <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-mono text-[9.5px] font-bold uppercase shrink-0 self-start sm:self-center">
+          {isOver50Lbs ? "$129 Active" : "$99 Active"}
         </span>
       </div>
 
@@ -1286,9 +1310,17 @@ function StepServicePackage({
               <>
                 <div>
                   {item.isPromo && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[8px] sm:text-[8.5px] font-mono font-black uppercase tracking-wider shadow-sm mb-1.5 self-start">
-                      ⚡ 1ST 50 BOOKINGS · $99
-                    </span>
+                    <div className="mb-1">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[8px] sm:text-[8.5px] font-mono font-black uppercase tracking-wider shadow-sm">
+                        ⚡ 1ST 50 BOOKINGS · $99
+                      </span>
+                      <span className={cn(
+                        "block text-[8px] sm:text-[8.5px] font-mono font-bold mt-0.5",
+                        isSelected ? "text-[#161811]" : "text-amber-300"
+                      )}>
+                        {isOver50Lbs ? "Includes +$30 (>50 lb)" : "+$30 después de 50 lb ($129)"}
+                      </span>
+                    </div>
                   )}
                   <div
                     className={cn(
@@ -2349,13 +2381,14 @@ function StepBookingCalendar({
   }, [dates, activeMonthKey]);
 
   const isDateFull = (d: AvailableDate) => {
+    if (isDateBlocked(d.isoDate)) return true;
     const slots = SCHEDULE_BY_DAY[d.dayOfWeek] || [];
     if (slots.length === 0) return true;
     return slots.every((s) => isSlotBooked(d.isoDate, s.time));
   };
 
   const handleSelectDate = (d: AvailableDate) => {
-    if (isDateFull(d)) return;
+    if (isDateBlocked(d.isoDate) || isDateFull(d)) return;
     const daySlots = SCHEDULE_BY_DAY[d.dayOfWeek] || [];
     const currentStillAvailable = daySlots.some(
       (s) => s.time === data.scheduledTime && !isSlotBooked(d.isoDate, s.time)
@@ -2373,10 +2406,10 @@ function StepBookingCalendar({
   const handleSelectMonth = (monthKey: string) => {
     setActiveMonthKey(monthKey);
     const daysInNewMonth = dates.filter((d) => `${d.year}-${d.month}` === monthKey);
-    // If currently selected date is already within this month, keep it
-    if (daysInNewMonth.some((d) => d.fullDate === data.scheduledDate)) return;
+    // If currently selected date is already within this month and not blocked, keep it
+    if (daysInNewMonth.some((d) => d.fullDate === data.scheduledDate && !isDateBlocked(d.isoDate))) return;
     // Otherwise select first available day in this month
-    const firstOpenDay = daysInNewMonth.find((d) => !isDateFull(d)) || daysInNewMonth[0];
+    const firstOpenDay = daysInNewMonth.find((d) => !isDateBlocked(d.isoDate) && !isDateFull(d)) || daysInNewMonth[0];
     if (firstOpenDay) {
       handleSelectDate(firstOpenDay);
     }
@@ -2386,7 +2419,7 @@ function StepBookingCalendar({
     const isoVal = e.target.value;
     if (!isoVal) return;
     const found = dates.find((d) => d.isoDate === isoVal);
-    if (found) {
+    if (found && !isDateBlocked(found.isoDate)) {
       setActiveMonthKey(`${found.year}-${found.month}`);
       handleSelectDate(found);
     }
@@ -2407,6 +2440,14 @@ function StepBookingCalendar({
       />
 
       <div className="mt-4 space-y-4">
+        {/* Blocked Week Fleet Alert Banner */}
+        <div className="p-3 rounded-2xl bg-amber-950/60 border border-amber-500/50 flex items-center gap-2.5 text-xs text-amber-200 shadow-md">
+          <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
+          <div className="text-[11px] leading-snug">
+            <strong className="text-amber-300 font-bold uppercase tracking-wider">Fleet Notice:</strong> Appointments for the week of <strong>October 19–25</strong> are blocked for fleet operations. Earliest available slots begin <strong>Monday, October 26</strong>.
+          </div>
+        </div>
+
         {/* 24-Hour Advance Booking Policy Notice */}
         <div className="p-3 rounded-2xl bg-[#1C2116] border border-[#AA8B63]/40 flex items-center gap-2.5 text-xs shadow-inner">
           <Clock className="h-4 w-4 text-[#AA8B63] shrink-0" />
@@ -2571,9 +2612,10 @@ function StepBookingCalendar({
           <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none w-full max-w-full">
             {visibleDays.map((d) => {
               const isSelected = data.scheduledDate === d.fullDate;
-              const full = isDateFull(d);
+              const isBlocked = isDateBlocked(d.isoDate);
+              const full = isBlocked || isDateFull(d);
               const daySlots = SCHEDULE_BY_DAY[d.dayOfWeek] || [];
-              const availableCount = daySlots.filter((s) => !isSlotBooked(d.isoDate, s.time)).length;
+              const availableCount = isBlocked ? 0 : daySlots.filter((s) => !isSlotBooked(d.isoDate, s.time)).length;
 
               return (
                 <button
@@ -2583,7 +2625,9 @@ function StepBookingCalendar({
                   onClick={() => handleSelectDate(d)}
                   className={cn(
                     "min-w-[62px] sm:min-w-[72px] p-2 sm:p-2.5 rounded-2xl border text-center transition-all duration-200 shrink-0 flex flex-col items-center justify-center relative",
-                    full
+                    isBlocked
+                      ? "opacity-50 bg-[#161811]/70 border-amber-500/30 text-amber-300/60 cursor-not-allowed"
+                      : full
                       ? "opacity-40 bg-[#161811]/60 border-stone-800 text-[#A4AA93]/40 cursor-not-allowed"
                       : isSelected
                       ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-lg scale-105 cursor-pointer"
@@ -2593,14 +2637,18 @@ function StepBookingCalendar({
                   <span
                     className={cn(
                       "text-[9px] font-mono uppercase",
-                      full ? "text-[#A4AA93]/50" : isSelected ? "text-[#161811]/90 font-bold" : "text-[#AA8B63]"
+                      isBlocked ? "text-amber-400/80 font-bold" : full ? "text-[#A4AA93]/50" : isSelected ? "text-[#161811]/90 font-bold" : "text-[#AA8B63]"
                     )}
                   >
                     {d.dayLabel}
                   </span>
                   <span className="font-display font-extrabold text-base my-0.5">{d.dayNum}</span>
                   <span className="text-[9px] font-mono opacity-80">{d.month}</span>
-                  {full ? (
+                  {isBlocked ? (
+                    <span className="text-[7.5px] font-mono font-black text-amber-400 mt-0.5 uppercase tracking-wider">
+                      Blocked
+                    </span>
+                  ) : full ? (
                     <span className="text-[8px] font-mono font-bold text-red-400 mt-0.5 uppercase tracking-wider">
                       Full
                     </span>
@@ -2693,22 +2741,35 @@ function StepBookingCalendar({
                   <span
                     className={cn(
                       "text-[8.5px] font-mono mt-0.5",
-                      booked ? "text-red-400 font-bold" : "text-[#AA8B63] opacity-80"
+                      isDateBlocked(selectedDateObj.isoDate)
+                        ? "text-amber-400 font-bold"
+                        : booked
+                        ? "text-red-400 font-bold"
+                        : "text-[#AA8B63] opacity-80"
                     )}
                   >
-                    {booked ? "Booked · Airtable" : slot.period}
+                    {isDateBlocked(selectedDateObj.isoDate)
+                      ? "Blocked · Fleet"
+                      : booked
+                      ? "Booked · Airtable"
+                      : slot.period}
                   </span>
                 </button>
               );
             })}
           </div>
 
-          {isAllSlotsReserved && (
+          {isDateBlocked(selectedDateObj.isoDate) ? (
+            <div className="mt-3 text-center text-xs font-mono font-bold text-amber-300 bg-amber-950/70 border border-amber-500/50 p-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg">
+              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
+              <span>The week of October 19–25 is blocked for fleet maintenance & operations. Please choose a date starting Monday, October 26.</span>
+            </div>
+          ) : isAllSlotsReserved ? (
             <div className="mt-3 text-center text-xs font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-500/40 p-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md">
               <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
               <span>All arrival windows on {selectedDateObj.dayLabel}, {selectedDateObj.month} {selectedDateObj.dayNum} are reserved in Airtable. Please choose another date above.</span>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
@@ -2765,7 +2826,7 @@ function StepDisclaimerConfirm({
             <p>• <strong>Rabies & Vaccinations:</strong> Up-to-date rabies vaccination compliance confirmed.</p>
             <p>• <strong>Photo & Video Consent:</strong> You authorize SOUVA to take photos and videos of your pet for social media showcases and portfolio.</p>
             <p>• <strong>Parking & Access:</strong> Safe, legal van parking required within reasonable distance.</p>
-            <p>• <strong>Cancellation Policy:</strong> 24-hour advance notice required for schedule modifications.</p>
+            <p>• <strong>Cancellation & Rescheduling:</strong> Free cancellation and rescheduling with 24-hour advance notice, easily accessible directly from your confirmation email or Concierge WhatsApp.</p>
             <p>• <strong>Payment at Doorstep:</strong> Cash, Check, Card, or Zelle upon completion.</p>
           </div>
 

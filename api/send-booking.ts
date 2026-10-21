@@ -72,6 +72,38 @@ export default async function handler(req: any, res: any) {
       signature = null,
     } = booking;
 
+    const resolvedBookingId = (
+      booking.bookingId ||
+      booking.id ||
+      `SOU-${Math.floor(1000 + Math.random() * 9000)}`
+    ).trim();
+
+    const appUrl = (process.env.APP_URL || "https://souva-mobile-pet-grooming.vercel.app").replace(/\/$/, "");
+    const rescheduleUrl = `${appUrl}/?action=reschedule&bookingId=${encodeURIComponent(resolvedBookingId)}&pet=${encodeURIComponent(petName)}&date=${encodeURIComponent(scheduledDate)}&time=${encodeURIComponent(scheduledTime)}`;
+    const cancelUrl = `${appUrl}/?action=cancel&bookingId=${encodeURIComponent(resolvedBookingId)}&pet=${encodeURIComponent(petName)}&date=${encodeURIComponent(scheduledDate)}&time=${encodeURIComponent(scheduledTime)}`;
+
+    const waRescheduleMsg = encodeURIComponent(
+      `Hello SOUVA Mobile Pet Grooming, I need to RESCHEDULE my appointment for ${petName} (Booking ID: ${resolvedBookingId}) currently scheduled on ${scheduledDate} at ${scheduledTime}. My preferred new date is:`
+    );
+    const waCancelMsg = encodeURIComponent(
+      `Hello SOUVA Mobile Pet Grooming, I need to CANCEL my appointment for ${petName} (Booking ID: ${resolvedBookingId}) scheduled on ${scheduledDate} at ${scheduledTime}.`
+    );
+
+    const waRescheduleUrl = `https://wa.me/14153755823?text=${waRescheduleMsg}`;
+    const waCancelUrl = `https://wa.me/14153755823?text=${waCancelMsg}`;
+
+    // Security check: Block appointments for the week of October 19 to 25, 2026
+    const isBlockedWeek =
+      (booking.scheduledDateIso && booking.scheduledDateIso >= "2026-10-19" && booking.scheduledDateIso <= "2026-10-25") ||
+      (typeof scheduledDate === "string" && /Oct(ober)?\s*(19|20|21|22|23|24|25)\b/i.test(scheduledDate));
+
+    if (isBlockedWeek) {
+      return res.status(400).json({
+        success: false,
+        error: "Appointments for the week of October 19 to 25 are blocked for fleet operations. Please select an available date starting October 26.",
+      });
+    }
+
     // 1. Generate the luxury branded PDF invoice with SOUVA brand colors and logo
     const pdfBase64 = await generateBrandInvoicePdf({
       ...booking,
@@ -235,6 +267,14 @@ ${addons && addons.length > 0 ? `• Spa Upgrades: ${addons.join(", ")}\n` : ""}
 • Date: ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
 • Status: Legally Binding Pet Care Agreement Verified
 
+🔄 NEED TO RESCHEDULE OR CANCEL?
+Plans changed? You can easily reschedule your arrival window or cancel your appointment at no cost with 24 hours notice:
+• Reschedule Online: ${rescheduleUrl}
+• Cancel Online: ${cancelUrl}
+• WhatsApp Concierge (Reschedule): ${waRescheduleUrl}
+• WhatsApp Concierge (Cancel): ${waCancelUrl}
+• Phone: +1 (415) 375-5823
+
 Attached to this email is your official SOUVA Service Agreement & Itemized Invoice in PDF.
 
 Warm regards,
@@ -356,6 +396,59 @@ Concierge / WhatsApp: +1 (415) 375-5823 · info@souvagrooming.com`;
           <p style="color: #A4AA93; font-size: 11px; margin: 0; line-height: 1.5;">
             All pet care policies, pre-existing condition acknowledgments, emergency veterinary authorizations, and doorstep service terms have been digitally signed and archived.
           </p>
+        </div>
+
+        <!-- Manage Appointment Card: Reschedule & Cancellation -->
+        <div style="background-color: #1B1E15; border: 1.5px solid #AA8B63; border-radius: 16px; padding: 22px 20px; margin-bottom: 22px; box-shadow: 0 4px 25px rgba(0,0,0,0.45);">
+          <div style="margin-bottom: 12px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">
+            <span style="color: #AA8B63; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px;">
+              🔄 Manage Your Appointment · ${resolvedBookingId}
+            </span>
+          </div>
+
+          <h3 style="color: #FAF0E2; font-size: 17px; margin: 0 0 6px 0; font-weight: 700;">
+            Need to Reschedule or Cancel?
+          </h3>
+          <p style="color: #A4AA93; font-size: 12px; margin: 0 0 16px 0; line-height: 1.5;">
+            Plans changed? You can easily adjust your doorstep arrival window or cancel your booking with at least 24 hours notice at no cost.
+          </p>
+
+          <!-- 1-Click Action Buttons -->
+          <table style="width: 100%; border-collapse: separate; border-spacing: 8px 0; margin-bottom: 14px;">
+            <tr>
+              <td style="width: 50%;">
+                <a href="${rescheduleUrl}" target="_blank"
+                   style="display: block; background: #AA8B63; color: #161811; text-decoration: none; font-weight: 800; font-size: 12px; padding: 12px 14px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; box-shadow: 0 2px 10px rgba(170,139,99,0.3);">
+                  🔄 Reagendar Cita
+                </a>
+              </td>
+              <td style="width: 50%;">
+                <a href="${cancelUrl}" target="_blank"
+                   style="display: block; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.45); color: #FCA5A5; text-decoration: none; font-weight: 700; font-size: 12px; padding: 11px 14px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">
+                  ✕ Cancelar Cita
+                </a>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Direct Concierge Instant Links -->
+          <div style="background: rgba(20, 22, 14, 0.7); border: 1px solid rgba(250, 240, 226, 0.08); border-radius: 12px; padding: 12px 14px; text-align: left;">
+            <span style="color: #AA8B63; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 6px;">
+              💬 Prefer WhatsApp? Direct Concierge Assistance:
+            </span>
+            <div style="font-size: 11.5px; line-height: 1.8;">
+              <div>
+                <a href="${waRescheduleUrl}" target="_blank" style="color: #22C55E; text-decoration: none; font-weight: 600;">
+                  💬 Reagendar por WhatsApp (+1 415 375-5823) →
+                </a>
+              </div>
+              <div>
+                <a href="${waCancelUrl}" target="_blank" style="color: #F87171; text-decoration: none; font-weight: 600;">
+                  ✕ Cancelar por WhatsApp →
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Attached PDF Banner -->

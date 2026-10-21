@@ -34,6 +34,7 @@ import { LocalSeoDirectory } from "@/components/LocalSeoDirectory";
 import { Footer } from "@/components/Footer";
 import { QuickLinks, QuickLinksFloatingButton } from "@/components/QuickLinks";
 import { TermsModal } from "@/components/TermsModal";
+import { ManageAppointmentModal } from "@/components/ManageAppointmentModal";
 import {
   SOUVA_PACKAGES,
   SPA_UPGRADES,
@@ -73,6 +74,21 @@ function AppContent() {
   const [showQuickLinksModal, setShowQuickLinksModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [previewSize, setPreviewSize] = useState<PetSize>("small");
+  const [manageModal, setManageModal] = useState<{
+    isOpen: boolean;
+    action: "reschedule" | "cancel";
+    bookingId: string;
+    petName: string;
+    date: string;
+    time: string;
+  }>({
+    isOpen: false,
+    action: "reschedule",
+    bookingId: "",
+    petName: "",
+    date: "",
+    time: "",
+  });
   const [flowStatus, setFlowStatus] = useState<{ armed: boolean; dispatched: boolean; currentStep?: number }>({
     armed: false,
     dispatched: false,
@@ -90,7 +106,27 @@ function AppContent() {
   };
 
   useEffect(() => {
+    const checkManageAppointmentParams = () => {
+      if (typeof window === "undefined") return;
+      const params = new URLSearchParams(window.location.search);
+      const action = params.get("action");
+      if (action === "reschedule" || action === "cancel") {
+        setManageModal({
+          isOpen: true,
+          action: action as "reschedule" | "cancel",
+          bookingId: params.get("bookingId") || params.get("id") || "",
+          petName: params.get("pet") || params.get("petName") || "your dog",
+          date: params.get("date") || "Upcoming Date",
+          time: params.get("time") || "Arrival Window",
+        });
+        setLoading(false);
+      }
+    };
+
+    checkManageAppointmentParams();
+
     const onLocationChange = () => {
+      checkManageAppointmentParams();
       if (
         window.location.pathname.startsWith("/admin") ||
         window.location.search.includes("admin")
@@ -526,6 +562,46 @@ function AppContent() {
               </p>
             </div>
 
+            {/* OCTOBER PROMO SPECIAL BANNER */}
+            <div className="mb-8 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-[#2B2314] via-[#212718] to-[#161B11] border-2 border-[#AA8B63] shadow-[0_0_30px_rgba(170,139,99,0.35)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-start sm:items-center gap-3.5">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#AA8B63] to-[#806440] text-[#161811] flex items-center justify-center text-2xl shrink-0 shadow-md">
+                  ✨
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-stone-950 font-mono text-[9.5px] font-black uppercase tracking-wider shadow-sm">
+                      SPECIAL OCTOBER PROMO
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-[#AA8B63]/25 border border-[#AA8B63]/60 text-[#FAF0E2] font-mono text-[9px] font-bold uppercase">
+                      FIRST 50 BOOKINGS ONLY
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-400/50 text-emerald-300 font-mono text-[9px] font-bold uppercase">
+                      NEW CUSTOMERS
+                    </span>
+                  </div>
+                  <h3 className="text-base sm:text-xl font-display font-extrabold text-[#FAF0E2] mt-1.5 leading-snug">
+                    Essential Full Groom: <span className="text-amber-300 font-black text-xl sm:text-2xl">$99</span>{" "}
+                    <span className="text-xs sm:text-sm font-mono text-amber-200/90 font-bold block sm:inline">
+                      (+$30 después de 50 lb · Over 50 lb: $129)
+                    </span>
+                  </h3>
+                  <p className="text-xs text-[#A4AA93] mt-1 leading-relaxed">
+                    Upfront doorstep grooming. Regular rates $110–$170. Includes luxury bath, blow-dry, ear flush, nail grind & full haircut.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={scrollToBookingFlow}
+                className="w-full md:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-[#AA8B63] via-[#C4A67E] to-[#AA8B63] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider hover:brightness-110 active:scale-98 transition-all shrink-0 cursor-pointer shadow-lg flex items-center justify-center gap-1.5"
+              >
+                <span>Claim $99 Promo</span>
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+
             {/* Interactive SIZE GUIDE Switcher */}
             <div className="mb-10 max-w-3xl mx-auto">
               <div className="flex items-center justify-between mb-2.5 px-1">
@@ -584,14 +660,24 @@ function AppContent() {
                     )}
                   >
                     {isFullGroom ? (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[9.5px] font-black font-mono uppercase tracking-wider shadow-md whitespace-nowrap z-20">
-                        ⚡ 1ST 50 BOOKINGS · $99 PROMO
-                      </span>
-                    ) : pkg.popular && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[10px] font-bold font-mono uppercase tracking-wider shadow-md">
-                        Signature Choice
-                      </span>
-                    )}
+                      <div className="mb-3.5 flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] text-[10px] font-black font-mono uppercase tracking-wider shadow-md">
+                          ⚡ 1ST 50 BOOKINGS · $99 PROMO
+                        </span>
+                        <span className="text-[9.5px] font-mono font-bold text-amber-300 uppercase">
+                          Special Offer
+                        </span>
+                      </div>
+                    ) : pkg.popular ? (
+                      <div className="mb-3.5 flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#AA8B63] text-[#161811] text-[10px] font-bold font-mono uppercase tracking-wider shadow-md">
+                          ★ Signature Choice
+                        </span>
+                        <span className="text-[9.5px] font-mono text-[#AA8B63] uppercase">
+                          Most Popular
+                        </span>
+                      </div>
+                    ) : null}
 
                     <div>
                       <div className="flex items-center justify-between mb-3">
@@ -618,9 +704,11 @@ function AppContent() {
                               ${currentPrice}
                             </span>
                           </div>
-                          {isFullGroom && isOver50Lbs && (
-                            <span className="text-[9.5px] font-mono text-[#AA8B63] block">
-                              +$30 Dogs over 50 lb
+                          {isFullGroom && (
+                            <span className="text-[10px] font-mono text-amber-200 font-bold block mt-0.5">
+                              {isOver50Lbs
+                                ? "Includes +$30 (Dogs over 50 lb)"
+                                : "+$30 después de 50 lb ($129)"}
                             </span>
                           )}
                         </div>
@@ -1069,6 +1157,24 @@ function AppContent() {
       <TermsModal
         isOpen={showTermsModal}
         onClose={() => setShowTermsModal(false)}
+      />
+
+      {/* Customer Self-Service Reschedule & Cancellation Modal */}
+      <ManageAppointmentModal
+        isOpen={manageModal.isOpen}
+        onClose={() => {
+          setManageModal((prev) => ({ ...prev, isOpen: false }));
+          // Clean URL parameters without reloading
+          if (typeof window !== "undefined" && window.location.search.includes("action=")) {
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, "", cleanUrl);
+          }
+        }}
+        initialAction={manageModal.action}
+        bookingId={manageModal.bookingId}
+        petName={manageModal.petName}
+        currentDate={manageModal.date}
+        currentTime={manageModal.time}
       />
     </div>
   );

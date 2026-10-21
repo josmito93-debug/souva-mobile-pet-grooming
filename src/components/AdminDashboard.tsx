@@ -1292,6 +1292,7 @@ function AdminCalendarScheduleView({
                 return rIso === d.iso;
               });
 
+              const isBlockedDay = d.iso >= "2026-10-19" && d.iso <= "2026-10-25";
               const isSelected = selectedDayIso === d.iso;
               const hasMultiDogDay = dayReqs.some(
                 (r) => (r.pets && r.pets.length > 1) || (r.dogCount && r.dogCount > 1)
@@ -1303,7 +1304,9 @@ function AdminCalendarScheduleView({
                   onClick={() => setSelectedDayIso(d.iso)}
                   className={cn(
                     "min-h-[82px] sm:min-h-[96px] p-2 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between relative",
-                    !d.currentMonth
+                    isBlockedDay
+                      ? "bg-amber-950/20 border-amber-500/40"
+                      : !d.currentMonth
                       ? "opacity-35 bg-[#14160F]/40 border-stone-800"
                       : isSelected
                       ? "bg-[#242A1D] border-[#AA8B63] shadow-lg ring-1 ring-[#AA8B63]"
@@ -1314,17 +1317,21 @@ function AdminCalendarScheduleView({
                     <span
                       className={cn(
                         "text-xs font-mono font-bold",
-                        isSelected ? "text-[#AA8B63] scale-110" : "text-[#FAF0E2]"
+                        isBlockedDay ? "text-amber-300" : isSelected ? "text-[#AA8B63] scale-110" : "text-[#FAF0E2]"
                       )}
                     >
                       {d.dayNum}
                     </span>
 
-                    {dayReqs.length > 0 && (
+                    {isBlockedDay ? (
+                      <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold">
+                        BLOCKED
+                      </span>
+                    ) : dayReqs.length > 0 ? (
                       <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-[#AA8B63] text-[#161811] font-black">
                         {dayReqs.length}
                       </span>
-                    )}
+                    ) : null}
                   </div>
 
                   {/* Day Appointment Chips */}
@@ -1377,6 +1384,13 @@ function AdminCalendarScheduleView({
               {dayAppointments.length} appointment{dayAppointments.length !== 1 ? "s" : ""}
             </span>
           </div>
+
+          {selectedDayIso >= "2026-10-19" && selectedDayIso <= "2026-10-25" && (
+            <div className="mt-2 p-2.5 rounded-xl bg-amber-950/60 border border-amber-500/50 flex items-center gap-2 text-xs text-amber-200">
+              <span className="font-mono font-bold text-amber-300">🔒 WEEK 19–25 BLOCKED:</span>
+              <span>Client self-booking is disabled for fleet maintenance & operations.</span>
+            </div>
+          )}
 
           <div className="flex-1 overflow-y-auto mt-3 space-y-3 pr-1">
             {dayAppointments.length === 0 ? (
