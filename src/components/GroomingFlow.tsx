@@ -858,6 +858,24 @@ export function GroomingFlow({
       localStorage.removeItem(STORAGE_KEY);
     } catch (e) {}
 
+    // Track Meta Pixel Conversion Events (Schedule & Lead)
+    try {
+      if (typeof window !== "undefined" && (window as any).fbq) {
+        (window as any).fbq("track", "Schedule", {
+          content_name: finalPackages || "Mobile Dog Grooming",
+          value: finalTotal,
+          currency: "USD",
+        });
+        (window as any).fbq("track", "Lead", {
+          content_name: "Doorstep Booking Confirmed",
+          value: finalTotal,
+          currency: "USD",
+        });
+      }
+    } catch (pixelErr) {
+      console.warn("Meta Pixel track error:", pixelErr);
+    }
+
     setIsSubmitting(false);
     setDir("fwd");
     setCompleted(true);
