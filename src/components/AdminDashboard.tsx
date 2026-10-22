@@ -118,7 +118,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
       const res = await fetch("/api/admin-bookings");
       if (res.ok) {
         const data = await res.json();
-        if (data.success && Array.isArray(data.requests) && data.requests.length > 0) {
+        if (data.success && Array.isArray(data.requests)) {
           const airtableMap = new Map<string, DispatchRequest>();
           data.requests.forEach((r: DispatchRequest) => {
             airtableMap.set(r.id, r);
@@ -146,7 +146,9 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
             setSelectedRequest(merged[0]);
           } else if (selectedRequest) {
             const found = merged.find((r) => r.id === selectedRequest.id);
-            setSelectedRequest(found || merged[0]);
+            setSelectedRequest(found || merged[0] || null);
+          } else if (merged.length === 0) {
+            setSelectedRequest(null);
           }
           return;
         }

@@ -304,12 +304,6 @@ function AppContent() {
     return (
       <ClientPortal
         onBackToSite={navigateToSite}
-        onBookNewClick={() => {
-          navigateToSite();
-          setTimeout(() => {
-            scrollToBookingFlow();
-          }, 120);
-        }}
       />
     );
   }

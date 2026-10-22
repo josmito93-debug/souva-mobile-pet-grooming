@@ -23,8 +23,11 @@ import {
   Edit3,
   Sliders,
   ArrowRight,
+  ArrowLeft,
   Truck,
   Zap,
+  Award,
+  Leaf,
   X,
 } from "lucide-react";
 import { GroomingFlow } from "@/components/GroomingFlow";
@@ -227,7 +230,7 @@ export function ClientPortal({
   // Appointments State
   const [appointments, setAppointments] = useState<DispatchRequest[]>([]);
   const [isLoadingAppointments, setIsLoadingAppointments] = useState(false);
-  const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "pets" | "perks">("upcoming");
+  const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "pets" | "perks" | "book">("upcoming");
   const [showBookingModal, setShowBookingModal] = useState(false);
 
   // Auto-login from email link (?email=...&bookingId=...&action=edit)
@@ -446,13 +449,17 @@ export function ClientPortal({
           <span className="hidden sm:inline-block h-4 w-[1px] bg-[#FAF0E2]/20" />
 
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#AA8B63]/25 border border-[#AA8B63]/50 text-[10.5px] font-mono font-bold uppercase tracking-wider text-[#FAF0E2]">
+            <span className="px-3 py-1 rounded-full bg-[#181B12] border border-[#AA8B63]/40 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-[#FAF0E2] shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)]">
               Client Portal
             </span>
-            <span className="hidden md:inline-flex items-center gap-1.5 text-[10.5px] font-mono text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Verified Pet Parent Portal</span>
-            </span>
+            <div className="hidden md:inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#131E15] border border-emerald-500/40 shadow-[0_2px_10px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] text-[10px] font-mono uppercase tracking-[0.16em] font-bold text-emerald-300">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+              <span>Verified Parent Portal</span>
+            </div>
           </div>
         </div>
 
@@ -479,16 +486,14 @@ export function ClientPortal({
                 </span>
               </div>
 
-              {onBookNewClick && (
-                <button
-                  type="button"
-                  onClick={onBookNewClick}
-                  className="px-3.5 py-1.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center gap-1.5 shrink-0"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  <span>Book New Van</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setActiveTab("book")}
+                className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center gap-1.5 shrink-0 hover:brightness-110 active:scale-95"
+              >
+                <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+                <span>Book Van</span>
+              </button>
 
               <button
                 type="button"
@@ -694,11 +699,12 @@ export function ClientPortal({
                   <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-[#14160F]" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-1.5 text-xs text-[#A4AA93]">
+                  <div className="flex items-center gap-2 text-xs text-[#A4AA93]">
                     <span>Welcome back,</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#202517] text-[#AA8B63] font-bold">
-                      VIP Parent
-                    </span>
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1C2216] border border-[#AA8B63]/40 shadow-[0_2px_6px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.12)] text-[9.5px] font-mono uppercase tracking-[0.14em] text-[#AA8B63] font-bold">
+                      <Sparkles className="h-2.5 w-2.5 text-amber-300" />
+                      <span>VIP Parent</span>
+                    </div>
                   </div>
                   <h1 className="font-display font-extrabold text-xl sm:text-2xl text-[#FAF0E2] tracking-tight">
                     {client.name}
@@ -729,10 +735,7 @@ export function ClientPortal({
 
                 <button
                   type="button"
-                  onClick={() => {
-                    if (onBookNewClick) onBookNewClick();
-                    else setShowBookingModal(true);
-                  }}
+                  onClick={() => setActiveTab("book")}
                   className="px-4 py-2.5 rounded-full bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] font-rounded font-extrabold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 cursor-pointer hover:brightness-110 active:scale-95"
                 >
                   <Plus className="h-4 w-4 stroke-[2.5]" />
@@ -758,17 +761,18 @@ export function ClientPortal({
                 {/* Top Status Strip */}
                 <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#FAF0E2]/10 relative z-10">
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-full bg-emerald-950 border border-emerald-500/50 text-emerald-300 text-[10.5px] font-mono font-bold flex items-center gap-1.5 uppercase tracking-wide">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-950/90 border border-emerald-500/50 shadow-[0_2px_10px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] text-emerald-300 text-[10px] font-mono font-bold uppercase tracking-wider">
                       <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <Truck className="h-3.5 w-3.5 text-emerald-400" />
                       <span>{nextAppointment.status === "en_route" ? "Van En Route (Driving to Door)" : "Confirmed Route"}</span>
-                    </span>
-                    <span className="text-[11px] font-mono text-[#AA8B63] font-bold">
+                    </div>
+                    <span className="text-[11px] font-mono text-[#AA8B63] font-bold px-3 py-1 rounded-full bg-[#181B12] border border-[#FAF0E2]/10 shadow-[0_2px_6px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.08)]">
                       {nextAppointment.id}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs font-mono text-[#A4AA93]">
-                    <Truck className="h-3.5 w-3.5 text-[#AA8B63]" />
-                    <span className="hidden sm:inline">SOUVA Solar Fleet</span>
+                  <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#181B12]/80 border border-[#FAF0E2]/10 shadow-[0_2px_6px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.08)] text-[10px] font-mono text-[#AA8B63] uppercase tracking-wider font-semibold">
+                    <MapPin className="h-3 w-3 text-[#AA8B63]" />
+                    <span>SF & Peninsula Fleet</span>
                   </div>
                 </div>
 
@@ -789,8 +793,8 @@ export function ClientPortal({
                 {/* Dog & Service Cardlet (like Image 2 & 3) */}
                 <div className="p-4 rounded-2xl bg-[#13150E]/80 border border-[#FAF0E2]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
                   <div className="flex items-center gap-3.5">
-                    <div className="h-12 w-12 rounded-2xl bg-[#22271A] border border-[#AA8B63]/40 flex items-center justify-center text-2xl shadow-inner shrink-0">
-                      🐶
+                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#272E1D] to-[#181C12] border border-[#AA8B63]/40 shadow-[0_2px_10px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] flex items-center justify-center text-amber-300 shrink-0">
+                      <Heart className="h-6 w-6 text-[#AA8B63] fill-[#AA8B63]/20" />
                     </div>
                     <div>
                       <h4 className="font-display font-bold text-base text-[#FAF0E2]">
@@ -857,9 +861,10 @@ export function ClientPortal({
               <div className="relative rounded-[2rem] bg-gradient-to-br from-[#1E2317] via-[#171A11] to-[#12140D] border-2 border-[#AA8B63]/40 p-6 sm:p-8 shadow-2xl overflow-hidden text-center sm:text-left flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div className="absolute top-0 right-0 w-60 h-60 bg-[#AA8B63]/15 rounded-full blur-3xl pointer-events-none" />
                 <div className="space-y-2 relative z-10 max-w-xl">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-300 text-stone-950 text-[10px] font-sans font-black uppercase tracking-wider shadow-sm">
-                    🐾 20% OFF 2ND DOG PROMO
-                  </span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-300 text-stone-950 text-[10px] font-sans font-black uppercase tracking-wider shadow-[0_2px_8px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.4)]">
+                    <Sparkles className="h-3 w-3" />
+                    <span>20% OFF 2ND DOG PROMO</span>
+                  </div>
                   <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-[#FAF0E2] leading-tight">
                     Luxury 1-on-1 Grooming At Your Doorstep
                   </h2>
@@ -870,10 +875,7 @@ export function ClientPortal({
                 <div className="relative z-10 shrink-0">
                   <button
                     type="button"
-                    onClick={() => {
-                      if (onBookNewClick) onBookNewClick();
-                      else setShowBookingModal(true);
-                    }}
+                    onClick={() => setActiveTab("book")}
                     className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] font-rounded font-extrabold text-xs uppercase tracking-wider hover:brightness-110 active:scale-98 transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Plus className="h-4 w-4 stroke-[2.5]" />
@@ -939,6 +941,20 @@ export function ClientPortal({
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>VIP Care & Perks</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("book")}
+                className={cn(
+                  "px-5 py-2.5 rounded-full font-rounded font-bold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-sm",
+                  activeTab === "book"
+                    ? "bg-[#AA8B63] text-[#161811] shadow-md scale-102"
+                    : "bg-[#181B12] text-[#A4AA93] border border-[#FAF0E2]/10 hover:text-[#FAF0E2]"
+                )}
+              >
+                <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+                <span>Book Mobile Van</span>
               </button>
             </div>
 
@@ -1153,8 +1169,8 @@ export function ClientPortal({
                     >
                       <div className="space-y-3">
                         <div className="flex items-center gap-3.5">
-                          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#24291B] to-[#181B12] border border-[#AA8B63]/40 flex items-center justify-center font-bold text-2xl shadow-inner shrink-0">
-                            🐶
+                          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#272E1D] to-[#181C12] border border-[#AA8B63]/40 shadow-[0_2px_10px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] flex items-center justify-center font-bold text-amber-300 shrink-0">
+                            <Heart className="h-7 w-7 text-[#AA8B63] fill-[#AA8B63]/25" />
                           </div>
                           <div>
                             <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
@@ -1163,31 +1179,34 @@ export function ClientPortal({
                             <span className="text-xs text-[#A4AA93] block">
                               {pet.breed}
                             </span>
-                            <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-[#202517] text-[10px] font-mono uppercase text-[#AA8B63] font-bold">
+                            <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-[#202517] border border-[#AA8B63]/30 shadow-[0_2px_6px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.1)] text-[10px] font-mono uppercase text-[#AA8B63] font-bold">
                               Size: {pet.size.toUpperCase()}
                             </span>
                           </div>
                         </div>
 
-                        <div className="pt-3 border-t border-[#FAF0E2]/10 text-xs text-[#A4AA93] space-y-1.5">
+                        <div className="pt-3 border-t border-[#FAF0E2]/10 text-xs text-[#A4AA93] space-y-2">
                           <div className="flex items-center justify-between">
                             <span>Rabies Vaccine Status:</span>
-                            <span className="text-emerald-400 font-bold">✓ Confirmed</span>
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 shadow-[0_2px_6px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.12)] text-[10px] font-mono text-emerald-300 font-bold">
+                              <ShieldCheck className="h-3 w-3 text-emerald-400" />
+                              <span>Verified</span>
+                            </div>
                           </div>
                           <div className="flex items-center justify-between">
                             <span>Care Standard:</span>
-                            <span className="text-[#FAF0E2]">1-on-1 Cage-Free Suite</span>
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#202517] border border-[#AA8B63]/30 shadow-[0_2px_6px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.08)] text-[10px] font-mono text-[#FAF0E2]">
+                              <Sparkles className="h-3 w-3 text-[#AA8B63]" />
+                              <span>1-on-1 Suite</span>
+                            </div>
                           </div>
                         </div>
                       </div>
 
                       <button
                         type="button"
-                        onClick={() => {
-                          if (onBookNewClick) onBookNewClick();
-                          else setShowBookingModal(true);
-                        }}
-                        className="w-full mt-2 py-2.5 px-3 rounded-xl bg-[#202517] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] font-mono font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#AA8B63]/30"
+                        onClick={() => setActiveTab("book")}
+                        className="w-full mt-2 py-2.5 px-3 rounded-xl bg-[#202517] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] font-mono font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#AA8B63]/30 shadow-md"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         <span>Book Van for {pet.name}</span>
@@ -1197,10 +1216,7 @@ export function ClientPortal({
 
                   {/* Add Dog Card with Dashed Border (Image 2 style) */}
                   <div
-                    onClick={() => {
-                      if (onBookNewClick) onBookNewClick();
-                      else setShowBookingModal(true);
-                    }}
+                    onClick={() => setActiveTab("book")}
                     className="p-6 rounded-3xl bg-[#161811]/60 border-2 border-dashed border-[#AA8B63]/40 hover:border-[#AA8B63] transition-all flex flex-col items-center justify-center text-center cursor-pointer min-h-[200px] group shadow-inner"
                   >
                     <div className="h-12 w-12 rounded-full bg-[#202517] group-hover:bg-[#AA8B63] text-[#AA8B63] group-hover:text-[#161811] flex items-center justify-center text-xl transition-all shadow-md mb-2">
@@ -1251,10 +1267,7 @@ export function ClientPortal({
                         </span>
                         <button
                           type="button"
-                          onClick={() => {
-                            if (onBookNewClick) onBookNewClick();
-                            else setShowBookingModal(true);
-                          }}
+                          onClick={() => setActiveTab("book")}
                           className="px-4 py-2 rounded-full bg-[#25281D] hover:bg-[#AA8B63] hover:text-[#161811] text-xs font-mono font-bold text-[#FAF0E2] transition-colors cursor-pointer border border-[#AA8B63]/30"
                         >
                           Book Again
@@ -1270,8 +1283,8 @@ export function ClientPortal({
             {activeTab === "perks" && (
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="p-6 rounded-3xl bg-[#191D13] border border-[#FAF0E2]/10 space-y-3">
-                  <div className="h-12 w-12 rounded-2xl bg-[#22271A] border border-[#AA8B63]/30 text-2xl flex items-center justify-center">
-                    🌿
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#20291C] to-[#161B12] border border-[#AA8B63]/30 shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] flex items-center justify-center">
+                    <Leaf className="h-6 w-6 text-emerald-400" />
                   </div>
                   <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
                     Hydra® Brazilian Botanical Spa
@@ -1282,8 +1295,8 @@ export function ClientPortal({
                 </div>
 
                 <div className="p-6 rounded-3xl bg-[#191D13] border border-[#FAF0E2]/10 space-y-3">
-                  <div className="h-12 w-12 rounded-2xl bg-[#22271A] border border-[#AA8B63]/30 text-2xl flex items-center justify-center">
-                    🐾
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#20291C] to-[#161B12] border border-[#AA8B63]/30 shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] flex items-center justify-center">
+                    <Award className="h-6 w-6 text-amber-300" />
                   </div>
                   <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
                     20% Multi-Dog VIP Benefit
@@ -1294,8 +1307,8 @@ export function ClientPortal({
                 </div>
 
                 <div className="p-6 rounded-3xl bg-[#191D13] border border-[#FAF0E2]/10 space-y-3">
-                  <div className="h-12 w-12 rounded-2xl bg-[#22271A] border border-[#AA8B63]/30 text-2xl flex items-center justify-center">
-                    ☀️
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#20291C] to-[#161B12] border border-[#AA8B63]/30 shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] flex items-center justify-center">
+                    <Zap className="h-6 w-6 text-amber-400" />
                   </div>
                   <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
                     100% Solar-Powered Mobile Fleet
@@ -1306,8 +1319,8 @@ export function ClientPortal({
                 </div>
 
                 <div className="p-6 rounded-3xl bg-[#191D13] border border-[#FAF0E2]/10 space-y-3">
-                  <div className="h-12 w-12 rounded-2xl bg-[#22271A] border border-[#AA8B63]/30 text-2xl flex items-center justify-center">
-                    🛡️
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#20291C] to-[#161B12] border border-[#AA8B63]/30 shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] flex items-center justify-center">
+                    <ShieldCheck className="h-6 w-6 text-emerald-400" />
                   </div>
                   <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
                     1-on-1 Cage-Free Sanctuary
@@ -1315,6 +1328,59 @@ export function ClientPortal({
                   <p className="text-xs text-[#A4AA93] leading-relaxed">
                     Your dog receives the dedicated, undivided attention of a single master groomer from start to finish. Never caged, never hurried.
                   </p>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB 5: SEAMLESS IN-PORTAL BOOKING FLOW (UNBOXED) ── */}
+            {activeTab === "book" && (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-[#1D2216] via-[#1A1D13] to-[#14160E] border-2 border-[#AA8B63]/40 shadow-xl">
+                  <div className="flex items-center gap-3.5">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("upcoming")}
+                      className="h-10 w-10 rounded-2xl bg-[#22271A] border border-[#AA8B63]/30 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] transition-colors flex items-center justify-center cursor-pointer shadow-md shrink-0"
+                      title="Return to Dashboard Overview"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#181B12] border border-[#AA8B63]/30 shadow-[0_2px_8px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.12)] text-[9.5px] font-mono uppercase tracking-[0.16em] font-bold text-amber-200 mb-1">
+                        <Sparkles className="h-3 w-3 text-amber-300" />
+                        <span>VIP Doorstep Service</span>
+                      </div>
+                      <h2 className="font-display font-extrabold text-xl sm:text-2xl text-[#FAF0E2] tracking-tight">
+                        Schedule Mobile Van to Your Door
+                      </h2>
+                      <p className="text-xs text-[#A4AA93]">
+                        1-on-1 cage-free spa session inside our 100% solar vehicle in San Francisco & Peninsula.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("upcoming")}
+                    className="self-start sm:self-center px-4 py-2 rounded-full bg-[#202517] hover:bg-[#AA8B63] hover:text-[#161811] text-xs font-mono font-bold text-[#FAF0E2] transition-colors cursor-pointer border border-[#FAF0E2]/15 shrink-0"
+                  >
+                    Cancel & Return
+                  </button>
+                </div>
+
+                {/* Seamless Unboxed GroomingFlow */}
+                <div className="p-4 sm:p-8 rounded-[2rem] bg-[#161910] border-2 border-[#AA8B63]/30 shadow-2xl">
+                  <GroomingFlow
+                    onStatus={(s) => {
+                      if (s.dispatched) {
+                        showToast("New appointment booked and synced to your portal!");
+                        setTimeout(() => {
+                          setActiveTab("upcoming");
+                          if (client) refreshAppointments(client);
+                        }, 1200);
+                      }
+                    }}
+                  />
                 </div>
               </div>
             )}
@@ -1350,44 +1416,6 @@ export function ClientPortal({
         currentTime={quickManageTarget.appointment?.scheduledTime || ""}
       />
 
-      {/* ── MODAL: IN-PORTAL BOOKING FLOW ── */}
-      {showBookingModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-4xl bg-[#14160F] border-2 border-[#AA8B63] rounded-3xl shadow-2xl p-4 sm:p-6 my-auto text-[#FAF0E2] max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-[#FAF0E2]/10 mb-4 sticky top-0 bg-[#14160F] z-10">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🐾</span>
-                <h3 className="font-display font-bold text-lg text-[#FAF0E2]">
-                  Book Doorstep Mobile Van
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowBookingModal(false);
-                  if (client) refreshAppointments(client);
-                }}
-                className="h-8 w-8 rounded-full bg-[#202517] hover:bg-[#AA8B63] text-[#FAF0E2] hover:text-[#161811] flex items-center justify-center transition-colors cursor-pointer border border-[#FAF0E2]/10"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <GroomingFlow
-              onStatus={(s) => {
-                if (s.dispatched) {
-                  showToast("New appointment booked and synced to your portal!");
-                  setTimeout(() => {
-                    setShowBookingModal(false);
-                    if (client) refreshAppointments(client);
-                  }, 1500);
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
-
       {/* ── MOBILE / APP BOTTOM NAVIGATION DOCK ── */}
       {client && (
         <nav className="sm:hidden fixed bottom-3 left-3 right-3 z-40 bg-[#161811]/95 backdrop-blur-xl border border-[#AA8B63]/40 rounded-2xl p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.8)] flex items-center justify-around">
@@ -1405,8 +1433,13 @@ export function ClientPortal({
 
           <button
             type="button"
-            onClick={() => setShowBookingModal(true)}
-            className="flex flex-col items-center gap-0.5 py-1.5 px-3.5 rounded-xl bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] font-rounded font-extrabold text-[10px] shadow-md -translate-y-2 cursor-pointer active:scale-95 transition-transform"
+            onClick={() => setActiveTab("book")}
+            className={cn(
+              "flex flex-col items-center gap-0.5 py-1.5 px-3.5 rounded-xl text-[10px] font-rounded font-extrabold shadow-md -translate-y-2 cursor-pointer active:scale-95 transition-transform",
+              activeTab === "book"
+                ? "bg-amber-300 text-stone-950 scale-105"
+                : "bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811]"
+            )}
           >
             <Plus className="h-4 w-4 stroke-[2.5]" />
             <span>Book</span>

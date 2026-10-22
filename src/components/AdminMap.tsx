@@ -76,6 +76,14 @@ export function AdminMap({
 
     // Plot customer request markers
     requests.forEach((req) => {
+      let lat = Number(req.lat);
+      let lng = Number(req.lng);
+
+      if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+        lat = 37.7749;
+        lng = -122.4194;
+      }
+
       const isSelected = selectedRequest?.id === req.id;
       const statusColor =
         req.status === "en_route"
@@ -138,7 +146,7 @@ export function AdminMap({
         iconAnchor: [20, 25],
       });
 
-      const marker = L.marker([req.lat, req.lng], { icon: customIcon }).addTo(map);
+      const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
 
       marker.on("click", () => {
         onSelectRequest(req);
@@ -149,8 +157,8 @@ export function AdminMap({
 
     if (requests.length > 0 && !selectedRequest) {
       const validPoints = requests
-        .map((r) => [r.lat, r.lng])
-        .filter(([lat, lng]) => !isNaN(lat) && !isNaN(lng) && lat !== 0);
+        .map((r) => [Number(r.lat), Number(r.lng)])
+        .filter(([lat, lng]) => !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0);
       if (validPoints.length > 0) {
         try {
           const bounds = L.latLngBounds(validPoints as [number, number][]);
@@ -158,17 +166,35 @@ export function AdminMap({
         } catch {}
       }
     }
+
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
   }, [requests, selectedRequest, onSelectRequest]);
+
+  // Keep map properly sized upon container resize / mobile orientation change
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const ro = new ResizeObserver(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    });
+    ro.observe(mapContainerRef.current);
+    return () => ro.disconnect();
+  }, []);
 
   // When selectedRequest changes, smoothly fly to its coordinates
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     setTimeout(() => {
       mapInstanceRef.current?.invalidateSize();
-    }, 150);
+    }, 100);
 
     if (!selectedRequest) return;
-    mapInstanceRef.current.flyTo([selectedRequest.lat, selectedRequest.lng], 13, {
+    const sLat = Number(selectedRequest.lat) || 37.7749;
+    const sLng = Number(selectedRequest.lng) || -122.4194;
+    mapInstanceRef.current.flyTo([sLat, sLng], 13, {
       duration: 1.2,
     });
   }, [selectedRequest, requests]);
@@ -178,9 +204,23 @@ export function AdminMap({
       <div ref={mapContainerRef} className="w-full h-full min-h-[380px] z-0" />
 
       {/* Map Overlay Badge */}
-      <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-xl bg-[#161811]/85 backdrop-blur-md border border-[#FAF0E2]/15 text-xs font-mono text-[#FAF0E2] flex items-center gap-2 shadow-lg">
-        <span className="h-2 w-2 rounded-full bg-[#AA8B63] animate-pulse" />
-        <span>LIVE FLEET RADAR · SAN FRANCISCO & PENINSULA FLEET</span>
+      <div className="absolute top-4 left-4 right-4 z-10 px-3 py-1.5 rounded-xl bg-[#161811]/90 backdrop-blur-md border border-[#FAF0E2]/15 text-xs font-mono text-[#FAF0E2] flex items-center justify-between gap-2 shadow-lg">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-[#AA8B63] animate-pulse" />
+          <span className="font-bold text-[11px] sm:text-xs">LIVE FLEET RADAR · SF & PENINSULA</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.setView([37.66, -122.42], 11);
+              mapInstanceRef.current.invalidateSize();
+            }
+          }}
+          className="px-2.5 py-0.5 rounded-lg bg-[#22271A] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] transition-colors cursor-pointer text-[10px] font-mono font-bold"
+        >
+          Center Hub
+        </button>
       </div>
     </div>
   );
