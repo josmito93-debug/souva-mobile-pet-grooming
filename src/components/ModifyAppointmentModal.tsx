@@ -294,7 +294,7 @@ function ModifyAppointmentModalContent({
       }, 1000);
     } catch (err: any) {
       console.error("Modify appointment error:", err);
-      setErrorMessage("Unable to sync changes to Airtable. Your changes were applied locally.");
+      setErrorMessage("Unable to save changes right now. Please try again or contact concierge.");
       setIsSaving(false);
     }
   };
@@ -762,17 +762,17 @@ function ModifyAppointmentModalContent({
               {isSaving ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin text-[#161811]" />
-                  <span>Syncing to Airtable...</span>
+                  <span>Saving changes...</span>
                 </>
               ) : saveSuccess ? (
                 <>
                   <Check className="h-4 w-4 text-[#161811]" />
-                  <span>Saved & Synchronized!</span>
+                  <span>Saved Successfully!</span>
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4 text-[#161811]" />
-                  <span>Save All Changes & Sync</span>
+                  <span>Save All Changes</span>
                 </>
               )}
             </button>

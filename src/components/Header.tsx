@@ -66,7 +66,6 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: He
   const navItems = [
     { label: "Book Now", href: "#book", action: onBookClick, icon: Calendar, highlight: true },
     { label: "Client Portal (My Bookings)", href: "/portal", action: onOpenClientPortal, icon: User },
-    { label: "Quick Links Hub", href: "#quick-links", action: onOpenQuickLinks, icon: Sparkles },
     { label: "Services & Pricing", href: "#services", action: handleScrollToServices, icon: Scissors },
     { label: "FAQs & Inquiries", href: "#faq", icon: HelpCircle },
     { label: "About SOUVA", href: "#about", icon: Users },
@@ -102,18 +101,6 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: He
 
           {/* Action CTAs */}
           <div className="flex items-center gap-2 sm:gap-2.5 text-xs shrink-0 ml-auto">
-            {onOpenClientPortal && (
-              <button
-                type="button"
-                onClick={onOpenClientPortal}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#14160E] hover:bg-[#AA8B63] hover:text-[#161811] text-amber-200 border border-amber-300/50 font-rounded font-bold text-[11px] uppercase tracking-wide transition-all shadow-sm cursor-pointer"
-                title="Log In to View or Modify Bookings"
-              >
-                <User className="h-3 w-3 text-amber-300" />
-                <span>Client Login</span>
-              </button>
-            )}
-
             <button
               type="button"
               onClick={onBookClick}
@@ -182,79 +169,30 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: He
           <a href="#reviews" className="hover:text-[#AA8B63] transition-colors">
             Reviews
           </a>
-          {onOpenClientPortal && (
-            <button
-              type="button"
-              onClick={onOpenClientPortal}
-              className="hover:text-[#AA8B63] transition-colors cursor-pointer flex items-center gap-1 font-semibold text-[#FAF0E2]"
-            >
-              <User className="h-3.5 w-3.5 text-[#AA8B63]" />
-              <span>Client Portal</span>
-            </button>
-          )}
-          {onOpenQuickLinks && (
-            <button
-              type="button"
-              onClick={onOpenQuickLinks}
-              className="px-2.5 py-1 rounded-full bg-[#1C2016] border border-[#AA8B63]/40 hover:border-[#AA8B63] hover:text-[#AA8B63] transition-colors cursor-pointer flex items-center gap-1.5 text-[11px] font-mono text-[#FAF0E2]"
-              title="Open SOUVA Quick Links Hub"
-            >
-              <Sparkles className="h-3 w-3 text-[#AA8B63]" />
-              <span>Quick Links</span>
-            </button>
-          )}
         </nav>
 
         {/* Action Controls & Phone */}
         <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* Social Icons (Instagram & Facebook) */}
-          <div className="hidden md:flex items-center gap-1.5 border-r border-[#FAF0E2]/15 pr-2.5">
-            <a
-              href="https://www.instagram.com/souvagrooming"
-              target="_blank"
-              rel="noreferrer"
-              className="p-2 rounded-full bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] hover:scale-105 transition-all shadow-sm"
-              aria-label="Instagram"
-              title="Follow us on Instagram (@souvagrooming)"
-            >
-              <Instagram className="h-3.5 w-3.5" />
-            </a>
-            <a
-              href="https://www.facebook.com/souvagrooming"
-              target="_blank"
-              rel="noreferrer"
-              className="p-2 rounded-full bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] hover:scale-105 transition-all shadow-sm"
-              aria-label="Facebook"
-              title="Follow us on Facebook (@souvagrooming)"
-            >
-              <Facebook className="h-3.5 w-3.5" />
-            </a>
-          </div>
-
           {/* Phone Call Link (Prominent Call Us) */}
           <a
             href="tel:+14153755823"
-            className="hidden sm:inline-flex items-center gap-2 rounded-full border-2 border-[#AA8B63] bg-[#22271A] px-4 py-1.5 text-xs font-mono font-black text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] transition-all shadow-[0_0_15px_rgba(170,139,99,0.35)] group"
+            className="hidden sm:inline-flex items-center gap-2 rounded-full border border-[#AA8B63]/50 bg-[#22271A] px-3.5 py-1.5 text-xs font-mono font-semibold text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] transition-all group"
             title="Call SOUVA to Reserve"
           >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#AA8B63] opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#AA8B63]" />
-            </span>
             <PhoneConciergeIcon className="h-3.5 w-3.5 text-[#AA8B63] group-hover:text-[#161811] transition-colors" />
-            <span className="tracking-wide">CALL US: +1 (415) 375-5823</span>
+            <span className="tracking-wide">+1 (415) 375-5823</span>
           </a>
 
-          {/* Client Portal / Login Button (Visible on ALL devices) */}
+          {/* Client Portal Button */}
           {onOpenClientPortal && (
             <button
               type="button"
               onClick={onOpenClientPortal}
-              className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#AA8B63] bg-[#22271A] px-3 sm:px-3.5 py-1.5 text-xs font-mono font-bold text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] transition-all shadow-[0_0_12px_rgba(170,139,99,0.3)] cursor-pointer"
-              title="Open SOUVA Client Portal & Manage Bookings"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#AA8B63]/40 bg-[#1C2016] px-3.5 py-1.5 text-xs font-mono font-medium text-[#FAF0E2] hover:border-[#AA8B63] hover:text-[#AA8B63] transition-all cursor-pointer shadow-sm"
+              title="Access Client Portal to view or modify bookings"
             >
               <User className="h-3.5 w-3.5 text-[#AA8B63]" />
-              <span className="font-extrabold">Login / Portal</span>
+              <span>Client Portal</span>
             </button>
           )}
 

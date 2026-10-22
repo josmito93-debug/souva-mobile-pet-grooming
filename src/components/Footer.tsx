@@ -139,10 +139,10 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
             </div>
           </div>
 
-          {/* Column 2: Quick Links / Fast Access (Col span 2) */}
+          {/* Column 2: Navigation / Fast Access (Col span 2) */}
           <div className="lg:col-span-2 space-y-3">
             <span className="text-[10px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold block">
-              Quick Links
+              Navigation
             </span>
             <ul className="space-y-2 text-xs">
               {onOpenClientPortal && (
@@ -165,7 +165,7 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
                     className="text-[#AA8B63] hover:underline transition-colors font-bold flex items-center gap-1 cursor-pointer text-left"
                   >
                     <Sparkles className="h-3 w-3 shrink-0" />
-                    <span>Quick Links Hub</span>
+                    <span>Instagram Link Hub</span>
                   </button>
                 </li>
               )}

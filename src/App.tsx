@@ -524,20 +524,20 @@ function AppContent() {
                     )}
                   />
 
-                  {/* Cockpit Card Container */}
+                  {/* Booking Card Header */}
                   <div className="flex items-center justify-between px-3.5 py-2 mb-2.5 rounded-2xl bg-[#1C2016]/90 border border-[#AA8B63]/30 backdrop-blur-md shadow-sm">
                     <span className="text-[11px] font-mono text-[#FAF0E2] flex items-center gap-1.5 font-semibold">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>Online Booking Cockpit</span>
+                      <span>Doorstep Mobile Spa Reservation</span>
                     </span>
                     <button
                       type="button"
                       onClick={navigateToPortal}
                       className="text-[11px] font-mono text-amber-300 hover:text-white font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
-                      title="Log In to View or Modify Existing Appointments"
+                      title="View or modify an existing appointment"
                     >
                       <User className="h-3 w-3" />
-                      <span>Already booked? Client Login →</span>
+                      <span>Manage existing booking →</span>
                     </button>
                   </div>
 
@@ -1151,9 +1151,6 @@ function AppContent() {
         {/* Local SEO & ZIP Code Geographic Crawlable Directory */}
         <LocalSeoDirectory onBookClick={scrollToBookingFlow} />
       </main>
-
-      {/* Floating Quick Links Launcher */}
-      <QuickLinksFloatingButton onClick={() => setShowQuickLinksModal(true)} />
 
       {/* Floating WhatsApp Quick Concierge Button */}
       <a

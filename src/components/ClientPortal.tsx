@@ -376,7 +376,7 @@ export function ClientPortal({
       }
     } catch (err: any) {
       console.error("Auth error:", err);
-      setAuthError("Unable to connect to Airtable. Please try again.");
+      setAuthError("Unable to look up bookings. Please check your details or try again.");
     } finally {
       setIsAuthenticating(false);
     }
@@ -449,7 +449,7 @@ export function ClientPortal({
             </span>
             <span className="hidden md:inline-flex items-center gap-1.5 text-[10.5px] font-mono text-emerald-400">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Airtable Live Sync Active</span>
+              <span>Verified Pet Parent Portal</span>
             </span>
           </div>
         </div>
@@ -651,7 +651,7 @@ export function ClientPortal({
                   {isAuthenticating ? (
                     <>
                       <RefreshCw className="h-4 w-4 animate-spin text-[#161811]" />
-                      <span>Searching Airtable Bookings...</span>
+                      <span>Looking up your bookings...</span>
                     </>
                   ) : (
                     <>
@@ -718,10 +718,10 @@ export function ClientPortal({
                   type="button"
                   onClick={() => refreshAppointments(client)}
                   className="px-3.5 py-2 rounded-xl bg-[#24291B] border border-[#FAF0E2]/15 text-xs font-mono text-[#FAF0E2] hover:border-[#AA8B63] transition-colors flex items-center gap-1.5 cursor-pointer"
-                  title="Refresh bookings directly from Airtable"
+                  title="Refresh bookings"
                 >
                   <RefreshCw className={cn("h-3.5 w-3.5 text-[#AA8B63]", isLoadingAppointments && "animate-spin")} />
-                  <span className="hidden sm:inline">Sync Airtable</span>
+                  <span className="hidden sm:inline">Refresh</span>
                 </button>
 
                 <button
@@ -1148,7 +1148,7 @@ export function ClientPortal({
         appointment={selectedForFullEdit}
         onClose={() => setSelectedForFullEdit(null)}
         onSaved={(updated) => {
-          showToast(`Appointment ${updated.id} successfully updated and synced with Airtable!`);
+          showToast(`Appointment ${updated.id} updated successfully!`);
           if (client) refreshAppointments(client);
         }}
       />

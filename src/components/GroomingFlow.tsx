@@ -2799,12 +2799,12 @@ function StepBookingCalendar({
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span className="text-emerald-400 font-semibold">Airtable Live</span>
+              <span className="text-emerald-400 font-semibold">Live Availability</span>
               <button
                 type="button"
                 onClick={onRefreshSlots}
                 disabled={isLoadingSlots}
-                title="Refresh live availability from Airtable"
+                title="Refresh arrival window availability"
                 className="ml-1 p-1 hover:text-[#FAF0E2] text-[#AA8B63] transition-colors cursor-pointer disabled:opacity-40"
               >
                 <RefreshCw className={cn("h-3 w-3", isLoadingSlots && "animate-spin")} />
@@ -2868,9 +2868,9 @@ function StepBookingCalendar({
                     )}
                   >
                     {isDateBlocked(selectedDateObj.isoDate)
-                      ? "Blocked · Fleet"
+                      ? "Unavailable"
                       : booked
-                      ? "Booked · Airtable"
+                      ? "Reserved"
                       : slot.period}
                   </span>
                 </button>
@@ -2886,7 +2886,7 @@ function StepBookingCalendar({
           ) : isAllSlotsReserved ? (
             <div className="mt-3 text-center text-xs font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-500/40 p-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md">
               <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
-              <span>All arrival windows on {selectedDateObj.dayLabel}, {selectedDateObj.month} {selectedDateObj.dayNum} are reserved in Airtable. Please choose another date above.</span>
+              <span>All arrival windows on {selectedDateObj.dayLabel}, {selectedDateObj.month} {selectedDateObj.dayNum} are fully reserved. Please choose another date above.</span>
             </div>
           ) : null}
         </div>
