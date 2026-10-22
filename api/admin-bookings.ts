@@ -208,14 +208,18 @@ export default async function handler(req: any, res: any) {
 
       // If recordId not passed directly, lookup by Booking ID in Airtable
       if (!targetRecordId && bookingId) {
-        const lookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?filterByFormula=${encodeURIComponent(`{Booking ID} = '${bookingId}'`)}&maxRecords=1`;
-        const lookupRes = await fetch(lookupUrl, {
-          headers: { Authorization: `Bearer ${AIRTABLE_KEY}` },
-        });
-        if (lookupRes.ok) {
-          const lookupData = await lookupRes.json();
-          if (lookupData.records && lookupData.records.length > 0) {
-            targetRecordId = lookupData.records[0].id;
+        if (bookingId.startsWith("rec")) {
+          targetRecordId = bookingId;
+        } else {
+          const lookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?filterByFormula=${encodeURIComponent(`{Booking ID} = '${bookingId}'`)}&maxRecords=1`;
+          const lookupRes = await fetch(lookupUrl, {
+            headers: { Authorization: `Bearer ${AIRTABLE_KEY}` },
+          });
+          if (lookupRes.ok) {
+            const lookupData = await lookupRes.json();
+            if (lookupData.records && lookupData.records.length > 0) {
+              targetRecordId = lookupData.records[0].id;
+            }
           }
         }
       }
