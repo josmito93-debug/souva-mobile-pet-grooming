@@ -16,7 +16,13 @@ import {
   Trash2,
   Lock,
 } from "lucide-react";
-import { DispatchRequest } from "@/lib/dispatchStore";
+import { DispatchRequest, getStoredRequests } from "@/lib/dispatchStore";
+import {
+  fetchBookedSlots,
+  isTimeMatching,
+  formatToIsoDate,
+  type BookedSlot,
+} from "@/lib/airtable";
 import {
   SOUVA_PACKAGES,
   SPA_UPGRADES,
@@ -70,6 +76,55 @@ function ModifyAppointmentModalContent({
   const [selectedTime, setSelectedTime] = useState<string>(
     appointment.scheduledTime || appointment.preferredTime || "9:30 AM"
   );
+
+  // Live Airtable Booked Slots
+  const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    setIsLoadingSlots(true);
+    fetchBookedSlots().then((slots) => {
+      if (active) {
+        setBookedSlots(slots);
+        setIsLoadingSlots(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const isSlotBookedByOther = (isoDate: string, time: string) => {
+    if (isDateBlocked(isoDate)) return true;
+
+    // Allow keeping own current slot
+    const ownIso = appointment.scheduledDate ? formatToIsoDate(appointment.scheduledDate) : "";
+    const ownTime = appointment.scheduledTime || "";
+    if (ownIso === isoDate && isTimeMatching(time, ownTime)) {
+      return false;
+    }
+
+    // Check Airtable live booked slots
+    const inAirtable = bookedSlots.some(
+      (b) => formatToIsoDate(b.date) === formatToIsoDate(isoDate) && isTimeMatching(time, b.time)
+    );
+    if (inAirtable) return true;
+
+    // Check local store
+    try {
+      const local = getStoredRequests();
+      const inLocal = local.some((r) => {
+        if (r.id === appointment.id || r.status === "cancelled") return false;
+        const rIso = formatToIsoDate(r.scheduledDate || r.preferredTime || "");
+        const rTime = r.scheduledTime || r.preferredTime || "";
+        return rIso === isoDate && isTimeMatching(time, rTime);
+      });
+      if (inLocal) return true;
+    } catch {}
+
+    return false;
+  };
 
   // 2. Package & Addons State
   const petSize: PetSize = (appointment.size as PetSize) || "medium";
@@ -397,20 +452,27 @@ function ModifyAppointmentModalContent({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {slotsForDay.map((slot) => {
                     const isSelected = selectedTime === slot.time;
+                    const isOccupied = isSlotBookedByOther(selectedDate.isoDate, slot.time);
+
                     return (
                       <button
                         key={slot.id}
                         type="button"
+                        disabled={isOccupied}
                         onClick={() => setSelectedTime(slot.time)}
                         className={cn(
-                          "p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center",
-                          isSelected
-                            ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] font-bold shadow-sm"
-                            : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+                          "p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center",
+                          isOccupied
+                            ? "opacity-35 bg-stone-900 border-stone-800 text-stone-500 cursor-not-allowed"
+                            : isSelected
+                            ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] font-bold shadow-sm cursor-pointer"
+                            : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] cursor-pointer"
                         )}
                       >
                         <span className="font-mono text-xs font-bold">{slot.time}</span>
-                        <span className="text-[9px] font-mono text-[#AA8B63] mt-0.5">{slot.period}</span>
+                        <span className={cn("text-[9px] font-mono mt-0.5", isOccupied ? "text-red-400 font-bold" : "text-[#AA8B63]")}>
+                          {isOccupied ? "Reserved" : slot.period}
+                        </span>
                       </button>
                     );
                   })}

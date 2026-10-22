@@ -176,6 +176,28 @@ export default async function handler(req: any, res: any) {
         }
 
         if (!airtableRecordId) {
+          // Double-booking check: ensure slot has not just been booked
+          const slotIso = airtableFields["Scheduled Date"];
+          const slotTime = airtableFields["Scheduled Time Window"];
+          if (slotIso && slotTime) {
+            try {
+              const checkFormula = `AND({Scheduled Date} = '${slotIso}', {Scheduled Time Window} = '${slotTime}', {Status} != 'Cancelled', {Status} != 'Cancelada', {Status} != 'Cancelado')`;
+              const checkUrl = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTable}?filterByFormula=${encodeURIComponent(checkFormula)}&maxRecords=1`;
+              const checkRes = await fetch(checkUrl, { headers: { Authorization: `Bearer ${airtableKey}` } });
+              if (checkRes.ok) {
+                const checkData = await checkRes.json();
+                if (checkData.records && checkData.records.length > 0) {
+                  return res.status(409).json({
+                    success: false,
+                    error: `The arrival window on ${scheduledDate} at ${scheduledTime} was just booked by another pet parent. Please choose another available arrival window.`,
+                  });
+                }
+              }
+            } catch (checkErr) {
+              console.warn("Slot collision check note:", checkErr);
+            }
+          }
+
           // Create new record in Airtable
           const createRes = await fetch(`https://api.airtable.com/v0/${airtableBaseId}/${airtableTable}`, {
             method: "POST",

@@ -20,7 +20,13 @@ import {
   type AvailableDate,
   type TimeSlot,
 } from "@/components/GroomingFlow";
-import { rescheduleAppointment, cancelAppointment } from "@/lib/dispatchStore";
+import {
+  fetchBookedSlots,
+  isTimeMatching,
+  formatToIsoDate,
+  type BookedSlot,
+} from "@/lib/airtable";
+import { rescheduleAppointment, cancelAppointment, getStoredRequests } from "@/lib/dispatchStore";
 
 interface ManageAppointmentModalProps {
   isOpen: boolean;
@@ -66,6 +72,40 @@ function ManageAppointmentModalContent({
   const [selectedTime, setSelectedTime] = useState<string>(() => slotsForSelectedDay[0]?.time || "9:30 AM");
   const [notes, setNotes] = useState("");
   const [cancelReason, setCancelReason] = useState("Schedule conflict / Need to postpone");
+
+  const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
+  useEffect(() => {
+    let active = true;
+    fetchBookedSlots().then((slots) => {
+      if (active) setBookedSlots(slots);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const isSlotOccupied = (isoDate: string, time: string) => {
+    if (isDateBlocked(isoDate)) return true;
+    const ownIso = formatToIsoDate(currentDate || "");
+    if (ownIso === isoDate && isTimeMatching(time, currentTime || "")) return false;
+
+    const inAirtable = bookedSlots.some(
+      (b) => formatToIsoDate(b.date) === formatToIsoDate(isoDate) && isTimeMatching(time, b.time)
+    );
+    if (inAirtable) return true;
+
+    try {
+      const local = getStoredRequests();
+      return local.some((r) => {
+        if (r.id === bookingId || r.status === "cancelled") return false;
+        const rIso = formatToIsoDate(r.scheduledDate || r.preferredTime || "");
+        const rTime = r.scheduledTime || r.preferredTime || "";
+        return rIso === isoDate && isTimeMatching(time, rTime);
+      });
+    } catch {}
+
+    return false;
+  };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -366,21 +406,26 @@ function ManageAppointmentModalContent({
                 <div className="grid grid-cols-2 gap-2">
                   {slotsForSelectedDay.map((slot) => {
                     const isSelected = selectedTime === slot.time;
+                    const isOccupied = isSlotOccupied(selectedDate.isoDate, slot.time);
+
                     return (
                       <button
                         key={slot.id}
                         type="button"
+                        disabled={isOccupied}
                         onClick={() => setSelectedTime(slot.time)}
                         className={cn(
-                          "p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center",
-                          isSelected
-                            ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] font-bold shadow-sm"
-                            : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
+                          "p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center",
+                          isOccupied
+                            ? "opacity-35 bg-stone-900 border-stone-800 text-stone-500 cursor-not-allowed"
+                            : isSelected
+                            ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] font-bold shadow-sm cursor-pointer"
+                            : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] cursor-pointer"
                         )}
                       >
                         <span className="font-mono text-xs font-bold">{slot.time}</span>
-                        <span className="text-[9px] font-mono text-[#AA8B63] opacity-80 mt-0.5">
-                          {slot.period}
+                        <span className={cn("text-[9px] font-mono mt-0.5", isOccupied ? "text-red-400 font-bold" : "text-[#AA8B63] opacity-80")}>
+                          {isOccupied ? "Reserved" : slot.period}
                         </span>
                       </button>
                     );

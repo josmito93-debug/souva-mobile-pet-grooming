@@ -44,7 +44,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     const filterFormula =
-      "AND({Scheduled Date} != '', IS_AFTER({Scheduled Date}, DATEADD(TODAY(), -1, 'days')), {Status} != 'Cancelled', {Status} != 'Cancelada', {Status} != 'Refunded')";
+      "AND({Scheduled Date} != '', {Status} != 'Cancelled', {Status} != 'Cancelada', {Status} != 'Cancelado', {Status} != 'Refunded')";
     const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTable}?fields%5B%5D=Scheduled+Date&fields%5B%5D=Scheduled+Time+Window&fields%5B%5D=Status&filterByFormula=${encodeURIComponent(
       filterFormula
     )}`;
@@ -69,7 +69,11 @@ export default async function handler(req: any, res: any) {
         time: r.fields?.["Scheduled Time Window"] || "",
         status: r.fields?.["Status"] || "Confirmed",
       }))
-      .filter((s: any) => Boolean(s.date && s.time));
+      .filter((s: any) => {
+        if (!s.date || !s.time) return false;
+        const st = String(s.status).toLowerCase();
+        return !st.includes("cancel") && !st.includes("refund");
+      });
 
     const allSlots = [...airtableSlots, ...blockedSlots];
 

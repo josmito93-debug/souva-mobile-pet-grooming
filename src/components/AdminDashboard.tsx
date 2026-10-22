@@ -1166,6 +1166,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
       {rescheduleModalOpen && rescheduleTarget && (
         <RescheduleAppointmentModal
           request={rescheduleTarget}
+          allRequests={requests}
           onClose={() => {
             setRescheduleModalOpen(false);
             setRescheduleTarget(null);
@@ -1641,10 +1642,12 @@ function AdminCalendarScheduleView({
 /* -------------------------------------------------------------------------- */
 function RescheduleAppointmentModal({
   request,
+  allRequests = [],
   onClose,
   onConfirm,
 }: {
   request: DispatchRequest;
+  allRequests?: DispatchRequest[];
   onClose: () => void;
   onConfirm: (id: string, newDate: string, newTime: string, notes?: string) => void;
 }) {
@@ -1731,19 +1734,41 @@ function RescheduleAppointmentModal({
             <div className="grid grid-cols-3 gap-2">
               {TIME_SLOTS.map((slot) => {
                 const isSelected = selectedTime === slot;
+                const isCurrent =
+                  formatToIsoDate(request.scheduledDate || "") === selectedDate &&
+                  (slot === request.scheduledTime);
+
+                const occupied = allRequests.find(
+                  (r) =>
+                    r.id !== request.id &&
+                    r.status !== "cancelled" &&
+                    formatToIsoDate(r.scheduledDate || r.preferredTime || "") === selectedDate &&
+                    (r.scheduledTime === slot || r.preferredTime?.includes(slot))
+                );
+
+                const isOccupied = Boolean(occupied) && !isCurrent;
+
                 return (
                   <button
                     key={slot}
                     type="button"
+                    disabled={isOccupied}
                     onClick={() => setSelectedTime(slot)}
                     className={cn(
-                      "py-2 px-2.5 rounded-xl border text-center text-xs font-mono font-bold transition-all cursor-pointer",
-                      isSelected
-                        ? "bg-[#AA8B63] text-[#161811] border-[#AA8B63] shadow-md font-black"
-                        : "bg-[#1C2016] text-[#A4AA93] border-[#FAF0E2]/10 hover:text-[#FAF0E2] hover:border-[#AA8B63]/40"
+                      "py-2 px-2.5 rounded-xl border text-center text-xs font-mono font-bold transition-all flex flex-col items-center justify-center",
+                      isOccupied
+                        ? "opacity-35 bg-stone-900 border-stone-800 text-stone-500 cursor-not-allowed"
+                        : isSelected
+                        ? "bg-[#AA8B63] text-[#161811] border-[#AA8B63] shadow-md font-black cursor-pointer"
+                        : "bg-[#1C2016] text-[#A4AA93] border-[#FAF0E2]/10 hover:text-[#FAF0E2] hover:border-[#AA8B63]/40 cursor-pointer"
                     )}
                   >
-                    {slot}
+                    <span>{slot}</span>
+                    {isOccupied && (
+                      <span className="text-[8px] font-mono text-red-400 truncate max-w-[80px]">
+                        Taken ({occupied?.petName})
+                      </span>
+                    )}
                   </button>
                 );
               })}

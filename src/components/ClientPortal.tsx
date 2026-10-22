@@ -25,7 +25,9 @@ import {
   ArrowRight,
   Truck,
   Zap,
+  X,
 } from "lucide-react";
+import { GroomingFlow } from "@/components/GroomingFlow";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { WhatsAppIcon, PhoneConciergeIcon } from "@/components/BrandIcons";
 import { DispatchRequest } from "@/lib/dispatchStore";
@@ -226,6 +228,56 @@ export function ClientPortal({
   const [appointments, setAppointments] = useState<DispatchRequest[]>([]);
   const [isLoadingAppointments, setIsLoadingAppointments] = useState(false);
   const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "pets" | "perks">("upcoming");
+  const [showBookingModal, setShowBookingModal] = useState(false);
+
+  // Auto-login from email link (?email=...&bookingId=...&action=edit)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const emailParam = params.get("email");
+    const phoneParam = params.get("phone");
+    const bookingIdParam = params.get("bookingId");
+    const actionParam = params.get("action");
+
+    if (emailParam || phoneParam || bookingIdParam) {
+      const emailClean = (emailParam || "").trim().toLowerCase();
+      const phoneClean = (phoneParam || "").trim();
+
+      setIsAuthenticating(true);
+      fetchClientAppointments(emailClean, phoneClean).then((records) => {
+        let matched = records[0];
+        if (bookingIdParam) {
+          const found = records.find((r) => r.id === bookingIdParam);
+          if (found) matched = found;
+        }
+
+        const resolvedName = matched?.customerName || (emailClean ? emailClean.split("@")[0] : "Valued Pet Parent");
+        const autoUser: ClientUser = {
+          id: `CLI-${Date.now().toString().slice(-5)}`,
+          name: resolvedName,
+          email: emailClean || matched?.email || "",
+          phone: phoneClean || matched?.phone || "",
+          address: matched?.address,
+          zipCode: matched?.zipCode,
+          authProvider: "email",
+          createdAt: new Date().toISOString(),
+          lastLoginAt: new Date().toISOString(),
+        };
+
+        saveClientSession(autoUser);
+        setClient(autoUser);
+        setAppointments(records);
+        setIsAuthenticating(false);
+
+        if (matched && (actionParam === "edit" || actionParam === "reschedule")) {
+          setSelectedForFullEdit(matched);
+        }
+      }).catch((e) => {
+        console.warn("Auto-login error:", e);
+        setIsAuthenticating(false);
+      });
+    }
+  }, []);
 
   // Modals State
   const [selectedForFullEdit, setSelectedForFullEdit] = useState<DispatchRequest | null>(null);
@@ -672,16 +724,17 @@ export function ClientPortal({
                   <span className="hidden sm:inline">Sync Airtable</span>
                 </button>
 
-                {onBookNewClick && (
-                  <button
-                    type="button"
-                    onClick={onBookNewClick}
-                    className="px-4 py-2 rounded-xl bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Book New Dog</span>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onBookNewClick) onBookNewClick();
+                    else setShowBookingModal(true);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Book New Dog</span>
+                </button>
               </div>
             </div>
 
@@ -796,16 +849,17 @@ export function ClientPortal({
                     <p className="text-xs text-[#A4AA93] max-w-sm mx-auto leading-relaxed">
                       Our solar van travels directly to your doorstep. Schedule a luxury 1-on-1 session for your pup in under 60 seconds.
                     </p>
-                    {onBookNewClick && (
-                      <button
-                        type="button"
-                        onClick={onBookNewClick}
-                        className="mt-2 px-6 py-2.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md inline-flex items-center gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        <span>Book Doorstep Appointment Now</span>
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onBookNewClick) onBookNewClick();
+                        else setShowBookingModal(true);
+                      }}
+                      className="mt-2 px-6 py-2.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md inline-flex items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>Book Doorstep Appointment Now</span>
+                    </button>
                   </div>
                 ) : (
                   upcomingAppointments.map((app) => {
@@ -1069,18 +1123,19 @@ export function ClientPortal({
                   ))}
                 </div>
 
-                {onBookNewClick && (
-                  <div className="p-6 rounded-2xl bg-[#181A12] border border-dashed border-[#AA8B63]/40 text-center">
-                    <button
-                      type="button"
-                      onClick={onBookNewClick}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>Add & Book Another Dog</span>
-                    </button>
-                  </div>
-                )}
+                <div className="p-6 rounded-2xl bg-[#181A12] border border-dashed border-[#AA8B63]/40 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onBookNewClick) onBookNewClick();
+                      else setShowBookingModal(true);
+                    }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Add & Book Another Dog</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -1114,6 +1169,92 @@ export function ClientPortal({
         }
         currentTime={quickManageTarget.appointment?.scheduledTime || ""}
       />
+
+      {/* ── MODAL: IN-PORTAL BOOKING FLOW ── */}
+      {showBookingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+          <div className="relative w-full max-w-4xl bg-[#14160F] border-2 border-[#AA8B63] rounded-3xl shadow-2xl p-4 sm:p-6 my-auto text-[#FAF0E2] max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#FAF0E2]/10 mb-4 sticky top-0 bg-[#14160F] z-10">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🐾</span>
+                <h3 className="font-display font-bold text-lg text-[#FAF0E2]">
+                  Book Doorstep Mobile Van
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowBookingModal(false);
+                  if (client) refreshAppointments(client);
+                }}
+                className="h-8 w-8 rounded-full bg-[#202517] hover:bg-[#AA8B63] text-[#FAF0E2] hover:text-[#161811] flex items-center justify-center transition-colors cursor-pointer border border-[#FAF0E2]/10"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <GroomingFlow
+              onStatus={(s) => {
+                if (s.dispatched) {
+                  showToast("New appointment booked and synced to your portal!");
+                  setTimeout(() => {
+                    setShowBookingModal(false);
+                    if (client) refreshAppointments(client);
+                  }, 1500);
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── MOBILE / APP BOTTOM NAVIGATION DOCK ── */}
+      {client && (
+        <nav className="sm:hidden fixed bottom-3 left-3 right-3 z-40 bg-[#161811]/95 backdrop-blur-xl border border-[#AA8B63]/40 rounded-2xl p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.8)] flex items-center justify-around">
+          <button
+            type="button"
+            onClick={() => setActiveTab("upcoming")}
+            className={cn(
+              "flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all cursor-pointer font-rounded text-[10px]",
+              activeTab === "upcoming" ? "text-amber-300 font-bold bg-[#25281D]" : "text-[#A4AA93]"
+            )}
+          >
+            <Calendar className="h-4 w-4" />
+            <span>Bookings</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowBookingModal(true)}
+            className="flex flex-col items-center gap-0.5 py-1.5 px-3.5 rounded-xl bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] font-rounded font-extrabold text-[10px] shadow-md -translate-y-2 cursor-pointer active:scale-95 transition-transform"
+          >
+            <Plus className="h-4 w-4 stroke-[2.5]" />
+            <span>Book</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("pets")}
+            className={cn(
+              "flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all cursor-pointer font-rounded text-[10px]",
+              activeTab === "pets" ? "text-amber-300 font-bold bg-[#25281D]" : "text-[#A4AA93]"
+            )}
+          >
+            <Heart className="h-4 w-4" />
+            <span>My Dogs</span>
+          </button>
+
+          <a
+            href="https://wa.me/14153755823?text=Hello%20SOUVA%20Concierge,%20I%20need%20assistance%20with%20my%20account."
+            target="_blank"
+            rel="noreferrer"
+            className="flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl text-[#25D366] font-rounded text-[10px] cursor-pointer"
+          >
+            <WhatsAppIcon variant="badge" className="h-4 w-4" />
+            <span>Chat</span>
+          </a>
+        </nav>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-[#FAF0E2]/10 bg-[#12140D] py-6 px-4 sm:px-8 text-center text-xs text-[#A4AA93] font-mono">
