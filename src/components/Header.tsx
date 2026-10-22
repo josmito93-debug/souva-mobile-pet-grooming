@@ -84,13 +84,13 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: He
           {/* Main Pet-Friendly Promo Offer */}
           <div className="flex items-center gap-2.5 min-w-0">
             {/* Promo Tag Badge */}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-300 text-stone-950 text-[10.5px] font-sans font-black uppercase tracking-wide shadow-sm shrink-0">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-300 text-stone-950 text-[10.5px] font-rounded font-black uppercase tracking-wide shadow-sm shrink-0">
               <span className="text-sm">🐾</span>
               <span>20% OFF PROMO</span>
             </span>
 
             {/* Friendly Headline */}
-            <div className="font-sans font-bold text-xs sm:text-sm text-white flex items-center gap-1.5 truncate">
+            <div className="font-rounded font-bold text-xs sm:text-sm text-white flex items-center gap-1.5 truncate">
               <span className="truncate">
                 Have 2 dogs? Get <strong className="text-yellow-200 underline decoration-yellow-300 font-black">20% Off</strong> your second pup's grooming
               </span>
@@ -106,7 +106,7 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: He
               <button
                 type="button"
                 onClick={onOpenClientPortal}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#14160E] hover:bg-[#AA8B63] hover:text-[#161811] text-amber-200 border border-amber-300/50 font-sans font-bold text-[11px] uppercase tracking-wide transition-all shadow-sm cursor-pointer"
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#14160E] hover:bg-[#AA8B63] hover:text-[#161811] text-amber-200 border border-amber-300/50 font-rounded font-bold text-[11px] uppercase tracking-wide transition-all shadow-sm cursor-pointer"
                 title="Log In to View or Modify Bookings"
               >
                 <User className="h-3 w-3 text-amber-300" />
@@ -117,7 +117,7 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: He
             <button
               type="button"
               onClick={onBookClick}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white text-emerald-950 hover:bg-yellow-300 hover:text-stone-950 font-sans font-black text-[11px] uppercase tracking-wide transition-all shadow-md cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white text-emerald-950 hover:bg-yellow-300 hover:text-stone-950 font-rounded font-black text-[11px] uppercase tracking-wide transition-all shadow-md cursor-pointer"
             >
               <span>🐶 Claim 20% OFF</span>
               <ArrowRight className="h-3 w-3" />
@@ -125,7 +125,7 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: He
 
             <a
               href="tel:+14153755823"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 hover:bg-emerald-950 border border-yellow-300/60 text-white font-sans font-black text-[11px] transition-colors shadow-sm"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 hover:bg-emerald-950 border border-yellow-300/60 text-white font-rounded font-black text-[11px] transition-colors shadow-sm"
               title="Call SOUVA Concierge to Reserve"
             >
               <PhoneConciergeIcon className="h-3 w-3 text-yellow-300" showWaves={false} />
@@ -342,7 +342,7 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: He
                     2 Dogs
                   </span>
                 </div>
-                <p className="text-xs font-sans text-emerald-100 leading-snug">
+                <p className="text-xs font-rounded text-emerald-100 leading-snug">
                   Have two canine companions? Automatically receive <strong className="text-yellow-200">20% off</strong> your second dog's service when booked together.
                 </p>
                 <button
@@ -351,7 +351,7 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: He
                     setMobileMenuOpen(false);
                     onBookClick();
                   }}
-                  className="mt-1 w-full py-2.5 rounded-xl bg-white text-emerald-950 font-sans font-black text-xs uppercase tracking-wide hover:bg-yellow-300 transition-colors flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                  className="mt-1 w-full py-2.5 rounded-xl bg-white text-emerald-950 font-rounded font-black text-xs uppercase tracking-wide hover:bg-yellow-300 transition-colors flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                 >
                   <span>🐶 Claim 20% OFF Now</span>
                   <ArrowRight className="h-3.5 w-3.5" />

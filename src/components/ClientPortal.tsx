@@ -496,7 +496,7 @@ export function ClientPortal({
                 <button
                   type="button"
                   onClick={handleTriggerGooglePrompt}
-                  className="mt-2 w-full max-w-[320px] py-2.5 px-4 rounded-full bg-white hover:bg-neutral-100 text-neutral-900 font-sans font-bold text-xs flex items-center justify-center gap-2.5 transition-all shadow-md cursor-pointer border border-neutral-300"
+                  className="mt-2 w-full max-w-[320px] py-2.5 px-4 rounded-full bg-[#1C2016] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] font-rounded font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-md cursor-pointer border border-[#AA8B63]/60 group"
                 >
                   <GoogleGLogo className="h-4 w-4 shrink-0" />
                   <span>Continue with Google</span>
