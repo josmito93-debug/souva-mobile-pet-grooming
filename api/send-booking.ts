@@ -78,7 +78,7 @@ export default async function handler(req: any, res: any) {
       `SOU-${Math.floor(1000 + Math.random() * 9000)}`
     ).trim();
 
-    const appUrl = (process.env.APP_URL || "https://souva-mobile-pet-grooming.vercel.app").replace(/\/$/, "");
+    const appUrl = (process.env.APP_URL || "https://www.souvagrooming.com").replace(/\/$/, "");
     const portalUrl = `${appUrl}/portal?email=${encodeURIComponent(email)}`;
     const rescheduleUrl = `${appUrl}/?action=reschedule&bookingId=${encodeURIComponent(resolvedBookingId)}&pet=${encodeURIComponent(petName)}&date=${encodeURIComponent(scheduledDate)}&time=${encodeURIComponent(scheduledTime)}`;
     const cancelUrl = `${appUrl}/?action=cancel&bookingId=${encodeURIComponent(resolvedBookingId)}&pet=${encodeURIComponent(petName)}&date=${encodeURIComponent(scheduledDate)}&time=${encodeURIComponent(scheduledTime)}`;
@@ -290,7 +290,7 @@ Concierge / WhatsApp: +1 (415) 375-5823 · info@souvagrooming.com`;
         <!-- Header with SOUVA Logo -->
         <div style="text-align: center; margin-bottom: 28px; border-bottom: 1px solid rgba(250, 240, 226, 0.1); padding-bottom: 24px;">
           <img
-            src="https://souva-mobile-pet-grooming.vercel.app/assets/souva-badge-circle-transparent.png"
+            src="https://www.souvagrooming.com/assets/souva-badge-circle-transparent.png"
             alt="SOUVA Mobile Pet Grooming"
             width="84"
             height="84"
@@ -569,7 +569,7 @@ Concierge / WhatsApp: +1 (415) 375-5823 · info@souvagrooming.com`;
               <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #14160E; color: #FAF0E2; padding: 32px 24px; border-radius: 18px; border: 1px solid rgba(250, 240, 226, 0.15);">
                 <div style="text-align: center; margin-bottom: 24px;">
                   <img
-                    src="https://souva-mobile-pet-grooming.vercel.app/assets/souva-badge-circle-transparent.png"
+                    src="https://www.souvagrooming.com/assets/souva-badge-circle-transparent.png"
                     alt="SOUVA"
                     width="70"
                     height="70"
@@ -997,7 +997,7 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
     if (fs.existsSync(localLogoPath)) {
       logoBytes = fs.readFileSync(localLogoPath);
     } else {
-      const logoRes = await fetch("https://souva-mobile-pet-grooming.vercel.app/assets/souva-badge-circle-transparent.png");
+      const logoRes = await fetch("https://www.souvagrooming.com/assets/souva-badge-circle-transparent.png");
       if (logoRes.ok) {
         logoBytes = new Uint8Array(await logoRes.arrayBuffer());
       }

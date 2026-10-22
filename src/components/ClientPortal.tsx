@@ -370,7 +370,7 @@ export function ClientPortal({
     showToast(`Generating itemized invoice for ${app.petName}...`);
     // Open print view or fetch invoice PDF
     window.open(
-      `https://souva-mobile-pet-grooming.vercel.app/api/send-booking`,
+      `https://www.souvagrooming.com/api/send-booking`,
       "_blank"
     );
   };

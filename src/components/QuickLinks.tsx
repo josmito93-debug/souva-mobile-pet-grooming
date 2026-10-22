@@ -155,7 +155,7 @@ function QuickLinksContent({
     const url =
       typeof window !== "undefined"
         ? `${window.location.origin}/links`
-        : "https://souva-mobile-pet-grooming.vercel.app/links";
+        : "https://www.souvagrooming.com/links";
 
     if (navigator.share) {
       try {

@@ -91,7 +91,7 @@ Reply directly to this email to respond to ${name} (${email}).
         <!-- Header -->
         <div style="text-align: center; margin-bottom: 26px; border-bottom: 1px solid rgba(250, 240, 226, 0.1); padding-bottom: 22px;">
           <img
-            src="https://souva-mobile-pet-grooming.vercel.app/assets/souva-badge-circle-transparent.png"
+            src="https://www.souvagrooming.com/assets/souva-badge-circle-transparent.png"
             alt="SOUVA Mobile Pet Grooming"
             width="80"
             height="80"
