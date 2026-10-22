@@ -32,6 +32,7 @@ import {
   FileText,
   Download,
   TrendingUp,
+  Sliders,
 } from "lucide-react";
 import { WhatsAppIcon, PhoneConciergeIcon } from "@/components/BrandIcons";
 import {
@@ -47,6 +48,7 @@ import {
   restoreAppointment,
 } from "@/lib/dispatchStore";
 import { AdminMap } from "@/components/AdminMap";
+import { ModifyAppointmentModal } from "@/components/ModifyAppointmentModal";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { formatToIsoDate } from "@/lib/airtable";
 import { cn } from "@/lib/utils";
@@ -83,6 +85,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
 
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<DispatchRequest | null>(null);
+  const [fullEditTarget, setFullEditTarget] = useState<DispatchRequest | null>(null);
 
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
   const [isAirtableLoading, setIsAirtableLoading] = useState(false);
@@ -804,12 +807,22 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
                           <div className="flex items-center gap-1.5">
                             <button
                               type="button"
-                              onClick={() => openRescheduleModal(req)}
+                              onClick={() => setFullEditTarget(req)}
                               className="px-2.5 py-1 rounded-lg bg-[#252A1D] border border-[#AA8B63]/40 text-[#AA8B63] hover:bg-[#AA8B63] hover:text-[#161811] text-[11px] font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                              title="Modify any aspect: service, upgrades, address, pet instructions"
+                            >
+                              <Edit3 className="h-3.5 w-3.5" />
+                              <span>Edit All</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => openRescheduleModal(req)}
+                              className="px-2.5 py-1 rounded-lg bg-[#252A1D] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] text-[11px] font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                               title="Reschedule appointment date & arrival window"
                             >
                               <Calendar className="h-3.5 w-3.5" />
-                              <span>Cambiar Cita</span>
+                              <span>Reschedule</span>
                             </button>
 
                             {!isCancelled && (
@@ -820,7 +833,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
                                 title="Cancel and archive appointment"
                               >
                                 <Ban className="h-3.5 w-3.5" />
-                                <span>Cancelar</span>
+                                <span>Cancel</span>
                               </button>
                             )}
                           </div>
@@ -896,11 +909,21 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => openRescheduleModal(selectedRequest)}
-                      className="px-3 py-1.5 rounded-xl bg-[#252A1D] border border-[#AA8B63]/50 text-[#AA8B63] hover:bg-[#AA8B63] hover:text-[#161811] text-xs font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      onClick={() => setFullEditTarget(selectedRequest)}
+                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] text-xs font-mono font-bold flex items-center gap-1.5 shadow-md hover:brightness-110 transition-all cursor-pointer"
+                      title="Modify any aspect: date, time, package, upgrades, address, notes"
                     >
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span>Cambiar Cita</span>
+                      <Edit3 className="h-3.5 w-3.5 text-[#161811]" />
+                      <span>Modify Booking</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => openRescheduleModal(selectedRequest)}
+                      className="px-3 py-1.5 rounded-xl bg-[#252A1D] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:border-[#AA8B63] hover:text-[#AA8B63] text-xs font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Calendar className="h-3.5 w-3.5 text-[#AA8B63]" />
+                      <span>Reschedule</span>
                     </button>
 
                     <button
@@ -909,7 +932,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
                       className="px-3 py-1.5 rounded-xl bg-red-950/30 border border-red-500/50 text-red-300 hover:bg-red-800 hover:text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <Ban className="h-3.5 w-3.5" />
-                      <span>Cancelar</span>
+                      <span>Cancel</span>
                     </button>
 
                     <a
@@ -1135,6 +1158,19 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
           }}
         />
       )}
+      {/* ── MODAL: MODIFY ALL APPOINTMENT DETAILS ───────────── */}
+      <ModifyAppointmentModal
+        isOpen={Boolean(fullEditTarget)}
+        appointment={fullEditTarget}
+        onClose={() => setFullEditTarget(null)}
+        onSaved={(updated) => {
+          showToast(`Appointment ${updated.id} successfully updated and synced with Airtable!`);
+          refreshData();
+          if (selectedRequest?.id === updated.id) {
+            setSelectedRequest(updated);
+          }
+        }}
+      />
     </div>
   );
 }
@@ -1148,12 +1184,14 @@ function AdminCalendarScheduleView({
   onReschedule,
   onCancel,
   onStatusChange,
+  onEditFull,
 }: {
   requests: DispatchRequest[];
   onSelectRequest: (r: DispatchRequest) => void;
   onReschedule: (r: DispatchRequest) => void;
   onCancel: (r: DispatchRequest) => void;
   onStatusChange: (id: string, s: RequestStatus) => void;
+  onEditFull?: (r: DispatchRequest) => void;
 }) {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [selectedDayIso, setSelectedDayIso] = useState<string>(() => {
@@ -1474,16 +1512,28 @@ function AdminCalendarScheduleView({
                       </div>
                     )}
 
-                    {/* Action buttons: Reschedule (Cambiar Cita) & Cancel (Cancelar) */}
+                    {/* Action buttons: Reschedule & Cancel */}
                     <div className="pt-2 border-t border-[#FAF0E2]/10 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5">
+                        {onEditFull && (
+                          <button
+                            type="button"
+                            onClick={() => onEditFull(req)}
+                            className="px-2.5 py-1 rounded-lg bg-[#252A1D] border border-[#AA8B63]/40 text-[#AA8B63] hover:bg-[#AA8B63] hover:text-[#161811] text-[10.5px] font-mono font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                            title="Modify any aspect: package, upgrades, address, notes"
+                          >
+                            <Sliders className="h-3 w-3" />
+                            <span>Edit All</span>
+                          </button>
+                        )}
+
                         <button
                           type="button"
                           onClick={() => onReschedule(req)}
-                          className="px-2.5 py-1 rounded-lg bg-[#252A1D] border border-[#AA8B63]/50 text-[#AA8B63] hover:bg-[#AA8B63] hover:text-[#161811] text-[10.5px] font-mono font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                          className="px-2.5 py-1 rounded-lg bg-[#252A1D] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] text-[10.5px] font-mono font-bold flex items-center gap-1 cursor-pointer transition-colors"
                         >
                           <Edit3 className="h-3 w-3" />
-                          <span>Cambiar Cita</span>
+                          <span>Reschedule</span>
                         </button>
 
                         <button
@@ -1492,7 +1542,7 @@ function AdminCalendarScheduleView({
                           className="px-2 py-1 rounded-lg bg-red-950/40 border border-red-500/40 text-red-300 hover:bg-red-900/60 hover:text-white text-[10.5px] font-mono font-bold flex items-center gap-1 cursor-pointer transition-colors"
                         >
                           <Ban className="h-3 w-3" />
-                          <span>Cancelar</span>
+                          <span>Cancel</span>
                         </button>
                       </div>
 
@@ -1557,7 +1607,7 @@ function RescheduleAppointmentModal({
                 Appointment Modification
               </span>
               <h3 className="font-display font-bold text-lg text-[#FAF0E2]">
-                Cambiar Cita · Reschedule Appointment
+                Reschedule Appointment
               </h3>
             </div>
           </div>
@@ -1667,7 +1717,7 @@ function RescheduleAppointmentModal({
 }
 
 /* -------------------------------------------------------------------------- */
-/* MODAL: CANCEL APPOINTMENT (CANCELAR CITA)                                   */
+/* MODAL: CANCEL APPOINTMENT                                                  */
 /* -------------------------------------------------------------------------- */
 function CancelAppointmentModal({
   request,
@@ -1708,7 +1758,7 @@ function CancelAppointmentModal({
                 Appointment Cancellation
               </span>
               <h3 className="font-display font-bold text-lg text-white">
-                Cancelar Cita
+                Cancel Appointment
               </h3>
             </div>
           </div>

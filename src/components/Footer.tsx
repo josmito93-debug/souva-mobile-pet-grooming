@@ -17,6 +17,7 @@ import {
   FileText,
   Scissors,
   Check,
+  User,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { TermsModal } from "@/components/TermsModal";
@@ -27,9 +28,10 @@ interface FooterProps {
   onOpenAdmin: () => void;
   onBookClick?: () => void;
   onOpenQuickLinks?: () => void;
+  onOpenClientPortal?: () => void;
 }
 
-export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks }: FooterProps) {
+export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClientPortal }: FooterProps) {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
@@ -143,6 +145,18 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks }: FooterPro
               Quick Links
             </span>
             <ul className="space-y-2 text-xs">
+              {onOpenClientPortal && (
+                <li>
+                  <button
+                    type="button"
+                    onClick={onOpenClientPortal}
+                    className="text-[#FAF0E2] hover:text-[#AA8B63] transition-colors font-bold flex items-center gap-1.5 cursor-pointer text-left"
+                  >
+                    <User className="h-3 w-3 text-[#AA8B63] shrink-0" />
+                    <span>Client Portal (My Bookings)</span>
+                  </button>
+                </li>
+              )}
               {onOpenQuickLinks && (
                 <li>
                   <button
@@ -410,14 +424,27 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks }: FooterPro
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={onOpenAdmin}
-            className="text-[#A4AA93]/60 hover:text-[#AA8B63] transition-colors flex items-center gap-1 cursor-pointer"
-          >
-            <Shield className="h-3 w-3" />
-            <span>Fleet Dispatch & Owner Portal (/admin)</span>
-          </button>
+          <div className="flex items-center gap-4">
+            {onOpenClientPortal && (
+              <button
+                type="button"
+                onClick={onOpenClientPortal}
+                className="text-[#FAF0E2] hover:text-[#AA8B63] transition-colors flex items-center gap-1 cursor-pointer font-bold"
+              >
+                <User className="h-3 w-3 text-[#AA8B63]" />
+                <span>Client Portal (/portal)</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={onOpenAdmin}
+              className="text-[#A4AA93]/60 hover:text-[#AA8B63] transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <Shield className="h-3 w-3" />
+              <span>Fleet Dispatch & Owner Portal (/admin)</span>
+            </button>
+          </div>
         </div>
       </div>
 

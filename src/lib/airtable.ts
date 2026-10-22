@@ -276,7 +276,7 @@ export async function createAirtableBooking(payload: AirtableBookingPayload): Pr
       "Breeds": payload.breeds || "Canine",
       "Dog Sizes": finalSizes,
       "Dog Ages": payload.dogAges || "Adult (1–7 yrs)",
-      "Genders": payload.genders || "Macho",
+      "Genders": payload.genders || "Male",
       "Rabies Vaccine": vaccineChoice,
       "Temperament": finalTemp,
       "Medical Conditions": payload.medicalConditions || "None / Healthy",

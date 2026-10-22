@@ -16,6 +16,7 @@ import {
   Instagram,
   Facebook,
   HelpCircle,
+  User,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { WhatsAppIcon, PhoneConciergeIcon } from "@/components/BrandIcons";
@@ -24,9 +25,10 @@ import { cn } from "@/lib/utils";
 interface HeaderProps {
   onBookClick: () => void;
   onOpenQuickLinks?: () => void;
+  onOpenClientPortal?: () => void;
 }
 
-export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
+export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleScrollToServices = (e?: React.MouseEvent) => {
@@ -63,6 +65,7 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
 
   const navItems = [
     { label: "Book Now", href: "#book", action: onBookClick, icon: Calendar, highlight: true },
+    { label: "Client Portal (My Bookings)", href: "/portal", action: onOpenClientPortal, icon: User },
     { label: "Quick Links Hub", href: "#quick-links", action: onOpenQuickLinks, icon: Sparkles },
     { label: "Services & Pricing", href: "#services", action: handleScrollToServices, icon: Scissors },
     { label: "FAQs & Inquiries", href: "#faq", icon: HelpCircle },
@@ -98,7 +101,19 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
           </div>
 
           {/* Action CTAs */}
-          <div className="flex items-center gap-2.5 text-xs shrink-0 ml-auto">
+          <div className="flex items-center gap-2 sm:gap-2.5 text-xs shrink-0 ml-auto">
+            {onOpenClientPortal && (
+              <button
+                type="button"
+                onClick={onOpenClientPortal}
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#14160E] hover:bg-[#AA8B63] hover:text-[#161811] text-amber-200 border border-amber-300/50 font-sans font-bold text-[11px] uppercase tracking-wide transition-all shadow-sm cursor-pointer"
+                title="Log In to View or Modify Bookings"
+              >
+                <User className="h-3 w-3 text-amber-300" />
+                <span>Client Login</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={onBookClick}
@@ -167,6 +182,16 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
           <a href="#reviews" className="hover:text-[#AA8B63] transition-colors">
             Reviews
           </a>
+          {onOpenClientPortal && (
+            <button
+              type="button"
+              onClick={onOpenClientPortal}
+              className="hover:text-[#AA8B63] transition-colors cursor-pointer flex items-center gap-1 font-semibold text-[#FAF0E2]"
+            >
+              <User className="h-3.5 w-3.5 text-[#AA8B63]" />
+              <span>Client Portal</span>
+            </button>
+          )}
           {onOpenQuickLinks && (
             <button
               type="button"
@@ -219,6 +244,19 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
             <PhoneConciergeIcon className="h-3.5 w-3.5 text-[#AA8B63] group-hover:text-[#161811] transition-colors" />
             <span className="tracking-wide">CALL US: +1 (415) 375-5823</span>
           </a>
+
+          {/* Client Portal / Login Button (Visible on ALL devices) */}
+          {onOpenClientPortal && (
+            <button
+              type="button"
+              onClick={onOpenClientPortal}
+              className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#AA8B63] bg-[#22271A] px-3 sm:px-3.5 py-1.5 text-xs font-mono font-bold text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] transition-all shadow-[0_0_12px_rgba(170,139,99,0.3)] cursor-pointer"
+              title="Open SOUVA Client Portal & Manage Bookings"
+            >
+              <User className="h-3.5 w-3.5 text-[#AA8B63]" />
+              <span className="font-extrabold">Login / Portal</span>
+            </button>
+          )}
 
           {/* Book Now Primary Button */}
           <button
@@ -275,6 +313,21 @@ export function Header({ onBookClick, onOpenQuickLinks }: HeaderProps) {
                 <PhoneConciergeIcon className="h-4 w-4 fill-[#161811] text-[#161811]" />
                 <span>CALL US TO RESERVE: +1 (415) 375-5823</span>
               </a>
+
+              {/* Client Portal & Login Hero Button */}
+              {onOpenClientPortal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenClientPortal();
+                  }}
+                  className="w-full py-3.5 px-4 rounded-2xl bg-[#1C2116] border-2 border-[#AA8B63] text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] text-xs font-mono font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
+                >
+                  <User className="h-4 w-4 text-[#AA8B63]" />
+                  <span>CLIENT PORTAL & LOGIN (MY BOOKINGS)</span>
+                </button>
+              )}
 
               {/* Promo Banner (Vibrant Green Pet-Friendly Style) */}
               <div className="p-4 rounded-2xl bg-gradient-to-br from-[#0F5132] to-[#166534] border-2 border-emerald-400/60 shadow-lg text-white space-y-2">

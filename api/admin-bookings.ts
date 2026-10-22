@@ -107,11 +107,11 @@ function mapAirtableRecordToRequest(r: any): any {
     petName: f["Dog Names"] || "Pup",
     breed: f["Breeds"] || "Mix",
     size: petSize,
-    gender: f["Genders"] || "Macho",
+    gender: f["Genders"] || "Male",
     petAge: f["Dog Ages"] || "Adult",
-    vaccinated: f["Rabies Vaccine"] || "Al día (Up to Date)",
+    vaccinated: f["Rabies Vaccine"] || "Up to Date (Compliant)",
     medicalConditions: f["Medical Conditions"] || "None / Healthy",
-    temperament: Array.isArray(f["Temperament"]) ? f["Temperament"].join(", ") : f["Temperament"] || "Amigable",
+    temperament: Array.isArray(f["Temperament"]) ? f["Temperament"].join(", ") : f["Temperament"] || "Friendly & Calm",
     petPhoto: null,
     packageId: (f["Service Package"] || "essential-full-groom").toLowerCase().replace(/[^a-z0-9]/g, "-"),
     packageName: f["Service Package"] || "Essential Full Groom",
@@ -122,7 +122,7 @@ function mapAirtableRecordToRequest(r: any): any {
     addonsTotal: Number(f["Addons Total"]) || 0,
     multiDogDiscount: Number(f["Discount 20% 2nd Dog"]) || 0,
     estimatedTotal: Number(f["Estimated Total"]) || 0,
-    paymentStatus: f["Payment Status"] || "Pendiente en Puerta",
+    paymentStatus: f["Payment Status"] || "Pending Doorstep Payment",
     preferredTime: `${scheduledDate} · ${scheduledTime}`,
     scheduledDate: scheduledDate,
     scheduledTime: scheduledTime,
@@ -146,10 +146,25 @@ export default async function handler(req: any, res: any) {
     return res.status(200).end();
   }
 
-  // ── GET: Fetch all bookings from Airtable ──────────────────────────
+  // ── GET: Fetch all bookings from Airtable (or filter by email/phone/bookingId) ──
   if (req.method === "GET") {
     try {
-      const recordsUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?sort%5B0%5D%5Bfield%5D=Created+At&sort%5B0%5D%5Bdirection%5D=desc&maxRecords=100`;
+      const emailParam = (req.query?.email || "").trim().toLowerCase();
+      const phoneParam = (req.query?.phone || "").trim().replace(/[^0-9]/g, "");
+      const bookingIdParam = (req.query?.bookingId || "").trim();
+
+      let recordsUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?sort%5B0%5D%5Bfield%5D=Created+At&sort%5B0%5D%5Bdirection%5D=desc&maxRecords=100`;
+
+      if (bookingIdParam) {
+        recordsUrl += `&filterByFormula=${encodeURIComponent(`{Booking ID} = '${bookingIdParam.replace(/'/g, "\\'")}'`)}`;
+      } else if (emailParam || phoneParam) {
+        const conds: string[] = [];
+        if (emailParam) conds.push(`LOWER({Email}) = '${emailParam.replace(/'/g, "\\'")}'`);
+        if (phoneParam && phoneParam.length >= 7) conds.push(`FIND('${phoneParam.slice(-7)}', {Phone}) > 0`);
+        const formula = conds.length > 1 ? `OR(${conds.join(",")})` : conds[0];
+        recordsUrl += `&filterByFormula=${encodeURIComponent(formula)}`;
+      }
+
       const atRes = await fetch(recordsUrl, {
         headers: {
           Authorization: `Bearer ${AIRTABLE_KEY}`,
@@ -181,7 +196,7 @@ export default async function handler(req: any, res: any) {
     }
   }
 
-  // ── PATCH: Update record status / reschedule in Airtable ──────────
+  // ── PATCH: Update record status / any appointment aspect in Airtable ──────────
   if (req.method === "PATCH") {
     try {
       let body = req.body;
@@ -224,6 +239,24 @@ export default async function handler(req: any, res: any) {
       if (scheduledDate) fieldsToUpdate["Scheduled Date"] = scheduledDate;
       if (scheduledTime) fieldsToUpdate["Scheduled Time Window"] = scheduledTime;
       if (notes) fieldsToUpdate["Groomer Notes"] = notes;
+      if (body.groomerNotes !== undefined) fieldsToUpdate["Groomer Notes"] = body.groomerNotes;
+
+      // Additional fields for complete appointment modification from Client Portal
+      if (body.address) fieldsToUpdate["Doorstep Address"] = body.address;
+      if (body.zipCode) fieldsToUpdate["ZIP Code"] = body.zipCode;
+      if (body.parkingNotes !== undefined) fieldsToUpdate["Parking Notes"] = body.parkingNotes;
+      if (body.servicePackage) fieldsToUpdate["Service Package"] = body.servicePackage;
+      if (Array.isArray(body.spaUpgrades)) fieldsToUpdate["Spa Upgrades"] = body.spaUpgrades;
+      if (body.basePrice !== undefined) fieldsToUpdate["Base Price"] = Number(body.basePrice);
+      if (body.addonsTotal !== undefined) fieldsToUpdate["Addons Total"] = Number(body.addonsTotal);
+      if (body.estimatedTotal !== undefined) fieldsToUpdate["Estimated Total"] = Number(body.estimatedTotal);
+      if (body.medicalConditions !== undefined) fieldsToUpdate["Medical Conditions"] = body.medicalConditions;
+      if (body.petName) fieldsToUpdate["Dog Names"] = body.petName;
+      if (body.breed) fieldsToUpdate["Breeds"] = body.breed;
+      if (body.petAge) fieldsToUpdate["Dog Ages"] = body.petAge;
+      if (body.customerName) fieldsToUpdate["Customer Name"] = body.customerName;
+      if (body.phone) fieldsToUpdate["Phone"] = body.phone;
+      if (body.email) fieldsToUpdate["Email"] = body.email;
 
       const patchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}/${targetRecordId}`;
       const patchRes = await fetch(patchUrl, {

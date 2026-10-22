@@ -57,7 +57,11 @@ export interface DispatchRequest {
   groomerNotes?: string;
   parkingNotes?: string;
   signature?: string | null;
+  basePrice?: number;
+  addonsTotal?: number;
   estimatedTotal?: number;
+  paymentStatus?: string;
+  airtableRecordId?: string;
   preferredTime: string;
   scheduledDate?: string;
   scheduledTime?: string;
@@ -275,6 +279,20 @@ export function updateRequestStatus(id: string, newStatus: RequestStatus): void 
         archived: isArchived,
         completedAt: newStatus === "completed" ? new Date().toISOString() : r.completedAt,
         cancelledAt: newStatus === "cancelled" ? new Date().toISOString() : r.cancelledAt,
+      };
+    }
+    return r;
+  });
+  saveStoredRequests(updated);
+}
+
+export function updateAppointmentDetails(id: string, updates: Partial<DispatchRequest>): void {
+  const current = getStoredRequests();
+  const updated = current.map((r) => {
+    if (r.id === id) {
+      return {
+        ...r,
+        ...updates,
       };
     }
     return r;

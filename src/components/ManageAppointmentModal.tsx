@@ -252,7 +252,7 @@ export function ManageAppointmentModal({
               )}
             >
               <RefreshCw className="h-3.5 w-3.5" />
-              <span>Reagendar / Reschedule</span>
+              <span>Reschedule</span>
             </button>
             <button
               type="button"
@@ -265,7 +265,7 @@ export function ManageAppointmentModal({
               )}
             >
               <X className="h-3.5 w-3.5" />
-              <span>Cancelar / Cancel</span>
+              <span>Cancel</span>
             </button>
           </div>
         )}

@@ -150,11 +150,16 @@ export function AdminMap({
 
   // When selectedRequest changes, smoothly fly to its coordinates
   useEffect(() => {
-    if (!mapInstanceRef.current || !selectedRequest) return;
+    if (!mapInstanceRef.current) return;
+    setTimeout(() => {
+      mapInstanceRef.current?.invalidateSize();
+    }, 150);
+
+    if (!selectedRequest) return;
     mapInstanceRef.current.flyTo([selectedRequest.lat, selectedRequest.lng], 13, {
       duration: 1.2,
     });
-  }, [selectedRequest]);
+  }, [selectedRequest, requests]);
 
   return (
     <div className="relative w-full h-full min-h-[380px] rounded-3xl overflow-hidden border border-[#FAF0E2]/15 shadow-2xl">

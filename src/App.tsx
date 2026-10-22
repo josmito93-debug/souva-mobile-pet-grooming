@@ -17,6 +17,7 @@ import {
   Droplets,
   Zap,
   Leaf,
+  User,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { Header } from "@/components/Header";
@@ -30,6 +31,7 @@ import { GroomingFlow } from "@/components/GroomingFlow";
 import { StepCard } from "@/components/StepCard";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { AdminDashboard } from "@/components/AdminDashboard";
+import { ClientPortal } from "@/components/ClientPortal";
 import { LocalSeoDirectory } from "@/components/LocalSeoDirectory";
 import { Footer } from "@/components/Footer";
 import { QuickLinks, QuickLinksFloatingButton } from "@/components/QuickLinks";
@@ -50,21 +52,25 @@ export default function App() {
 }
 
 function AppContent() {
-  const [currentView, setCurrentView] = useState<"site" | "admin" | "links">(() => {
+  const [currentView, setCurrentView] = useState<"site" | "admin" | "links" | "portal">(() => {
     if (typeof window !== "undefined") {
-      if (
-        window.location.pathname.startsWith("/admin") ||
-        window.location.search.includes("admin")
-      ) {
+      const path = window.location.pathname;
+      const search = window.location.search;
+      if (path.startsWith("/admin") || search.includes("admin")) {
         return "admin";
       }
-      if (
-        window.location.pathname.startsWith("/links") ||
-        window.location.pathname.startsWith("/quick-links") ||
-        window.location.search.includes("links") ||
-        window.location.search.includes("quick-links")
-      ) {
+      if (path.startsWith("/links") || path.startsWith("/quick-links") || search.includes("links") || search.includes("quick-links")) {
         return "links";
+      }
+      if (
+        path.startsWith("/portal") ||
+        path.startsWith("/account") ||
+        path.startsWith("/my-account") ||
+        path.startsWith("/my-bookings") ||
+        search.includes("portal") ||
+        search.includes("account")
+      ) {
+        return "portal";
       }
     }
     return "site";
@@ -127,18 +133,14 @@ function AppContent() {
 
     const onLocationChange = () => {
       checkManageAppointmentParams();
-      if (
-        window.location.pathname.startsWith("/admin") ||
-        window.location.search.includes("admin")
-      ) {
+      const path = window.location.pathname;
+      const search = window.location.search;
+      if (path.startsWith("/admin") || search.includes("admin")) {
         setCurrentView("admin");
-      } else if (
-        window.location.pathname.startsWith("/links") ||
-        window.location.pathname.startsWith("/quick-links") ||
-        window.location.search.includes("links") ||
-        window.location.search.includes("quick-links")
-      ) {
+      } else if (path.startsWith("/links") || path.startsWith("/quick-links") || search.includes("links") || search.includes("quick-links")) {
         setCurrentView("links");
+      } else if (path.startsWith("/portal") || path.startsWith("/account") || path.startsWith("/my-account") || path.startsWith("/my-bookings") || search.includes("portal") || search.includes("account")) {
+        setCurrentView("portal");
       } else {
         setCurrentView("site");
       }
@@ -150,6 +152,12 @@ function AppContent() {
   const navigateToAdmin = () => {
     window.history.pushState({}, "", "/admin");
     setCurrentView("admin");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const navigateToPortal = () => {
+    window.history.pushState({}, "", "/portal");
+    setCurrentView("portal");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -182,6 +190,20 @@ function AppContent() {
     return <AdminDashboard onBackToSite={navigateToSite} />;
   }
 
+  if (currentView === "portal") {
+    return (
+      <ClientPortal
+        onBackToSite={navigateToSite}
+        onBookNewClick={() => {
+          navigateToSite();
+          setTimeout(() => {
+            scrollToBookingFlow();
+          }, 120);
+        }}
+      />
+    );
+  }
+
   if (currentView === "links") {
     return (
       <>
@@ -203,6 +225,7 @@ function AppContent() {
             }, 120);
           }}
           onOpenAdmin={navigateToAdmin}
+          onOpenClientPortal={navigateToPortal}
           onOpenTerms={() => setShowTermsModal(true)}
         />
         <TermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
@@ -372,6 +395,7 @@ function AppContent() {
       <Header
         onBookClick={scrollToBookingFlow}
         onOpenQuickLinks={() => setShowQuickLinksModal(true)}
+        onOpenClientPortal={navigateToPortal}
       />
 
       {/* Main Content */}
@@ -496,6 +520,22 @@ function AppContent() {
                   />
 
                   {/* Cockpit Card Container */}
+                  <div className="flex items-center justify-between px-3.5 py-2 mb-2.5 rounded-2xl bg-[#1C2016]/90 border border-[#AA8B63]/30 backdrop-blur-md shadow-sm">
+                    <span className="text-[11px] font-mono text-[#FAF0E2] flex items-center gap-1.5 font-semibold">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Online Booking Cockpit</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={navigateToPortal}
+                      className="text-[11px] font-mono text-amber-300 hover:text-white font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                      title="Log In to View or Modify Existing Appointments"
+                    >
+                      <User className="h-3 w-3" />
+                      <span>Already booked? Client Login →</span>
+                    </button>
+                  </div>
+
                   <InteractiveTile
                     beamColor={beamColor}
                     live={flowStatus.dispatched}
@@ -583,7 +623,7 @@ function AppContent() {
                   <h3 className="text-base sm:text-xl font-display font-extrabold text-[#FAF0E2] mt-1.5 leading-snug">
                     Essential Full Groom: <span className="text-amber-300 font-black text-xl sm:text-2xl">$99</span>{" "}
                     <span className="text-xs sm:text-sm font-mono text-amber-200/90 font-bold block sm:inline">
-                      (+$30 después de 50 lb · Over 50 lb: $129)
+                      (+$30 for dogs over 50 lb · Over 50 lb: $129)
                     </span>
                   </h3>
                   <p className="text-xs text-[#A4AA93] mt-1 leading-relaxed">
@@ -708,7 +748,7 @@ function AppContent() {
                             <span className="text-[10px] font-mono text-amber-200 font-bold block mt-0.5">
                               {isOver50Lbs
                                 ? "Includes +$30 (Dogs over 50 lb)"
-                                : "+$30 después de 50 lb ($129)"}
+                                : "+$30 over 50 lb ($129)"}
                             </span>
                           )}
                         </div>
@@ -860,10 +900,10 @@ function AppContent() {
         {/* CLIENT FAQS & ASK CONCIERGE BOX (POWERED BY RESEND) */}
         <FaqSection onBookClick={scrollToBookingFlow} />
 
-        {/* QUIÉNES SOMOS SECTION */}
+        {/* ABOUT SOUVA SECTION */}
         <AboutSection onBookClick={scrollToBookingFlow} />
 
-        {/* ÁREAS QUE ATENDEMOS SECTION */}
+        {/* COVERAGE AREAS SECTION */}
         <CoverageSection onBookClick={scrollToBookingFlow} />
 
         {/* BEFORE & AFTER TRANSFORMATION SHOWCASE */}
@@ -1130,6 +1170,7 @@ function AppContent() {
         onOpenAdmin={navigateToAdmin}
         onBookClick={scrollToBookingFlow}
         onOpenQuickLinks={() => setShowQuickLinksModal(true)}
+        onOpenClientPortal={navigateToPortal}
       />
 
       {/* Quick Links Interactive Modal */}
@@ -1147,6 +1188,7 @@ function AppContent() {
           if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
         }}
         onOpenAdmin={navigateToAdmin}
+        onOpenClientPortal={navigateToPortal}
         onOpenTerms={() => {
           setShowQuickLinksModal(false);
           setShowTermsModal(true);

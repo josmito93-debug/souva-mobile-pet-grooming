@@ -43,6 +43,7 @@ import breedsList from "@/data/breeds.json";
 import { SOUVA_PACKAGES, SPA_UPGRADES, SIZE_GUIDE, type PetSize } from "@/data/services";
 import { checkCoverage, SOUVA_COVERAGE_ZONES, SUGGESTED_AREAS } from "@/data/coverage";
 import { addDispatchRequest, getStoredRequests } from "@/lib/dispatchStore";
+import { saveClientSession } from "@/lib/clientPortalStore";
 import {
   createAirtableBooking,
   fetchBookedSlots,
@@ -74,35 +75,35 @@ export interface CompletedPet {
 }
 
 export interface GroomingFlowState {
-  // Paso 1: Tamaño del perro
+  // Step 1: Dog Size
   size: PetSize;
 
-  // Paso 2: Servicio & Upgrades ("Know your price")
+  // Step 2: Service & Upgrades ("Know your price")
   packageId: string;
   addons: string[];
 
-  // Paso 3: Locación & Cobertura & Parking
+  // Step 3: Location & Coverage & Parking
   address: string;
   zipCode: string;
   parkingNotes: string;
   latitude: number | null;
   longitude: number | null;
 
-  // Paso 4: Información del cliente
+  // Step 4: Client Information
   firstName: string;
   lastName: string;
   ownerName: string;
   email: string;
   phone: string;
 
-  // Paso 5: Información del perro
+  // Step 5: Dog Information
   dogCount: number;
   petName: string;
   breed: string;
   petAge: string;
   gender: "male" | "female";
 
-  // Paso 6: Condición del perro
+  // Step 6: Dog Condition & Coat
   petCondition: string;
   temperament: string;
   vaccinated: "yes" | "no";
@@ -110,12 +111,12 @@ export interface GroomingFlowState {
   groomerNotes: string;
   petPhoto: string | null;
 
-  // Paso 7: Calendario de disponibilidad
+  // Step 7: Availability Calendar & Arrival Window
   scheduledDate: string;
   scheduledDateIso?: string;
   scheduledTime: string;
 
-  // Paso 8: Disclaimer (botón de confirmación directa + firma opcional)
+  // Step 8: Disclaimer (Direct confirmation button + optional signature)
   signature: string | null;
   agreedToTerms: boolean;
 }
@@ -148,11 +149,11 @@ export function getAvailableDates(): AvailableDate[] {
   const dates: AvailableDate[] = [];
   const now = new Date();
   
-  // Las reservas requieren al menos 24 horas de anticipación
-  // Si la hora actual es >= 17:00 (5 PM), se inicia pasado mañana para garantizar las 24h
+  // Bookings require at least 24 hours advance notice
+  // If current time is >= 17:00 (5 PM), start from day after tomorrow to guarantee 24h
   const startOffset = now.getHours() >= 17 ? 2 : 1;
 
-  // Abrir calendario a todo el año (365 días en adelante)
+  // Open calendar for the entire year (365 days forward)
   for (let i = startOffset; i < startOffset + 365; i++) {
     const d = new Date(now);
     d.setDate(now.getDate() + i);
@@ -768,7 +769,7 @@ export function GroomingFlow({
         addonsTotal: allPets.reduce((s, p) => s + p.addonsCost, 0),
         multiDogDiscount: totalMultiDiscount,
         estimatedTotal: finalTotal,
-        paymentStatus: "Pendiente en Puerta",
+        paymentStatus: "Pending Doorstep Payment",
         agreementAccepted: true,
         signatureUrl: data.signature,
       });
@@ -782,7 +783,7 @@ export function GroomingFlow({
     // Immediately update local slot tracking
     setBookedSlots((prev) => [
       ...prev,
-      { date: resolvedIsoDate, time: data.scheduledTime, status: "Pendiente" },
+      { date: resolvedIsoDate, time: data.scheduledTime, status: "Pending" },
     ]);
 
     // 7. SEND EMAIL & PDF INVOICE VIA VERCEL SERVERLESS
@@ -1187,7 +1188,7 @@ export function GroomingFlow({
   );
 }
 
-/* -------------------- STEP 1: TAMAÑO DEL PERRO (PASO 1) -------------------- */
+/* -------------------- STEP 1: PET SIZE -------------------- */
 function StepPetSize({
   data,
   setData,
@@ -1214,7 +1215,7 @@ function StepPetSize({
   );
 }
 
-/* -------------------- STEP 2: SERVICIO (PASO 2) -------------------- */
+/* -------------------- STEP 2: SERVICE & PACKAGES -------------------- */
 function StepServicePackage({
   data,
   setData,
@@ -1299,8 +1300,8 @@ function StepServicePackage({
               Full Grooming Promo <strong className="text-amber-300 font-extrabold text-sm sm:text-base">$99</strong>{" "}
               <span className="text-amber-200 font-mono font-bold text-[11px] block sm:inline">
                 {isOver50Lbs
-                  ? "(+$30 después de 50 lb · $129 Active)"
-                  : "(+$30 después de 50 lb · Over 50 lb: $129)"}
+                  ? "(+$30 over 50 lb · $129 Active)"
+                  : "(+$30 over 50 lb · Over 50 lb: $129)"}
               </span>
             </p>
           </div>
@@ -1336,7 +1337,7 @@ function StepServicePackage({
                         "block text-[8px] sm:text-[8.5px] font-mono font-bold mt-0.5",
                         isSelected ? "text-[#161811]" : "text-amber-300"
                       )}>
-                        {isOver50Lbs ? "Includes +$30 (>50 lb)" : "+$30 después de 50 lb ($129)"}
+                        {isOver50Lbs ? "Includes +$30 (>50 lb)" : "+$30 over 50 lb ($129)"}
                       </span>
                     </div>
                   )}
@@ -1475,7 +1476,7 @@ function StepServicePackage({
   );
 }
 
-/* -------------------- STEP 3: LOCACIÓN & COBERTURA (PASO 3) -------------------- */
+/* -------------------- STEP 3: LOCATION & COVERAGE -------------------- */
 function StepLocationCoverage({
   data,
   setData,
@@ -1491,6 +1492,7 @@ function StepLocationCoverage({
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistJoined, setWaitlistJoined] = useState(false);
   const [showZonesList, setShowZonesList] = useState(false);
+  const addressInputRef = useRef<HTMLInputElement>(null);
 
   const coverage = checkCoverage(data.zipCode);
 
@@ -1503,6 +1505,64 @@ function StepLocationCoverage({
       }
     }
   }, [data.zipCode, coverage.covered]);
+
+  // Google Places Autocomplete integration
+  useEffect(() => {
+    let autocomplete: any = null;
+    const initPlaces = () => {
+      const g = (window as any).google;
+      if (g?.maps?.places?.Autocomplete && addressInputRef.current && !autocomplete) {
+        try {
+          autocomplete = new g.maps.places.Autocomplete(addressInputRef.current, {
+            componentRestrictions: { country: "us" },
+            fields: ["address_components", "formatted_address", "geometry"],
+            types: ["address"],
+          });
+
+          autocomplete.addListener("place_changed", () => {
+            const place = autocomplete.getPlace();
+            if (!place || !place.geometry) return;
+
+            const formattedAddress = place.formatted_address || "";
+            let extractedZip = "";
+            if (Array.isArray(place.address_components)) {
+              for (const comp of place.address_components) {
+                if (comp.types.includes("postal_code")) {
+                  extractedZip = comp.short_name || comp.long_name || "";
+                  break;
+                }
+              }
+            }
+
+            const lat = place.geometry.location?.lat ? place.geometry.location.lat() : null;
+            const lng = place.geometry.location?.lng ? place.geometry.location.lng() : null;
+
+            setData((prev) => ({
+              ...prev,
+              address: formattedAddress,
+              zipCode: extractedZip || prev.zipCode,
+              latitude: lat,
+              longitude: lng,
+            }));
+            setShowAddressDropdown(false);
+          });
+        } catch (e) {
+          console.warn("Google Places Autocomplete init warning:", e);
+        }
+      }
+    };
+
+    initPlaces();
+    const timer = setInterval(() => {
+      const g = (window as any).google;
+      if (g?.maps?.places?.Autocomplete && addressInputRef.current && !autocomplete) {
+        initPlaces();
+        clearInterval(timer);
+      }
+    }, 350);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const handleAddressChange = (address: string) => {
     const zipMatch = address.match(/\b(9\d{4})\b/);
@@ -1541,6 +1601,42 @@ function StepLocationCoverage({
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+
+        // Try Google Geocoder first if available
+        const g = (window as any).google;
+        if (g?.maps?.Geocoder) {
+          try {
+            const geocoder = new g.maps.Geocoder();
+            geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results: any, status: any) => {
+              if (status === "OK" && results && results[0]) {
+                const first = results[0];
+                const cleanAddr = first.formatted_address;
+                let zip = "";
+                for (const c of first.address_components || []) {
+                  if (c.types.includes("postal_code")) {
+                    zip = c.short_name;
+                    break;
+                  }
+                }
+                clearInterval(interval);
+                setLocateProgress(100);
+                setData((prev) => ({
+                  ...prev,
+                  latitude,
+                  longitude,
+                  address: cleanAddr,
+                  zipCode: zip || prev.zipCode,
+                }));
+                setIsLocating(false);
+                return;
+              }
+            });
+            return;
+          } catch (e) {
+            console.warn("Google Geocoder fallback:", e);
+          }
+        }
+
         try {
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
@@ -1616,6 +1712,7 @@ function StepLocationCoverage({
           <div className="relative">
             <MapPin className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
             <input
+              ref={addressInputRef}
               type="text"
               value={data.address}
               onChange={(e) => handleAddressChange(e.target.value)}
@@ -1631,6 +1728,10 @@ function StepLocationCoverage({
             >
               {isLocating ? "SYNCING..." : "GPS LOCATE"}
             </button>
+          </div>
+          <div className="mt-1 flex items-center justify-between text-[10px] font-mono text-[#A4AA93]">
+            <span>Google Maps Autocomplete & Geocoding Active</span>
+            <span className="text-emerald-400">● Live Satellite GPS</span>
           </div>
 
           {showAddressDropdown && filteredSuggestions.length > 0 && (
@@ -1854,7 +1955,7 @@ function StepLocationCoverage({
   );
 }
 
-/* -------------------- STEP 4: INFO CLIENTE (PASO 4) -------------------- */
+/* -------------------- STEP 4: CLIENT INFO -------------------- */
 function StepClientInfo({
   data,
   setData,
@@ -1954,7 +2055,7 @@ function StepClientInfo({
   );
 }
 
-/* -------------------- STEP 5: INFO PERRO (PASO 5) -------------------- */
+/* -------------------- STEP 5: DOG INFO -------------------- */
 function StepDogInfo({
   data,
   setData,
@@ -2109,7 +2210,7 @@ function StepDogInfo({
   );
 }
 
-/* -------------------- STEP 6: CONDICIÓN DEL PERRO (PASO 6) -------------------- */
+/* -------------------- STEP 6: DOG CONDITION & COAT -------------------- */
 function StepDogCareCondition({
   data,
   setData,
@@ -2321,7 +2422,7 @@ function StepDogCareCondition({
   );
 }
 
-/* -------------------- STEP 7: CALENDARIO (PASO 7) -------------------- */
+/* -------------------- STEP 7: CALENDAR & TIME WINDOW -------------------- */
 function StepBookingCalendar({
   data,
   setData,
@@ -2794,7 +2895,7 @@ function StepBookingCalendar({
   );
 }
 
-/* -------------------- STEP 8: DISCLAIMER & MULTI-DOG DECISION (PASO 8) -------------------- */
+/* -------------------- STEP 8: DISCLAIMER & MULTI-DOG DECISION -------------------- */
 function StepDisclaimerConfirm({
   data,
   setData,
@@ -3303,6 +3404,55 @@ ${totalSavings > 0 ? `\n🎉 Multi-Dog Discount Applied: -$${totalSavings}.00\n`
           <span className="group-hover:text-black transition-colors">Send Booking Confirmation via WhatsApp</span>
           <ArrowRight className="h-4 w-4" />
         </a>
+
+        {/* VIP CLIENT ACCOUNT & PORTAL CARD */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-[#22271B] via-[#2A3121] to-[#1D2116] border-2 border-[#AA8B63] shadow-[0_0_25px_rgba(170,139,99,0.35)] space-y-3 text-left">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#AA8B63]">
+                Your SOUVA Client Account
+              </span>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full bg-[#AA8B63]/25 border border-[#AA8B63]/60 text-amber-200 text-[9px] font-mono font-bold uppercase">
+              Live Dashboard
+            </span>
+          </div>
+
+          <div>
+            <h4 className="font-display font-extrabold text-base sm:text-lg text-[#FAF0E2]">
+              Need to modify your booking or view your profile?
+            </h4>
+            <p className="text-xs text-[#E2D7C5]/90 mt-1 leading-relaxed">
+              Log in to your account anytime to reschedule the arrival window, update your dog's name or breed, add luxury spa upgrades, or edit your doorstep address.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                saveClientSession({
+                  id: `CLI-${Date.now().toString().slice(-5)}`,
+                  name: resolvedOwner,
+                  email: data.email,
+                  phone: data.phone,
+                  address: data.address,
+                  zipCode: data.zipCode,
+                  createdAt: new Date().toISOString(),
+                  lastLoginAt: new Date().toISOString(),
+                });
+                window.location.href = "/portal";
+              } catch {
+                window.location.href = "/portal";
+              }
+            }}
+            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#AA8B63] via-[#C4A67E] to-[#AA8B63] text-[#161811] hover:brightness-110 active:scale-[0.99] font-black text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xl"
+          >
+            <User className="h-4 w-4 text-[#161811]" />
+            <span>Go to My Account & Manage Bookings →</span>
+          </button>
+        </div>
 
         {invoicePdf ? (
           <button

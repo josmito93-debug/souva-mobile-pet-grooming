@@ -79,6 +79,7 @@ export default async function handler(req: any, res: any) {
     ).trim();
 
     const appUrl = (process.env.APP_URL || "https://souva-mobile-pet-grooming.vercel.app").replace(/\/$/, "");
+    const portalUrl = `${appUrl}/portal?email=${encodeURIComponent(email)}`;
     const rescheduleUrl = `${appUrl}/?action=reschedule&bookingId=${encodeURIComponent(resolvedBookingId)}&pet=${encodeURIComponent(petName)}&date=${encodeURIComponent(scheduledDate)}&time=${encodeURIComponent(scheduledTime)}`;
     const cancelUrl = `${appUrl}/?action=cancel&bookingId=${encodeURIComponent(resolvedBookingId)}&pet=${encodeURIComponent(petName)}&date=${encodeURIComponent(scheduledDate)}&time=${encodeURIComponent(scheduledTime)}`;
 
@@ -267,9 +268,10 @@ ${addons && addons.length > 0 ? `• Spa Upgrades: ${addons.join(", ")}\n` : ""}
 • Date: ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
 • Status: Legally Binding Pet Care Agreement Verified
 
-🔄 NEED TO RESCHEDULE OR CANCEL?
-Plans changed? You can easily reschedule your arrival window or cancel your appointment at no cost with 24 hours notice:
-• Reschedule Online: ${rescheduleUrl}
+🔄 NEED TO RESCHEDULE, CANCEL, OR MODIFY DETAILS?
+Need to make a change? Log in to your personal Client Account anytime to reschedule, update your dog's details, select spa upgrades, or edit your address:
+• Client Portal (My Account): ${portalUrl}
+• Reschedule Arrival Window: ${rescheduleUrl}
 • Cancel Online: ${cancelUrl}
 • WhatsApp Concierge (Reschedule): ${waRescheduleUrl}
 • WhatsApp Concierge (Cancel): ${waCancelUrl}
@@ -321,7 +323,7 @@ Concierge / WhatsApp: +1 (415) 375-5823 · info@souvagrooming.com`;
             <tr><td style="color: #A4AA93; width: 35%;">Dog's Name:</td><td style="color: #FAF0E2; font-weight: 700;">${petName}</td></tr>
             <tr><td style="color: #A4AA93;">Breed / Mix:</td><td style="color: #FAF0E2;">${breed}</td></tr>
             <tr><td style="color: #A4AA93;">Size & Weight:</td><td style="color: #FAF0E2;">${sizeLabel} (${sizeWeight})</td></tr>
-            <tr><td style="color: #A4AA93;">Gender & Age:</td><td style="color: #FAF0E2;">${gender === "male" ? "♂ Male (Macho)" : "♀ Female (Hembra)"} · ${petAge}</td></tr>
+            <tr><td style="color: #A4AA93;">Gender & Age:</td><td style="color: #FAF0E2;">${gender === "male" ? "♂ Male" : "♀ Female"} · ${petAge}</td></tr>
             <tr><td style="color: #A4AA93;">Coat & Condition:</td><td style="color: #FAF0E2;">${petCondition}</td></tr>
             <tr><td style="color: #A4AA93;">Rabies Vaccine:</td><td style="color: #FAF0E2;">${vaccinated === "yes" ? "✓ Up to Date (Compliant)" : "In Progress"}</td></tr>
             <tr><td style="color: #A4AA93;">Medical Conditions:</td><td style="color: #FAF0E2;">${medicalConditions}</td></tr>
@@ -398,6 +400,28 @@ Concierge / WhatsApp: +1 (415) 375-5823 · info@souvagrooming.com`;
           </p>
         </div>
 
+        <!-- Client Account & Self-Service Portal Card -->
+        <div style="background: linear-gradient(135deg, #1B2114 0%, #222919 50%, #171C11 100%); border: 2px solid #AA8B63; border-radius: 16px; padding: 22px 20px; margin-bottom: 22px; box-shadow: 0 4px 25px rgba(170,139,99,0.35); text-align: center;">
+          <div style="display: inline-block; padding: 4px 14px; background: rgba(170,139,99,0.2); border: 1px solid #AA8B63; border-radius: 9999px; margin-bottom: 8px;">
+            <span style="color: #AA8B63; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px;">
+              👤 SOUVA Client Portal & Account
+            </span>
+          </div>
+          <h3 style="color: #FAF0E2; font-size: 18px; margin: 0 0 6px 0; font-weight: 800;">
+            Need to Modify Your Appointment?
+          </h3>
+          <p style="color: #E2D7C5; font-size: 12.5px; margin: 0 0 16px 0; line-height: 1.6; max-width: 480px; margin-left: auto; margin-right: auto;">
+            Log in to your account anytime to reschedule your arrival window, update your dog's name or breed, add spa upgrades, or edit your doorstep address in real-time.
+          </p>
+          <a href="${portalUrl}" target="_blank"
+             style="display: inline-block; background: linear-gradient(to right, #AA8B63, #C4A67E, #AA8B63); color: #161811; text-decoration: none; font-weight: 900; font-size: 13px; padding: 13px 28px; border-radius: 25px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(170,139,99,0.4);">
+            👤 Log In to My Account & Manage Booking →
+          </a>
+          <p style="color: #A4AA93; font-size: 11px; margin: 10px 0 0 0;">
+            Instant access with your email (${email}) or Google account · 100% synchronized with live fleet
+          </p>
+        </div>
+
         <!-- Manage Appointment Card: Reschedule & Cancellation -->
         <div style="background-color: #1B1E15; border: 1.5px solid #AA8B63; border-radius: 16px; padding: 22px 20px; margin-bottom: 22px; box-shadow: 0 4px 25px rgba(0,0,0,0.45);">
           <div style="margin-bottom: 12px; border-bottom: 1px solid rgba(250, 240, 226, 0.08); padding-bottom: 8px;">
@@ -419,13 +443,13 @@ Concierge / WhatsApp: +1 (415) 375-5823 · info@souvagrooming.com`;
               <td style="width: 50%;">
                 <a href="${rescheduleUrl}" target="_blank"
                    style="display: block; background: #AA8B63; color: #161811; text-decoration: none; font-weight: 800; font-size: 12px; padding: 12px 14px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; box-shadow: 0 2px 10px rgba(170,139,99,0.3);">
-                  🔄 Reagendar Cita
+                  🔄 Reschedule Appointment
                 </a>
               </td>
               <td style="width: 50%;">
                 <a href="${cancelUrl}" target="_blank"
                    style="display: block; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.45); color: #FCA5A5; text-decoration: none; font-weight: 700; font-size: 12px; padding: 11px 14px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">
-                  ✕ Cancelar Cita
+                  ✕ Cancel Appointment
                 </a>
               </td>
             </tr>
@@ -439,12 +463,12 @@ Concierge / WhatsApp: +1 (415) 375-5823 · info@souvagrooming.com`;
             <div style="font-size: 11.5px; line-height: 1.8;">
               <div>
                 <a href="${waRescheduleUrl}" target="_blank" style="color: #22C55E; text-decoration: none; font-weight: 600;">
-                  💬 Reagendar por WhatsApp (+1 415 375-5823) →
+                  💬 Reschedule via WhatsApp (+1 415 375-5823) →
                 </a>
               </div>
               <div>
                 <a href="${waCancelUrl}" target="_blank" style="color: #F87171; text-decoration: none; font-weight: 600;">
-                  ✕ Cancelar por WhatsApp →
+                  ✕ Cancel via WhatsApp →
                 </a>
               </div>
             </div>
@@ -793,7 +817,7 @@ function normalizeAirtableBooking(booking: any): Record<string, any> {
     "Breeds": breeds || breed,
     "Dog Sizes": finalSizes,
     "Dog Ages": dogAges || petAge,
-    "Genders": genders || (gender === "female" ? "Hembra" : "Macho"),
+    "Genders": genders || (gender === "female" ? "Female" : "Male"),
     "Rabies Vaccine": rabiesVaccine,
     "Temperament": finalTemp,
     "Medical Conditions": medicalConditions || "None / Healthy",
@@ -1191,7 +1215,7 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
     color: cCream,
   });
 
-  page.drawText(`Size: ${b.sizeLabel || (b.size || "N/A").toUpperCase()} (${b.sizeWeight || ""}) · Gender: ${b.gender === "male" ? "Macho (Male)" : "Hembra (Female)"}`, {
+  page.drawText(`Size: ${b.sizeLabel || (b.size || "N/A").toUpperCase()} (${b.sizeWeight || ""}) · Gender: ${b.gender === "male" ? "Male" : "Female"}`, {
     x: rightBoxX + 10,
     y: curY - 40,
     size: 7.2,

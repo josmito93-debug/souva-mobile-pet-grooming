@@ -27,6 +27,7 @@ import {
   Instagram,
   Facebook,
   HelpCircle,
+  User,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { WhatsAppIcon, PhoneConciergeIcon } from "@/components/BrandIcons";
@@ -42,6 +43,7 @@ interface QuickLinksProps {
   onNavigateToSection?: (sectionId: string) => void;
   onOpenAdmin?: () => void;
   onOpenTerms?: () => void;
+  onOpenClientPortal?: () => void;
 }
 
 export function QuickLinks({
@@ -52,6 +54,7 @@ export function QuickLinks({
   onNavigateToSection,
   onOpenAdmin,
   onOpenTerms,
+  onOpenClientPortal,
 }: QuickLinksProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
@@ -348,6 +351,45 @@ export function QuickLinks({
           <ChevronRight className="h-4 w-4 text-[#25D366] group-hover:translate-x-0.5 transition-transform shrink-0" />
         </a>
       </div>
+
+      {/* ── CLIENT PORTAL & SELF-SERVICE ACCESS CARD ────────────────── */}
+      {onOpenClientPortal && (
+        <div className="ql-stagger-item mb-5">
+          <button
+            type="button"
+            onClick={() => {
+              if (isModal && onClose) onClose();
+              onOpenClientPortal();
+            }}
+            className="w-full p-4 rounded-2xl bg-[#1D2116] border-2 border-[#AA8B63]/60 hover:border-[#AA8B63] transition-all flex items-center justify-between gap-3 group shadow-lg cursor-pointer"
+          >
+            <div className="flex items-center gap-3.5 text-left min-w-0">
+              <div className="h-10 w-10 rounded-xl bg-[#282E1F] border border-[#AA8B63]/40 text-[#AA8B63] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <User className="h-5 w-5 text-[#AA8B63]" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#AA8B63]">
+                    Self-Service Hub
+                  </span>
+                  <span className="px-2 py-0.2 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-300 text-[9px] font-mono font-bold uppercase">
+                    Modify Any Aspect
+                  </span>
+                </div>
+                <h3 className="font-display font-bold text-base text-[#FAF0E2] group-hover:text-[#AA8B63] transition-colors leading-tight">
+                  Client Portal & Manage Appointments
+                </h3>
+                <p className="text-[11px] text-[#A4AA93] mt-0.5 truncate">
+                  View your bookings, modify dates/times, change packages, add spa upgrades, or download invoices.
+                </p>
+              </div>
+            </div>
+            <div className="h-8 w-8 rounded-full bg-[#14160F] border border-[#FAF0E2]/15 flex items-center justify-center shrink-0 group-hover:bg-[#AA8B63] group-hover:text-[#161811] transition-colors">
+              <ChevronRight className="h-4 w-4" />
+            </div>
+          </button>
+        </div>
+      )}
 
       {/* ── 20% OFF MULTI-DOG PROMOTION CARD ───────────────────────── */}
       <div className="ql-stagger-item mb-5 p-4 rounded-2xl bg-gradient-to-r from-[#0F5132]/80 via-[#15803D]/60 to-[#0F5132]/80 border border-emerald-400/40 shadow-lg flex items-center justify-between gap-4">
