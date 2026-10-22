@@ -142,12 +142,9 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
           saveStoredRequests(merged);
           setAirtableSyncStatus("synced");
 
-          if (!selectedRequest && merged.length > 0) {
+          if (merged.length > 0) {
             setSelectedRequest(merged[0]);
-          } else if (selectedRequest) {
-            const found = merged.find((r) => r.id === selectedRequest.id);
-            setSelectedRequest(found || merged[0] || null);
-          } else if (merged.length === 0) {
+          } else {
             setSelectedRequest(null);
           }
           return;

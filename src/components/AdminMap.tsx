@@ -31,13 +31,20 @@ export function AdminMap({
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
-      // Add dark matter carto tiles with SOUVA warm aesthetic
+      // Esri World Dark Gray Base (Free, no API key required, no watermark)
       L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
         {
-          attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
-          subdomains: "abcd",
-          maxZoom: 19,
+          attribution: "Esri, Garmin, © OpenStreetMap",
+          maxZoom: 16,
+        }
+      ).addTo(map);
+
+      // Esri World Dark Gray Reference Labels (streets & city labels)
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+        {
+          maxZoom: 16,
         }
       ).addTo(map);
 
@@ -74,6 +81,8 @@ export function AdminMap({
     Object.values(markersRef.current).forEach((m) => m.remove());
     markersRef.current = {};
 
+    const coordCounts = new Map<string, number>();
+
     // Plot customer request markers
     requests.forEach((req) => {
       let lat = Number(req.lat);
@@ -82,6 +91,18 @@ export function AdminMap({
       if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
         lat = 37.7749;
         lng = -122.4194;
+      }
+
+      // Fan out overlapping coordinates so all customer pins in the same neighborhood are distinctly visible
+      const coordKey = `${lat.toFixed(3)},${lng.toFixed(3)}`;
+      const indexAtCoord = coordCounts.get(coordKey) || 0;
+      coordCounts.set(coordKey, indexAtCoord + 1);
+
+      if (indexAtCoord > 0) {
+        const angle = indexAtCoord * 1.375; // golden angle spread
+        const radius = 0.003 * Math.sqrt(indexAtCoord);
+        lat += radius * Math.cos(angle);
+        lng += radius * Math.sin(angle);
       }
 
       const isSelected = selectedRequest?.id === req.id;
@@ -147,6 +168,10 @@ export function AdminMap({
       });
 
       const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+
+      if (isSelected) {
+        marker.setZIndexOffset(1000);
+      }
 
       marker.on("click", () => {
         onSelectRequest(req);

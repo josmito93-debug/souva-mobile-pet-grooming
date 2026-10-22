@@ -435,75 +435,90 @@ export function ClientPortal({
   return (
     <div className="min-h-screen bg-[#14160E] text-[#FAF0E2] flex flex-col justify-between selection:bg-[#AA8B63]/40 selection:text-[#FAF0E2]">
       {/* ── TOP LUXURY NAV BAR ─────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-[#161811]/95 backdrop-blur-md border-b border-[#FAF0E2]/10 py-3.5 px-4 sm:px-8 flex items-center justify-between shadow-lg">
+      <header className="sticky top-0 z-40 bg-[#161811]/95 backdrop-blur-md border-b border-[#FAF0E2]/10 py-3 px-4 sm:px-8 flex items-center justify-between shadow-lg">
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={onBackToSite}
+            onClick={() => {
+              if (client) setActiveTab("upcoming");
+              else onBackToSite();
+            }}
             className="hover:opacity-85 transition-opacity cursor-pointer"
-            title="Return to Main Website"
+            title="Portal Home"
           >
             <SouvaLogo showSubtitle={false} />
           </button>
 
           <span className="hidden sm:inline-block h-4 w-[1px] bg-[#FAF0E2]/20" />
 
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-[#181B12] border border-[#AA8B63]/40 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-[#FAF0E2] shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)]">
-              Client Portal
+          <div className="hidden md:inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#131E15] border border-emerald-500/40 shadow-[0_2px_10px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] text-[10px] font-mono uppercase tracking-[0.16em] font-bold text-emerald-300">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <div className="hidden md:inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#131E15] border border-emerald-500/40 shadow-[0_2px_10px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] text-[10px] font-mono uppercase tracking-[0.16em] font-bold text-emerald-300">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-              <span>Verified Parent Portal</span>
-            </div>
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            <span>Verified Parent Portal</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {client ? (
-            <div className="flex items-center gap-3">
-              {client.picture ? (
-                <img
-                  src={client.picture}
-                  alt={client.name}
-                  className="h-8 w-8 rounded-full border border-[#AA8B63]/60 object-cover shrink-0 shadow-sm"
-                />
-              ) : (
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#AA8B63] to-[#806440] text-[#161811] flex items-center justify-center font-black text-xs shrink-0">
-                  {client.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="hidden sm:flex flex-col text-right">
-                <span className="font-display font-bold text-xs text-[#FAF0E2] truncate max-w-[160px]">
-                  {client.name}
-                </span>
-                <span className="text-[10px] font-mono text-[#A4AA93] truncate max-w-[160px]">
-                  {client.email || client.phone}
-                </span>
-              </div>
+            <>
+              <button
+                type="button"
+                onClick={() => refreshAppointments(client)}
+                className="h-9 w-9 rounded-full bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:border-[#AA8B63] hover:text-[#AA8B63] transition-colors flex items-center justify-center cursor-pointer shadow-sm"
+                title="Refresh bookings"
+              >
+                <RefreshCw className={cn("h-3.5 w-3.5", isLoadingAppointments && "animate-spin text-[#AA8B63]")} />
+              </button>
+
+              <a
+                href="https://wa.me/14153755823?text=Hello%20SOUVA%20Concierge,%20I%20am%20in%20my%20client%20portal%20and%20need%20assistance."
+                target="_blank"
+                rel="noreferrer"
+                className="h-9 w-9 rounded-full bg-[#182319] border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366] hover:text-[#161811] transition-all flex items-center justify-center cursor-pointer shadow-sm"
+                title="Concierge WhatsApp Chat"
+              >
+                <WhatsAppIcon variant="badge" className="h-3.5 w-3.5" />
+              </a>
 
               <button
                 type="button"
                 onClick={() => setActiveTab("book")}
-                className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center gap-1.5 shrink-0 hover:brightness-110 active:scale-95"
+                className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] font-rounded font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center gap-1.5 shrink-0 hover:brightness-110 active:scale-95"
               >
                 <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-                <span>Book Van</span>
+                <span className="hidden xs:inline">Book Grooming</span>
+                <span className="xs:hidden">Book</span>
               </button>
 
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="p-2 rounded-xl bg-[#202517] border border-[#FAF0E2]/15 text-[#A4AA93] hover:text-red-400 hover:border-red-400/40 transition-colors cursor-pointer"
-                title="Sign Out of Client Portal"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </div>
+              <div className="flex items-center gap-2 pl-1 border-l border-[#FAF0E2]/15 ml-1">
+                {client.picture ? (
+                  <img
+                    src={client.picture}
+                    alt={client.name}
+                    className="h-8 w-8 rounded-full border border-[#AA8B63]/60 object-cover shrink-0 shadow-sm"
+                  />
+                ) : (
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#AA8B63] to-[#806440] text-[#161811] flex items-center justify-center font-black text-xs shrink-0">
+                    {client.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="hidden lg:inline text-xs font-display font-bold text-[#FAF0E2] truncate max-w-[120px]">
+                  {client.name}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="p-1.5 rounded-lg text-[#A4AA93] hover:text-red-400 transition-colors cursor-pointer"
+                  title="Sign Out of Portal"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </>
           ) : (
             <button
               type="button"
@@ -681,77 +696,83 @@ export function ClientPortal({
              AUTHENTICATED CLIENT DASHBOARD VIEW
              ════════════════════════════════════════════════════════════ */
           <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
-            {/* ── TOP APP PROFILE HEADER (IMAGE 1 & 2 REFERENCE) ── */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#FAF0E2]/10">
-              <div className="flex items-center gap-3.5">
-                <div className="relative">
-                  {client.picture ? (
-                    <img
-                      src={client.picture}
-                      alt={client.name}
-                      className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl border-2 border-[#AA8B63] object-cover shrink-0 shadow-lg"
-                    />
-                  ) : (
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-[#AA8B63] to-[#806440] text-[#161811] flex items-center justify-center font-black text-lg sm:text-xl shrink-0 shadow-lg">
-                      {client.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-[#14160F]" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 text-xs text-[#A4AA93]">
-                    <span>Welcome back,</span>
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1C2216] border border-[#AA8B63]/40 shadow-[0_2px_6px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.12)] text-[9.5px] font-mono uppercase tracking-[0.14em] text-[#AA8B63] font-bold">
-                      <Sparkles className="h-2.5 w-2.5 text-amber-300" />
-                      <span>VIP Parent</span>
+            {activeTab === "book" ? (
+              /* ── SEAMLESS IN-PORTAL BOOKING FLOW (UNBOXED & FOCUSED) ── */
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-[#1D2216] via-[#1A1D13] to-[#14160E] border-2 border-[#AA8B63]/40 shadow-xl">
+                  <div className="flex items-center gap-3.5">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("upcoming")}
+                      className="h-10 w-10 rounded-2xl bg-[#22271A] border border-[#AA8B63]/30 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] transition-colors flex items-center justify-center cursor-pointer shadow-md shrink-0"
+                      title="Return to Dashboard Overview"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#181B12] border border-[#AA8B63]/30 shadow-[0_2px_8px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.12)] text-[9.5px] font-mono uppercase tracking-[0.16em] font-bold text-amber-200 mb-1">
+                        <Sparkles className="h-3 w-3 text-amber-300" />
+                        <span>VIP Doorstep Service</span>
+                      </div>
+                      <h2 className="font-display font-extrabold text-xl sm:text-2xl text-[#FAF0E2] tracking-tight">
+                        Schedule Mobile Van to Your Door
+                      </h2>
+                      <p className="text-xs text-[#A4AA93]">
+                        1-on-1 cage-free spa session inside our 100% solar vehicle in San Francisco & Peninsula.
+                      </p>
                     </div>
                   </div>
-                  <h1 className="font-display font-extrabold text-xl sm:text-2xl text-[#FAF0E2] tracking-tight">
-                    {client.name}
-                  </h1>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("upcoming")}
+                    className="self-start sm:self-center px-4 py-2 rounded-full bg-[#202517] hover:bg-[#AA8B63] hover:text-[#161811] text-xs font-mono font-bold text-[#FAF0E2] transition-colors cursor-pointer border border-[#FAF0E2]/15 shrink-0"
+                  >
+                    Cancel & Return
+                  </button>
+                </div>
+
+                {/* Seamless Unboxed GroomingFlow */}
+                <div className="p-4 sm:p-8 rounded-[2rem] bg-[#161910] border-2 border-[#AA8B63]/30 shadow-2xl">
+                  <GroomingFlow
+                    onStatus={(s) => {
+                      if (s.dispatched) {
+                        showToast("New appointment booked and synced to your portal!");
+                        setTimeout(() => {
+                          setActiveTab("upcoming");
+                          if (client) refreshAppointments(client);
+                        }, 1200);
+                      }
+                    }}
+                  />
                 </div>
               </div>
+            ) : (
+              <>
+                {/* ── TOP GREETING BANNER ── */}
+                <div className="flex items-center justify-between pb-2 border-b border-[#FAF0E2]/10">
+                  <div>
+                    <div className="flex items-center gap-2 text-xs text-[#A4AA93]">
+                      <span>Welcome back,</span>
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1C2216] border border-[#AA8B63]/40 shadow-[0_2px_6px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.12)] text-[9.5px] font-mono uppercase tracking-[0.14em] text-[#AA8B63] font-bold">
+                        <Sparkles className="h-2.5 w-2.5 text-amber-300" />
+                        <span>VIP Parent</span>
+                      </div>
+                    </div>
+                    <h1 className="font-display font-extrabold text-xl sm:text-2xl text-[#FAF0E2] tracking-tight mt-0.5">
+                      {client.name}
+                    </h1>
+                  </div>
 
-              {/* Action Controls */}
-              <div className="flex items-center gap-2 self-end sm:self-center">
-                <button
-                  type="button"
-                  onClick={() => refreshAppointments(client)}
-                  className="h-10 w-10 rounded-full bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:border-[#AA8B63] hover:text-[#AA8B63] transition-colors flex items-center justify-center cursor-pointer shadow-sm"
-                  title="Refresh bookings"
-                >
-                  <RefreshCw className={cn("h-4 w-4", isLoadingAppointments && "animate-spin text-[#AA8B63]")} />
-                </button>
-
-                <a
-                  href="https://wa.me/14153755823?text=Hello%20SOUVA%20Concierge,%20I%20am%20in%20my%20client%20portal%20and%20need%20assistance."
-                  target="_blank"
-                  rel="noreferrer"
-                  className="h-10 w-10 rounded-full bg-[#182319] border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366] hover:text-[#161811] transition-all flex items-center justify-center cursor-pointer shadow-sm"
-                  title="Direct Concierge Chat on WhatsApp"
-                >
-                  <WhatsAppIcon variant="badge" className="h-4 w-4" />
-                </a>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("book")}
-                  className="px-4 py-2.5 rounded-full bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] font-rounded font-extrabold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 cursor-pointer hover:brightness-110 active:scale-95"
-                >
-                  <Plus className="h-4 w-4 stroke-[2.5]" />
-                  <span>Book Van</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="h-10 w-10 rounded-full bg-[#202517] border border-[#FAF0E2]/15 text-[#A4AA93] hover:text-red-400 hover:border-red-400/40 transition-colors flex items-center justify-center cursor-pointer"
-                  title="Sign out of portal"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("book")}
+                    className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] font-rounded font-extrabold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer hover:brightness-110 active:scale-95"
+                  >
+                    <Plus className="h-4 w-4 stroke-[2.5]" />
+                    <span>Schedule Grooming</span>
+                  </button>
+                </div>
 
             {/* ── FEATURED SPOTLIGHT HERO CARD (IMAGE 1 & 2 REFERENCE) ── */}
             {nextAppointment ? (
@@ -946,12 +967,7 @@ export function ClientPortal({
               <button
                 type="button"
                 onClick={() => setActiveTab("book")}
-                className={cn(
-                  "px-5 py-2.5 rounded-full font-rounded font-bold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-sm",
-                  activeTab === "book"
-                    ? "bg-[#AA8B63] text-[#161811] shadow-md scale-102"
-                    : "bg-[#181B12] text-[#A4AA93] border border-[#FAF0E2]/10 hover:text-[#FAF0E2]"
-                )}
+                className="px-5 py-2.5 rounded-full font-rounded font-bold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-sm bg-[#181B12] text-[#AA8B63] hover:text-[#FAF0E2] border border-[#AA8B63]/30 hover:border-[#AA8B63]"
               >
                 <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
                 <span>Book Mobile Van</span>
@@ -1331,58 +1347,7 @@ export function ClientPortal({
                 </div>
               </div>
             )}
-
-            {/* ── TAB 5: SEAMLESS IN-PORTAL BOOKING FLOW (UNBOXED) ── */}
-            {activeTab === "book" && (
-              <div className="space-y-6 animate-in fade-in duration-200">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-[#1D2216] via-[#1A1D13] to-[#14160E] border-2 border-[#AA8B63]/40 shadow-xl">
-                  <div className="flex items-center gap-3.5">
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab("upcoming")}
-                      className="h-10 w-10 rounded-2xl bg-[#22271A] border border-[#AA8B63]/30 text-[#FAF0E2] hover:text-[#AA8B63] hover:border-[#AA8B63] transition-colors flex items-center justify-center cursor-pointer shadow-md shrink-0"
-                      title="Return to Dashboard Overview"
-                    >
-                      <ArrowLeft className="h-4 w-4" />
-                    </button>
-                    <div>
-                      <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#181B12] border border-[#AA8B63]/30 shadow-[0_2px_8px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.12)] text-[9.5px] font-mono uppercase tracking-[0.16em] font-bold text-amber-200 mb-1">
-                        <Sparkles className="h-3 w-3 text-amber-300" />
-                        <span>VIP Doorstep Service</span>
-                      </div>
-                      <h2 className="font-display font-extrabold text-xl sm:text-2xl text-[#FAF0E2] tracking-tight">
-                        Schedule Mobile Van to Your Door
-                      </h2>
-                      <p className="text-xs text-[#A4AA93]">
-                        1-on-1 cage-free spa session inside our 100% solar vehicle in San Francisco & Peninsula.
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("upcoming")}
-                    className="self-start sm:self-center px-4 py-2 rounded-full bg-[#202517] hover:bg-[#AA8B63] hover:text-[#161811] text-xs font-mono font-bold text-[#FAF0E2] transition-colors cursor-pointer border border-[#FAF0E2]/15 shrink-0"
-                  >
-                    Cancel & Return
-                  </button>
-                </div>
-
-                {/* Seamless Unboxed GroomingFlow */}
-                <div className="p-4 sm:p-8 rounded-[2rem] bg-[#161910] border-2 border-[#AA8B63]/30 shadow-2xl">
-                  <GroomingFlow
-                    onStatus={(s) => {
-                      if (s.dispatched) {
-                        showToast("New appointment booked and synced to your portal!");
-                        setTimeout(() => {
-                          setActiveTab("upcoming");
-                          if (client) refreshAppointments(client);
-                        }, 1200);
-                      }
-                    }}
-                  />
-                </div>
-              </div>
+              </>
             )}
           </div>
         )}
@@ -1416,15 +1381,15 @@ export function ClientPortal({
         currentTime={quickManageTarget.appointment?.scheduledTime || ""}
       />
 
-      {/* ── MOBILE / APP BOTTOM NAVIGATION DOCK ── */}
+      {/* ── MOBILE / APP FLOATING BOTTOM DOCK ── */}
       {client && (
-        <nav className="sm:hidden fixed bottom-3 left-3 right-3 z-40 bg-[#161811]/95 backdrop-blur-xl border border-[#AA8B63]/40 rounded-2xl p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.8)] flex items-center justify-around">
+        <nav className="sm:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-[#161811]/95 backdrop-blur-2xl border border-[#AA8B63]/40 rounded-full px-4 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.85)] flex items-center gap-3">
           <button
             type="button"
             onClick={() => setActiveTab("upcoming")}
             className={cn(
-              "flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all cursor-pointer font-rounded text-[10px]",
-              activeTab === "upcoming" ? "text-amber-300 font-bold bg-[#25281D]" : "text-[#A4AA93]"
+              "flex flex-col items-center gap-0.5 py-1 px-3 rounded-full transition-all cursor-pointer font-rounded text-[10px]",
+              activeTab === "upcoming" ? "text-amber-300 font-bold bg-[#22271A]" : "text-[#A4AA93]"
             )}
           >
             <Calendar className="h-4 w-4" />
@@ -1435,9 +1400,9 @@ export function ClientPortal({
             type="button"
             onClick={() => setActiveTab("book")}
             className={cn(
-              "flex flex-col items-center gap-0.5 py-1.5 px-3.5 rounded-xl text-[10px] font-rounded font-extrabold shadow-md -translate-y-2 cursor-pointer active:scale-95 transition-transform",
+              "flex items-center gap-1.5 py-2 px-4 rounded-full text-xs font-rounded font-extrabold shadow-lg cursor-pointer active:scale-95 transition-all",
               activeTab === "book"
-                ? "bg-amber-300 text-stone-950 scale-105"
+                ? "bg-[#FAF0E2] text-[#161811] scale-105"
                 : "bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811]"
             )}
           >
@@ -1449,8 +1414,8 @@ export function ClientPortal({
             type="button"
             onClick={() => setActiveTab("pets")}
             className={cn(
-              "flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all cursor-pointer font-rounded text-[10px]",
-              activeTab === "pets" ? "text-amber-300 font-bold bg-[#25281D]" : "text-[#A4AA93]"
+              "flex flex-col items-center gap-0.5 py-1 px-3 rounded-full transition-all cursor-pointer font-rounded text-[10px]",
+              activeTab === "pets" ? "text-amber-300 font-bold bg-[#22271A]" : "text-[#A4AA93]"
             )}
           >
             <Heart className="h-4 w-4" />
@@ -1461,7 +1426,7 @@ export function ClientPortal({
             href="https://wa.me/14153755823?text=Hello%20SOUVA%20Concierge,%20I%20need%20assistance%20with%20my%20account."
             target="_blank"
             rel="noreferrer"
-            className="flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl text-[#25D366] font-rounded text-[10px] cursor-pointer"
+            className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-full text-[#25D366] font-rounded text-[10px] cursor-pointer"
           >
             <WhatsAppIcon variant="badge" className="h-4 w-4" />
             <span>Chat</span>

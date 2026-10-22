@@ -9,31 +9,55 @@ const AIRTABLE_BASE_ID = (process.env.AIRTABLE_BASE_ID || "apptb52dkVCyq2rPA").t
 const AIRTABLE_TABLE = (process.env.AIRTABLE_TABLE_NAME || "Bookings").trim();
 
 const ZIP_COORDS: Record<string, { lat: number; lng: number }> = {
+  // San Francisco
   "94116": { lat: 37.7442, lng: -122.4851 }, // Sunset / Parkside
   "94122": { lat: 37.7599, lng: -122.4842 }, // Sunset
   "94127": { lat: 37.7348, lng: -122.4571 }, // West Portal
   "94132": { lat: 37.7212, lng: -122.4866 }, // Lake Merced
   "94112": { lat: 37.7214, lng: -122.4431 }, // Ingleside
   "94131": { lat: 37.7431, lng: -122.4398 }, // Glen Park
-  "94014": { lat: 37.6879, lng: -122.4416 }, // Daly City
-  "94015": { lat: 37.6695, lng: -122.4716 }, // Daly City
+  "94123": { lat: 37.7997, lng: -122.4376 }, // Marina / Cow Hollow
+  "94115": { lat: 37.7880, lng: -122.4385 }, // Pacific Heights
+  "94118": { lat: 37.7820, lng: -122.4610 }, // Inner Richmond
+  "94121": { lat: 37.7780, lng: -122.4950 }, // Outer Richmond
+  "94109": { lat: 37.7930, lng: -122.4216 }, // Russian Hill / Nob Hill
+  "94110": { lat: 37.7500, lng: -122.4180 }, // Mission / Bernal
+  "94114": { lat: 37.7560, lng: -122.4350 }, // Castro / Noe Valley
+  "94117": { lat: 37.7690, lng: -122.4460 }, // Haight / Cole Valley
+  "94107": { lat: 37.7650, lng: -122.3980 }, // Potrero / Mission Bay
+  "94103": { lat: 37.7750, lng: -122.4110 }, // SOMA
+  "94102": { lat: 37.7780, lng: -122.4230 }, // Hayes Valley
+  // North Peninsula
+  "94014": { lat: 37.6879, lng: -122.4416 }, // Daly City / Colma
+  "94015": { lat: 37.6695, lng: -122.4716 }, // Daly City / Westlake
+  "94005": { lat: 37.6808, lng: -122.4000 }, // Brisbane
   "94080": { lat: 37.6547, lng: -122.4077 }, // South San Francisco
   "94066": { lat: 37.6305, lng: -122.4111 }, // San Bruno
   "94044": { lat: 37.5969, lng: -122.4868 }, // Pacifica
-  "94010": { lat: 37.5779, lng: -122.3647 }, // Burlingame
-  "94401": { lat: 37.5630, lng: -122.3255 }, // San Mateo
-  "94402": { lat: 37.5412, lng: -122.3312 }, // San Mateo
-  "94403": { lat: 37.5348, lng: -122.3021 }, // San Mateo
+  // Central Peninsula
+  "94030": { lat: 37.5985, lng: -122.3872 }, // Millbrae
+  "94010": { lat: 37.5779, lng: -122.3647 }, // Burlingame / Hillsborough
+  "94401": { lat: 37.5630, lng: -122.3255 }, // San Mateo (North)
+  "94402": { lat: 37.5412, lng: -122.3312 }, // San Mateo (Central)
+  "94403": { lat: 37.5348, lng: -122.3021 }, // San Mateo (South)
   "94404": { lat: 37.5562, lng: -122.2681 }, // Foster City
   "94002": { lat: 37.5188, lng: -122.2766 }, // Belmont
   "94070": { lat: 37.5072, lng: -122.2605 }, // San Carlos
+  // South Peninsula
   "94061": { lat: 37.4728, lng: -122.2356 }, // Redwood City
   "94062": { lat: 37.4578, lng: -122.2655 }, // Redwood City / Woodside
+  "94063": { lat: 37.4850, lng: -122.2150 }, // Redwood City (East)
+  "94065": { lat: 37.5250, lng: -122.2450 }, // Redwood Shores
   "94025": { lat: 37.4538, lng: -122.1822 }, // Menlo Park
   "94027": { lat: 37.4613, lng: -122.1977 }, // Atherton
-  "94301": { lat: 37.4419, lng: -122.1430 }, // Palo Alto
-  "94303": { lat: 37.4452, lng: -122.1189 }, // Palo Alto
+  "94301": { lat: 37.4419, lng: -122.1430 }, // Palo Alto (Downtown)
+  "94303": { lat: 37.4452, lng: -122.1189 }, // Palo Alto / East Palo Alto
+  "94304": { lat: 37.4100, lng: -122.1700 }, // Palo Alto (Hills)
+  "94306": { lat: 37.4180, lng: -122.1280 }, // Palo Alto (South)
   "94040": { lat: 37.3861, lng: -122.0839 }, // Mountain View
+  "94041": { lat: 37.3920, lng: -122.0780 }, // Mountain View (Downtown)
+  "94043": { lat: 37.4100, lng: -122.0650 }, // Mountain View (North)
+  // Coastside
   "94019": { lat: 37.4636, lng: -122.4286 }, // Half Moon Bay
 };
 
