@@ -22,9 +22,9 @@ export function AdminMap({
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
-      // Initialize map centered around SF Bay Area & East Bay
+      // Initialize map centered around San Francisco & Peninsula
       const map = L.map(mapContainerRef.current, {
-        center: [37.82, -122.28],
+        center: [37.66, -122.42],
         zoom: 11,
         zoomControl: false,
       });
@@ -56,12 +56,12 @@ export function AdminMap({
         iconAnchor: [19, 19],
       });
 
-      L.marker([37.8044, -122.2711], { icon: depotIcon })
+      L.marker([37.75, -122.44], { icon: depotIcon })
         .addTo(map)
         .bindPopup(
           `<div style="font-family: sans-serif; padding: 4px; color: #161811;">
-            <strong style="color: #59593E;">SOUVA BAY AREA CENTRAL HUB</strong><br/>
-            <span style="font-size: 11px;">Fleet charging station & sterilization depot</span>
+            <strong style="color: #59593E;">SOUVA FLEET DISPATCH HUB</strong><br/>
+            <span style="font-size: 11px;">San Francisco & Peninsula Solar Van Operations</span>
           </div>`
         );
 
@@ -146,6 +146,18 @@ export function AdminMap({
 
       markersRef.current[req.id] = marker;
     });
+
+    if (requests.length > 0 && !selectedRequest) {
+      const validPoints = requests
+        .map((r) => [r.lat, r.lng])
+        .filter(([lat, lng]) => !isNaN(lat) && !isNaN(lng) && lat !== 0);
+      if (validPoints.length > 0) {
+        try {
+          const bounds = L.latLngBounds(validPoints as [number, number][]);
+          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+        } catch {}
+      }
+    }
   }, [requests, selectedRequest, onSelectRequest]);
 
   // When selectedRequest changes, smoothly fly to its coordinates
@@ -168,7 +180,7 @@ export function AdminMap({
       {/* Map Overlay Badge */}
       <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-xl bg-[#161811]/85 backdrop-blur-md border border-[#FAF0E2]/15 text-xs font-mono text-[#FAF0E2] flex items-center gap-2 shadow-lg">
         <span className="h-2 w-2 rounded-full bg-[#AA8B63] animate-pulse" />
-        <span>LIVE FLEET RADAR · SF BAY AREA & EAST BAY CA</span>
+        <span>LIVE FLEET RADAR · SAN FRANCISCO & PENINSULA FLEET</span>
       </div>
     </div>
   );

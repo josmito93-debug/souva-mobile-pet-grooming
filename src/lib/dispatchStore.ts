@@ -230,13 +230,12 @@ export const INITIAL_REQUESTS: DispatchRequest[] = [
 export function getStoredRequests(): DispatchRequest[] {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_REQUESTS));
-      return INITIAL_REQUESTS;
-    }
-    return JSON.parse(saved);
+    if (!saved) return [];
+    const parsed = JSON.parse(saved);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((r) => r && !r.id?.startsWith("SOU-840"));
   } catch {
-    return INITIAL_REQUESTS;
+    return [];
   }
 }
 

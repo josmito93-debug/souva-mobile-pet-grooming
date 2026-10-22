@@ -146,7 +146,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
             setSelectedRequest(merged[0]);
           } else if (selectedRequest) {
             const found = merged.find((r) => r.id === selectedRequest.id);
-            if (found) setSelectedRequest(found);
+            setSelectedRequest(found || merged[0]);
           }
           return;
         }
