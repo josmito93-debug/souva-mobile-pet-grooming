@@ -18,11 +18,16 @@ export function AdminMap({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<{ [id: string]: L.Marker }>({});
 
+  // 1. Initialize Map Once
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    if (!mapInstanceRef.current) {
-      // Initialize map centered around San Francisco & Peninsula
+    // Reset container if previously initialized to avoid Leaflet error
+    if ((mapContainerRef.current as any)._leaflet_id) {
+      delete (mapContainerRef.current as any)._leaflet_id;
+    }
+
+    try {
       const map = L.map(mapContainerRef.current, {
         center: [37.66, -122.42],
         zoom: 11,
@@ -31,7 +36,7 @@ export function AdminMap({
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
-      // Esri World Dark Gray Base (Free, no API key required, no watermark)
+      // Esri World Dark Gray Base (100% Free, No API key, No watermark)
       L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
         {
@@ -73,17 +78,51 @@ export function AdminMap({
         );
 
       mapInstanceRef.current = map;
+
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 150);
+    } catch (e) {
+      console.warn("Leaflet map init warning:", e);
     }
 
+    return () => {
+      if (mapInstanceRef.current) {
+        try {
+          mapInstanceRef.current.remove();
+        } catch {}
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // 2. Keep map properly sized upon container resize
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const ro = new ResizeObserver(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    });
+    ro.observe(mapContainerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  // 3. Update Markers on requests change
+  useEffect(() => {
     const map = mapInstanceRef.current;
+    if (!map) return;
 
     // Clear old markers
-    Object.values(markersRef.current).forEach((m) => m.remove());
+    Object.values(markersRef.current).forEach((m) => {
+      try {
+        m.remove();
+      } catch {}
+    });
     markersRef.current = {};
 
     const coordCounts = new Map<string, number>();
 
-    // Plot customer request markers
     requests.forEach((req) => {
       let lat = Number(req.lat);
       let lng = Number(req.lng);
@@ -160,24 +199,28 @@ export function AdminMap({
         </div>
       `;
 
-      const customIcon = L.divIcon({
-        className: `custom-req-marker-${req.id}`,
-        html: markerHtml,
-        iconSize: [40, 50],
-        iconAnchor: [20, 25],
-      });
+      try {
+        const customIcon = L.divIcon({
+          className: `custom-req-marker-${req.id}`,
+          html: markerHtml,
+          iconSize: [40, 50],
+          iconAnchor: [20, 25],
+        });
 
-      const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+        const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
 
-      if (isSelected) {
-        marker.setZIndexOffset(1000);
+        if (isSelected) {
+          marker.setZIndexOffset(1000);
+        }
+
+        marker.on("click", () => {
+          onSelectRequest(req);
+        });
+
+        markersRef.current[req.id] = marker;
+      } catch (err) {
+        console.warn("Marker plot error:", err);
       }
-
-      marker.on("click", () => {
-        onSelectRequest(req);
-      });
-
-      markersRef.current[req.id] = marker;
     });
 
     if (requests.length > 0 && !selectedRequest) {
@@ -194,35 +237,18 @@ export function AdminMap({
 
     setTimeout(() => {
       map.invalidateSize();
-    }, 150);
+    }, 100);
   }, [requests, selectedRequest, onSelectRequest]);
 
-  // Keep map properly sized upon container resize / mobile orientation change
+  // 4. Fly to selected request
   useEffect(() => {
-    if (!mapContainerRef.current) return;
-    const ro = new ResizeObserver(() => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.invalidateSize();
-      }
-    });
-    ro.observe(mapContainerRef.current);
-    return () => ro.disconnect();
-  }, []);
-
-  // When selectedRequest changes, smoothly fly to its coordinates
-  useEffect(() => {
-    if (!mapInstanceRef.current) return;
-    setTimeout(() => {
-      mapInstanceRef.current?.invalidateSize();
-    }, 100);
-
-    if (!selectedRequest) return;
+    if (!mapInstanceRef.current || !selectedRequest) return;
     const sLat = Number(selectedRequest.lat) || 37.7749;
     const sLng = Number(selectedRequest.lng) || -122.4194;
-    mapInstanceRef.current.flyTo([sLat, sLng], 13, {
-      duration: 1.2,
-    });
-  }, [selectedRequest, requests]);
+    try {
+      mapInstanceRef.current.flyTo([sLat, sLng], 13, { duration: 1.2 });
+    } catch {}
+  }, [selectedRequest]);
 
   return (
     <div className="relative w-full h-full min-h-[380px] rounded-3xl overflow-hidden border border-[#FAF0E2]/15 shadow-2xl">

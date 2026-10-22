@@ -21,6 +21,7 @@ import {
   Ban,
   RotateCcw,
   Edit3,
+  Eye,
   X,
   AlertCircle,
   CheckCircle2,
@@ -507,9 +508,9 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
           onStatusChange={handleStatusChange}
         />
       ) : (
-        <div className="flex-1 flex flex-col lg:grid lg:grid-cols-12 overflow-hidden">
+        <div className="flex-1 flex flex-col md:grid md:grid-cols-12 overflow-hidden">
           {/* Mobile view selector */}
-          <div className="lg:hidden p-2 bg-[#14160F] border-b border-[#FAF0E2]/10 grid grid-cols-3 gap-1 text-xs font-mono shrink-0">
+          <div className="md:hidden p-2 bg-[#14160F] border-b border-[#FAF0E2]/10 grid grid-cols-3 gap-1 text-xs font-mono shrink-0">
             <button
               type="button"
               onClick={() => setMobileTab("list")}
@@ -546,7 +547,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
           </div>
 
           {/* Left Side: Requests List & Live Controls */}
-          <div className={cn("lg:col-span-6 xl:col-span-5 border-r border-[#FAF0E2]/10 flex flex-col bg-[#161811] max-h-[calc(100vh-65px)] overflow-hidden", mobileTab !== "list" && "hidden lg:flex")}>
+          <div className={cn("md:col-span-6 xl:col-span-5 border-r border-[#FAF0E2]/10 flex flex-col bg-[#161811] max-h-[calc(100vh-65px)] overflow-hidden", mobileTab !== "list" && "hidden md:flex")}>
             {/* Folder Organization Strip (Active vs Archived) */}
             <div className="p-3.5 border-b border-[#FAF0E2]/10 bg-[#1C1F15] space-y-3">
               {/* Search input */}
@@ -867,12 +868,15 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
                           <div className="flex items-center gap-1.5">
                             <button
                               type="button"
-                              onClick={() => setFullEditTarget(req)}
-                              className="px-2.5 py-1 rounded-lg bg-[#252A1D] border border-[#AA8B63]/40 text-[#AA8B63] hover:bg-[#AA8B63] hover:text-[#161811] text-[11px] font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                              title="Modify any aspect: service, upgrades, address, pet instructions"
+                              onClick={() => {
+                                setSelectedRequest(req);
+                                setFullEditTarget(req);
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-md hover:brightness-110 transition-all cursor-pointer"
+                              title="View complete appointment details & edit"
                             >
-                              <Edit3 className="h-3.5 w-3.5" />
-                              <span>Edit All</span>
+                              <Eye className="h-3.5 w-3.5 text-[#161811]" />
+                              <span>View & Edit Details</span>
                             </button>
 
                             <button
@@ -881,7 +885,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
                               className="px-2.5 py-1 rounded-lg bg-[#252A1D] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] text-[11px] font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                               title="Reschedule appointment date & arrival window"
                             >
-                              <Calendar className="h-3.5 w-3.5" />
+                              <Calendar className="h-3.5 w-3.5 text-[#AA8B63]" />
                               <span>Reschedule</span>
                             </button>
 
@@ -923,8 +927,8 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
           </div>
 
           {/* Right Side: Map & Deep Request Inspector */}
-          <div className={cn("lg:col-span-6 xl:col-span-7 flex flex-col p-4 md:p-6 bg-[#13150F] gap-4 max-h-[calc(100vh-65px)] overflow-y-auto", mobileTab === "list" && "hidden lg:flex")}>
-            <div className={cn("w-full h-[360px] lg:h-[400px] shrink-0", mobileTab === "details" && "hidden lg:block")}>
+          <div className={cn("md:col-span-6 xl:col-span-7 flex flex-col p-3 sm:p-5 bg-[#13150F] gap-4 max-h-[calc(100vh-65px)] overflow-y-auto", mobileTab === "list" && "hidden md:flex")}>
+            <div className="w-full h-[320px] sm:h-[360px] md:h-[400px] shrink-0">
               <AdminMap
                 requests={requests}
                 selectedRequest={selectedRequest}
@@ -932,8 +936,8 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
               />
             </div>
 
-            {selectedRequest && (
-              <div className={cn("p-5 rounded-3xl bg-[#1C1F15] border border-[#FAF0E2]/15 shadow-xl space-y-4", mobileTab === "map" && "hidden lg:block")}>
+            {selectedRequest ? (
+              <div className="p-5 rounded-3xl bg-[#1C1F15] border border-[#FAF0E2]/15 shadow-xl space-y-4">
                 {/* Back to List button for mobile */}
                 <button
                   type="button"
@@ -1155,6 +1159,11 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
                     )}
                   </div>
                 )}
+              </div>
+            ) : (
+              <div className="p-8 rounded-3xl bg-[#1C1F15] border border-[#FAF0E2]/15 text-center text-xs text-[#A4AA93]">
+                <p className="font-bold text-[#FAF0E2] text-sm mb-1">Select an appointment from the list or map</p>
+                <p>Click on any client card or route pin on the radar map to view details.</p>
               </div>
             )}
           </div>
