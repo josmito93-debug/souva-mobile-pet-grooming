@@ -197,6 +197,41 @@ export default async function handler(req: any, res: any) {
             console.error("Airtable record create failed:", createRes.status, errBody);
           }
         }
+
+        // 1.6 Also upsert customer into the Users table in Airtable
+        try {
+          const userFields: Record<string, any> = {
+            "Full Name": ownerName,
+            "Last Login": new Date().toISOString().split("T")[0],
+          };
+          if (email) userFields["Email"] = email.trim().toLowerCase();
+          if (phone) userFields["Phone"] = phone;
+          if (address) userFields["Doorstep Address"] = address;
+          if (booking.zipCode) userFields["ZIP Code"] = booking.zipCode;
+          if (petName) userFields["Registered Pets"] = `${petName} (${breed})`;
+
+          const userFormula = email ? `LOWER({Email}) = '${email.trim().toLowerCase()}'` : `FIND('${phone.slice(-7)}', {Phone}) > 0`;
+          const userLookupUrl = `https://api.airtable.com/v0/${airtableBaseId}/Users?filterByFormula=${encodeURIComponent(userFormula)}&maxRecords=1`;
+          const uRes = await fetch(userLookupUrl, { headers: { Authorization: `Bearer ${airtableKey}` } });
+          if (uRes.ok) {
+            const uData = await uRes.json();
+            if (uData.records && uData.records.length > 0) {
+              await fetch(`https://api.airtable.com/v0/${airtableBaseId}/Users/${uData.records[0].id}`, {
+                method: "PATCH",
+                headers: { Authorization: `Bearer ${airtableKey}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ fields: userFields }),
+              });
+            } else {
+              await fetch(`https://api.airtable.com/v0/${airtableBaseId}/Users`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${airtableKey}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ records: [{ fields: userFields }] }),
+              });
+            }
+          }
+        } catch (uErr) {
+          console.warn("Airtable Users table sync skipped:", uErr);
+        }
       } catch (airtableErr) {
         console.error("Airtable backend sync error:", airtableErr);
       }

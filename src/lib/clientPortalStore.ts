@@ -32,6 +32,21 @@ export function saveClientSession(user: ClientUser): void {
   try {
     localStorage.setItem(CLIENT_AUTH_KEY, JSON.stringify(user));
     window.dispatchEvent(new CustomEvent("souva_client_session_changed", { detail: user }));
+
+    // Asynchronously upsert user profile into Airtable Users table
+    fetch("/api/client-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        zipCode: user.zipCode,
+        picture: user.picture,
+        authProvider: user.authProvider,
+      }),
+    }).catch((e) => console.warn("Airtable Users table sync note:", e));
   } catch (err) {
     console.error("Error saving client session:", err);
   }
