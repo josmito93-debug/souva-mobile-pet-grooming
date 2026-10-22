@@ -397,6 +397,8 @@ export function ClientPortal({
     return appointments.filter((a) => a.status === "completed" || a.status === "cancelled" || a.archived);
   }, [appointments]);
 
+  const nextAppointment = upcomingAppointments[0] || null;
+
   // Extract unique pets from customer's bookings
   const clientPets = useMemo(() => {
     const petMap = new Map<string, { name: string; breed: string; size: string; age?: string; photo?: string | null }>();
@@ -673,56 +675,57 @@ export function ClientPortal({
           /* ════════════════════════════════════════════════════════════
              AUTHENTICATED CLIENT DASHBOARD VIEW
              ════════════════════════════════════════════════════════════ */
-          <div className="space-y-8 animate-in fade-in duration-300">
-            {/* VIP Welcome Header Strip */}
-            <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-r from-[#1C2016] via-[#21261B] to-[#181B13] border-2 border-[#AA8B63]/40 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5">
-              <div className="flex items-start sm:items-center gap-4">
-                {client.picture ? (
-                  <img
-                    src={client.picture}
-                    alt={client.name}
-                    className="h-14 w-14 rounded-2xl border-2 border-[#AA8B63] object-cover shrink-0 shadow-md"
-                  />
-                ) : (
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#AA8B63] to-[#806440] text-[#161811] flex items-center justify-center font-black text-xl shrink-0 shadow-md">
-                    {client.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
+          <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
+            {/* ── TOP APP PROFILE HEADER (IMAGE 1 & 2 REFERENCE) ── */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#FAF0E2]/10">
+              <div className="flex items-center gap-3.5">
+                <div className="relative">
+                  {client.picture ? (
+                    <img
+                      src={client.picture}
+                      alt={client.name}
+                      className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl border-2 border-[#AA8B63] object-cover shrink-0 shadow-lg"
+                    />
+                  ) : (
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-[#AA8B63] to-[#806440] text-[#161811] flex items-center justify-center font-black text-lg sm:text-xl shrink-0 shadow-lg">
+                      {client.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-[#14160F]" />
+                </div>
                 <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/50 text-emerald-300 font-mono text-[9.5px] font-bold uppercase tracking-wider">
-                      ★ SOUVA VIP Member
-                    </span>
-                    {client.authProvider === "google" && (
-                      <span className="px-2 py-0.5 rounded-full bg-[#1F2318] border border-blue-400/40 text-blue-300 font-mono text-[9px] font-bold flex items-center gap-1">
-                        <GoogleGLogo className="h-2.5 w-2.5" />
-                        <span>Google Verified</span>
-                      </span>
-                    )}
-                    <span className="text-[11px] font-mono text-[#AA8B63]">
-                      San Francisco & Peninsula Fleet
+                  <div className="flex items-center gap-1.5 text-xs text-[#A4AA93]">
+                    <span>Welcome back,</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#202517] text-[#AA8B63] font-bold">
+                      VIP Parent
                     </span>
                   </div>
-                  <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-[#FAF0E2] mt-1">
-                    Welcome back, {client.name}!
+                  <h1 className="font-display font-extrabold text-xl sm:text-2xl text-[#FAF0E2] tracking-tight">
+                    {client.name}
                   </h1>
-                  <p className="text-xs text-[#A4AA93] mt-1">
-                    Manage and modify any detail of your doorstep grooming appointments below.
-                  </p>
                 </div>
               </div>
 
-              {/* Quick Actions */}
-              <div className="flex items-center gap-2.5 shrink-0">
+              {/* Action Controls */}
+              <div className="flex items-center gap-2 self-end sm:self-center">
                 <button
                   type="button"
                   onClick={() => refreshAppointments(client)}
-                  className="px-3.5 py-2 rounded-xl bg-[#24291B] border border-[#FAF0E2]/15 text-xs font-mono text-[#FAF0E2] hover:border-[#AA8B63] transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="h-10 w-10 rounded-full bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:border-[#AA8B63] hover:text-[#AA8B63] transition-colors flex items-center justify-center cursor-pointer shadow-sm"
                   title="Refresh bookings"
                 >
-                  <RefreshCw className={cn("h-3.5 w-3.5 text-[#AA8B63]", isLoadingAppointments && "animate-spin")} />
-                  <span className="hidden sm:inline">Refresh</span>
+                  <RefreshCw className={cn("h-4 w-4", isLoadingAppointments && "animate-spin text-[#AA8B63]")} />
                 </button>
+
+                <a
+                  href="https://wa.me/14153755823?text=Hello%20SOUVA%20Concierge,%20I%20am%20in%20my%20client%20portal%20and%20need%20assistance."
+                  target="_blank"
+                  rel="noreferrer"
+                  className="h-10 w-10 rounded-full bg-[#182319] border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366] hover:text-[#161811] transition-all flex items-center justify-center cursor-pointer shadow-sm"
+                  title="Direct Concierge Chat on WhatsApp"
+                >
+                  <WhatsAppIcon variant="badge" className="h-4 w-4" />
+                </a>
 
                 <button
                   type="button"
@@ -730,108 +733,212 @@ export function ClientPortal({
                     if (onBookNewClick) onBookNewClick();
                     else setShowBookingModal(true);
                   }}
-                  className="px-4 py-2 rounded-xl bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2.5 rounded-full bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] font-rounded font-extrabold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 cursor-pointer hover:brightness-110 active:scale-95"
                 >
-                  <Plus className="h-4 w-4" />
-                  <span>Book New Dog</span>
+                  <Plus className="h-4 w-4 stroke-[2.5]" />
+                  <span>Book Van</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="h-10 w-10 rounded-full bg-[#202517] border border-[#FAF0E2]/15 text-[#A4AA93] hover:text-red-400 hover:border-red-400/40 transition-colors flex items-center justify-center cursor-pointer"
+                  title="Sign out of portal"
+                >
+                  <LogOut className="h-4 w-4" />
                 </button>
               </div>
             </div>
 
-            {/* Metrics HUD Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-              <div className="p-4 rounded-2xl bg-[#191D13] border border-[#FAF0E2]/10">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold block mb-1">
-                  Upcoming Bookings
-                </span>
-                <div className="font-display font-extrabold text-2xl text-[#FAF0E2]">
-                  {upcomingAppointments.length}
-                </div>
-                <span className="text-[10.5px] text-[#A4AA93] block mt-0.5">
-                  {upcomingAppointments.length > 0 ? "Doorstep Route Active" : "No active bookings"}
-                </span>
-              </div>
+            {/* ── FEATURED SPOTLIGHT HERO CARD (IMAGE 1 & 2 REFERENCE) ── */}
+            {nextAppointment ? (
+              <div className="relative rounded-[2rem] bg-gradient-to-br from-[#1E2317] via-[#161910] to-[#12140D] border-2 border-[#AA8B63]/40 p-5 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-hidden">
+                <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#AA8B63]/15 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="p-4 rounded-2xl bg-[#191D13] border border-[#FAF0E2]/10">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold block mb-1">
-                  Pups on File
-                </span>
-                <div className="font-display font-extrabold text-2xl text-[#FAF0E2]">
-                  {clientPets.length}
+                {/* Top Status Strip */}
+                <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#FAF0E2]/10 relative z-10">
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full bg-emerald-950 border border-emerald-500/50 text-emerald-300 text-[10.5px] font-mono font-bold flex items-center gap-1.5 uppercase tracking-wide">
+                      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>{nextAppointment.status === "en_route" ? "Van En Route (Driving to Door)" : "Confirmed Route"}</span>
+                    </span>
+                    <span className="text-[11px] font-mono text-[#AA8B63] font-bold">
+                      {nextAppointment.id}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs font-mono text-[#A4AA93]">
+                    <Truck className="h-3.5 w-3.5 text-[#AA8B63]" />
+                    <span className="hidden sm:inline">SOUVA Solar Fleet</span>
+                  </div>
                 </div>
-                <span className="text-[10.5px] text-[#A4AA93] block mt-0.5">
-                  {clientPets.map((p) => p.name).join(", ") || "1 Dog"}
-                </span>
-              </div>
 
-              <div className="p-4 rounded-2xl bg-[#191D13] border border-[#FAF0E2]/10">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold block mb-1">
-                  Solar Van Service
-                </span>
-                <div className="font-display font-extrabold text-xl text-emerald-400 flex items-center gap-1">
-                  <Zap className="h-5 w-5" />
-                  <span>100% Eco</span>
+                {/* Main Date & Arrival Window */}
+                <div className="py-4 relative z-10">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#AA8B63] font-bold block mb-1">
+                    Next Doorstep Appointment
+                  </span>
+                  <div className="font-display font-extrabold text-2xl sm:text-3xl text-[#FAF0E2] tracking-tight">
+                    {nextAppointment.scheduledDate || nextAppointment.preferredTime}
+                  </div>
+                  <div className="text-sm font-mono text-amber-300 font-bold mt-1 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>Window: {nextAppointment.scheduledTime || "9:30 AM"} (30-min arrival)</span>
+                  </div>
                 </div>
-                <span className="text-[10.5px] text-[#A4AA93] block mt-0.5">
-                  Zero home hookups needed
-                </span>
-              </div>
 
-              <div className="p-4 rounded-2xl bg-[#191D13] border border-[#FAF0E2]/10">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold block mb-1">
-                  Doorstep Payment
-                </span>
-                <div className="font-display font-extrabold text-base text-[#FAF0E2] truncate">
-                  Pay at Doorstep
+                {/* Dog & Service Cardlet (like Image 2 & 3) */}
+                <div className="p-4 rounded-2xl bg-[#13150E]/80 border border-[#FAF0E2]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+                  <div className="flex items-center gap-3.5">
+                    <div className="h-12 w-12 rounded-2xl bg-[#22271A] border border-[#AA8B63]/40 flex items-center justify-center text-2xl shadow-inner shrink-0">
+                      🐶
+                    </div>
+                    <div>
+                      <h4 className="font-display font-bold text-base text-[#FAF0E2]">
+                        {nextAppointment.petName}
+                      </h4>
+                      <span className="text-xs text-[#A4AA93] block">
+                        {nextAppointment.breed} · {nextAppointment.packageName || "Full Luxury Bath & Cut"}
+                      </span>
+                      <span className="text-[10.5px] font-mono text-[#AA8B63] block truncate max-w-xs mt-0.5">
+                        📍 {nextAppointment.address}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-left sm:text-right sm:border-l sm:border-[#FAF0E2]/10 sm:pl-4">
+                    <span className="text-[10px] font-mono text-[#A4AA93] block">Doorstep Total</span>
+                    <span className="font-display font-extrabold text-lg text-amber-300">
+                      ${nextAppointment.estimatedTotal || 125}.00
+                    </span>
+                  </div>
                 </div>
-                <span className="text-[10.5px] text-[#A4AA93] block mt-0.5">
-                  Cash, Zelle, Card, Check
-                </span>
-              </div>
-            </div>
 
-            {/* Dashboard Sub-Tabs */}
-            <div className="flex items-center gap-2 border-b border-[#FAF0E2]/10 pb-2 overflow-x-auto scrollbar-none text-xs font-mono">
+                {/* Action Buttons Nested Flush in Card (Image 1 & 2 pattern) */}
+                <div className="mt-4 pt-4 border-t border-[#FAF0E2]/10 flex flex-wrap items-center gap-2.5 relative z-10">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedForFullEdit(nextAppointment)}
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-full bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider hover:brightness-110 active:scale-98 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Sliders className="h-3.5 w-3.5 stroke-[2.5]" />
+                    <span>Modify Details</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setQuickManageTarget({
+                        isOpen: true,
+                        action: "reschedule",
+                        appointment: nextAppointment,
+                      })
+                    }
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-full bg-[#202517] border border-[#AA8B63]/40 text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Calendar className="h-3.5 w-3.5 text-[#AA8B63]" />
+                    <span>Reschedule Time</span>
+                  </button>
+
+                  <a
+                    href={`https://wa.me/14153755823?text=${encodeURIComponent(
+                      `Hello SOUVA Concierge, I am inquiring about my appointment (${nextAppointment.id}) for ${nextAppointment.petName}.`
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4 py-2.5 rounded-full bg-[#182319] border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366] hover:text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <WhatsAppIcon variant="badge" className="h-3.5 w-3.5" />
+                    <span>Concierge Chat</span>
+                  </a>
+                </div>
+              </div>
+            ) : (
+              /* Spotlight Promo Card when no appointments (matching Image 1) */
+              <div className="relative rounded-[2rem] bg-gradient-to-br from-[#1E2317] via-[#171A11] to-[#12140D] border-2 border-[#AA8B63]/40 p-6 sm:p-8 shadow-2xl overflow-hidden text-center sm:text-left flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div className="absolute top-0 right-0 w-60 h-60 bg-[#AA8B63]/15 rounded-full blur-3xl pointer-events-none" />
+                <div className="space-y-2 relative z-10 max-w-xl">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-300 text-stone-950 text-[10px] font-sans font-black uppercase tracking-wider shadow-sm">
+                    🐾 20% OFF 2ND DOG PROMO
+                  </span>
+                  <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-[#FAF0E2] leading-tight">
+                    Luxury 1-on-1 Grooming At Your Doorstep
+                  </h2>
+                  <p className="text-xs text-[#A4AA93] leading-relaxed">
+                    Zero cage stress, solar-powered mobile sanctuary, warm hydro-massage, and Brazilian Hydra® vegan botanical spa. Directly outside your home in SF & Peninsula.
+                  </p>
+                </div>
+                <div className="relative z-10 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onBookNewClick) onBookNewClick();
+                      else setShowBookingModal(true);
+                    }}
+                    className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] font-rounded font-extrabold text-xs uppercase tracking-wider hover:brightness-110 active:scale-98 transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Plus className="h-4 w-4 stroke-[2.5]" />
+                    <span>Book Doorstep Van Now</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── CATEGORY PILLS (IMAGE 1 REFERENCE) ── */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
               <button
                 type="button"
                 onClick={() => setActiveTab("upcoming")}
                 className={cn(
-                  "px-4 py-2 rounded-xl transition-all font-bold cursor-pointer flex items-center gap-2",
+                  "px-5 py-2.5 rounded-full font-rounded font-bold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-sm",
                   activeTab === "upcoming"
-                    ? "bg-[#AA8B63] text-[#161811] shadow-md"
-                    : "text-[#A4AA93] hover:text-[#FAF0E2] hover:bg-[#202517]"
+                    ? "bg-[#AA8B63] text-[#161811] shadow-md scale-102"
+                    : "bg-[#181B12] text-[#A4AA93] border border-[#FAF0E2]/10 hover:text-[#FAF0E2]"
                 )}
               >
                 <Calendar className="h-3.5 w-3.5" />
-                <span>Upcoming Appointments ({upcomingAppointments.length})</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("past")}
-                className={cn(
-                  "px-4 py-2 rounded-xl transition-all font-bold cursor-pointer flex items-center gap-2",
-                  activeTab === "past"
-                    ? "bg-[#AA8B63] text-[#161811] shadow-md"
-                    : "text-[#A4AA93] hover:text-[#FAF0E2] hover:bg-[#202517]"
-                )}
-              >
-                <Clock className="h-3.5 w-3.5" />
-                <span>Past & Completed ({pastAppointments.length})</span>
+                <span>Upcoming Bookings ({upcomingAppointments.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab("pets")}
                 className={cn(
-                  "px-4 py-2 rounded-xl transition-all font-bold cursor-pointer flex items-center gap-2",
+                  "px-5 py-2.5 rounded-full font-rounded font-bold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-sm",
                   activeTab === "pets"
-                    ? "bg-[#AA8B63] text-[#161811] shadow-md"
-                    : "text-[#A4AA93] hover:text-[#FAF0E2] hover:bg-[#202517]"
+                    ? "bg-[#AA8B63] text-[#161811] shadow-md scale-102"
+                    : "bg-[#181B12] text-[#A4AA93] border border-[#FAF0E2]/10 hover:text-[#FAF0E2]"
                 )}
               >
                 <Heart className="h-3.5 w-3.5" />
                 <span>My Dogs ({clientPets.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("past")}
+                className={cn(
+                  "px-5 py-2.5 rounded-full font-rounded font-bold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-sm",
+                  activeTab === "past"
+                    ? "bg-[#AA8B63] text-[#161811] shadow-md scale-102"
+                    : "bg-[#181B12] text-[#A4AA93] border border-[#FAF0E2]/10 hover:text-[#FAF0E2]"
+                )}
+              >
+                <Clock className="h-3.5 w-3.5" />
+                <span>Past History ({pastAppointments.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("perks")}
+                className={cn(
+                  "px-5 py-2.5 rounded-full font-rounded font-bold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-sm",
+                  activeTab === "perks"
+                    ? "bg-[#AA8B63] text-[#161811] shadow-md scale-102"
+                    : "bg-[#181B12] text-[#A4AA93] border border-[#FAF0E2]/10 hover:text-[#FAF0E2]"
+                )}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>VIP Care & Perks</span>
               </button>
             </div>
 
@@ -1035,7 +1142,82 @@ export function ClientPortal({
               </div>
             )}
 
-            {/* ── TAB 2: PAST & COMPLETED ── */}
+            {/* ── TAB 2: REGISTERED DOGS & PROFILES (IMAGE 2 "MY SPACES" REFERENCE) ── */}
+            {activeTab === "pets" && (
+              <div className="space-y-4">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {clientPets.map((pet, idx) => (
+                    <div
+                      key={idx}
+                      className="p-5 rounded-3xl bg-[#191D13] border-2 border-[#AA8B63]/30 hover:border-[#AA8B63] transition-all space-y-4 shadow-lg flex flex-col justify-between"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3.5">
+                          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#24291B] to-[#181B12] border border-[#AA8B63]/40 flex items-center justify-center font-bold text-2xl shadow-inner shrink-0">
+                            🐶
+                          </div>
+                          <div>
+                            <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
+                              {pet.name}
+                            </h4>
+                            <span className="text-xs text-[#A4AA93] block">
+                              {pet.breed}
+                            </span>
+                            <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-[#202517] text-[10px] font-mono uppercase text-[#AA8B63] font-bold">
+                              Size: {pet.size.toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-[#FAF0E2]/10 text-xs text-[#A4AA93] space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span>Rabies Vaccine Status:</span>
+                            <span className="text-emerald-400 font-bold">✓ Confirmed</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span>Care Standard:</span>
+                            <span className="text-[#FAF0E2]">1-on-1 Cage-Free Suite</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onBookNewClick) onBookNewClick();
+                          else setShowBookingModal(true);
+                        }}
+                        className="w-full mt-2 py-2.5 px-3 rounded-xl bg-[#202517] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] font-mono font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#AA8B63]/30"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span>Book Van for {pet.name}</span>
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Add Dog Card with Dashed Border (Image 2 style) */}
+                  <div
+                    onClick={() => {
+                      if (onBookNewClick) onBookNewClick();
+                      else setShowBookingModal(true);
+                    }}
+                    className="p-6 rounded-3xl bg-[#161811]/60 border-2 border-dashed border-[#AA8B63]/40 hover:border-[#AA8B63] transition-all flex flex-col items-center justify-center text-center cursor-pointer min-h-[200px] group shadow-inner"
+                  >
+                    <div className="h-12 w-12 rounded-full bg-[#202517] group-hover:bg-[#AA8B63] text-[#AA8B63] group-hover:text-[#161811] flex items-center justify-center text-xl transition-all shadow-md mb-2">
+                      <Plus className="h-6 w-6 stroke-[2.5]" />
+                    </div>
+                    <span className="font-display font-bold text-base text-[#FAF0E2] group-hover:text-[#AA8B63] transition-colors">
+                      Register Another Dog
+                    </span>
+                    <span className="text-xs text-[#A4AA93] mt-1">
+                      Add a pup to your household profile
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB 3: PAST & COMPLETED ── */}
             {activeTab === "past" && (
               <div className="space-y-3">
                 {pastAppointments.length === 0 ? (
@@ -1046,36 +1228,37 @@ export function ClientPortal({
                   pastAppointments.map((app) => (
                     <div
                       key={app.id}
-                      className="p-4 rounded-2xl bg-[#181A12] border border-[#FAF0E2]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                      className="p-5 rounded-2xl bg-[#181A12] border border-[#FAF0E2]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs"
                     >
-                      <div className="space-y-0.5">
+                      <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-bold text-[#AA8B63]">{app.id}</span>
-                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#202517] text-[#FAF0E2]">
+                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-[#202517] text-[#FAF0E2]">
                             {app.status === "cancelled" ? "Cancelled" : "Completed"}
                           </span>
                         </div>
-                        <div className="font-semibold text-[#FAF0E2]">
+                        <div className="font-semibold text-sm text-[#FAF0E2]">
                           {app.petName} ({app.breed}) · {app.packageName}
                         </div>
-                        <div className="text-[11px] text-[#A4AA93]">
+                        <div className="text-xs text-[#A4AA93]">
                           {app.scheduledDate || app.preferredTime} · {app.address}
                         </div>
                       </div>
 
                       <div className="flex items-center gap-3 self-end sm:self-center">
-                        <span className="font-mono font-bold text-sm text-[#FAF0E2]">
+                        <span className="font-mono font-bold text-base text-[#FAF0E2]">
                           ${app.estimatedTotal || 125}.00
                         </span>
-                        {onBookNewClick && (
-                          <button
-                            type="button"
-                            onClick={onBookNewClick}
-                            className="px-3 py-1.5 rounded-lg bg-[#25281D] hover:bg-[#AA8B63] hover:text-[#161811] text-[11px] font-mono text-[#FAF0E2] transition-colors cursor-pointer"
-                          >
-                            Book Again
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onBookNewClick) onBookNewClick();
+                            else setShowBookingModal(true);
+                          }}
+                          className="px-4 py-2 rounded-full bg-[#25281D] hover:bg-[#AA8B63] hover:text-[#161811] text-xs font-mono font-bold text-[#FAF0E2] transition-colors cursor-pointer border border-[#AA8B63]/30"
+                        >
+                          Book Again
+                        </button>
                       </div>
                     </div>
                   ))
@@ -1083,58 +1266,55 @@ export function ClientPortal({
               </div>
             )}
 
-            {/* ── TAB 3: REGISTERED DOGS & PROFILES ── */}
-            {activeTab === "pets" && (
-              <div className="space-y-4">
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {clientPets.map((pet, idx) => (
-                    <div
-                      key={idx}
-                      className="p-5 rounded-2xl bg-[#191D13] border border-[#FAF0E2]/10 space-y-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-xl bg-[#22271A] border border-[#AA8B63]/30 flex items-center justify-center font-bold text-lg text-[#AA8B63]">
-                          🐶
-                        </div>
-                        <div>
-                          <h4 className="font-display font-bold text-base text-[#FAF0E2]">
-                            {pet.name}
-                          </h4>
-                          <span className="text-xs text-[#A4AA93] block">
-                            {pet.breed}
-                          </span>
-                          <span className="text-[10px] font-mono uppercase text-[#AA8B63]">
-                            Size: {pet.size.toUpperCase()}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="pt-2 border-t border-[#FAF0E2]/10 text-xs text-[#A4AA93] space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span>Rabies Status:</span>
-                          <span className="text-emerald-400 font-bold">✓ Confirmed</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span>Cage-Free Certified:</span>
-                          <span className="text-[#FAF0E2]">1-on-1 Sanctuary</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            {/* ── TAB 4: VIP PERKS & HYDRA CARE ── */}
+            {activeTab === "perks" && (
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="p-6 rounded-3xl bg-[#191D13] border border-[#FAF0E2]/10 space-y-3">
+                  <div className="h-12 w-12 rounded-2xl bg-[#22271A] border border-[#AA8B63]/30 text-2xl flex items-center justify-center">
+                    🌿
+                  </div>
+                  <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
+                    Hydra® Brazilian Botanical Spa
+                  </h4>
+                  <p className="text-xs text-[#A4AA93] leading-relaxed">
+                    Every grooming session is infused with premium, cruelty-free, salon-grade Brazilian botanical extracts that restore the lipid barrier and leave your dog's coat silk-smooth.
+                  </p>
                 </div>
 
-                <div className="p-6 rounded-2xl bg-[#181A12] border border-dashed border-[#AA8B63]/40 text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (onBookNewClick) onBookNewClick();
-                      else setShowBookingModal(true);
-                    }}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Add & Book Another Dog</span>
-                  </button>
+                <div className="p-6 rounded-3xl bg-[#191D13] border border-[#FAF0E2]/10 space-y-3">
+                  <div className="h-12 w-12 rounded-2xl bg-[#22271A] border border-[#AA8B63]/30 text-2xl flex items-center justify-center">
+                    🐾
+                  </div>
+                  <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
+                    20% Multi-Dog VIP Benefit
+                  </h4>
+                  <p className="text-xs text-[#A4AA93] leading-relaxed">
+                    Have two or more pups in the family? Receive an automatic 20% discount on your second dog's grooming when scheduled in the same visit.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-[#191D13] border border-[#FAF0E2]/10 space-y-3">
+                  <div className="h-12 w-12 rounded-2xl bg-[#22271A] border border-[#AA8B63]/30 text-2xl flex items-center justify-center">
+                    ☀️
+                  </div>
+                  <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
+                    100% Solar-Powered Mobile Fleet
+                  </h4>
+                  <p className="text-xs text-[#A4AA93] leading-relaxed">
+                    Zero emissions, ultra-quiet operation with no loud generator hum. No electrical or water hookups required from your home.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-[#191D13] border border-[#FAF0E2]/10 space-y-3">
+                  <div className="h-12 w-12 rounded-2xl bg-[#22271A] border border-[#AA8B63]/30 text-2xl flex items-center justify-center">
+                    🛡️
+                  </div>
+                  <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
+                    1-on-1 Cage-Free Sanctuary
+                  </h4>
+                  <p className="text-xs text-[#A4AA93] leading-relaxed">
+                    Your dog receives the dedicated, undivided attention of a single master groomer from start to finish. Never caged, never hurried.
+                  </p>
                 </div>
               </div>
             )}
