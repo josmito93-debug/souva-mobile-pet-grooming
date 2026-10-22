@@ -32,7 +32,12 @@ interface ManageAppointmentModalProps {
   currentTime?: string;
 }
 
-export function ManageAppointmentModal({
+export function ManageAppointmentModal(props: ManageAppointmentModalProps) {
+  if (!props.isOpen) return null;
+  return <ManageAppointmentModalContent {...props} />;
+}
+
+function ManageAppointmentModalContent({
   isOpen,
   onClose,
   initialAction = "reschedule",
@@ -75,8 +80,6 @@ export function ManageAppointmentModal({
       }
     }
   }, [slotsForSelectedDay]);
-
-  if (!isOpen) return null;
 
   const handleReschedule = async () => {
     if (!selectedDate || !selectedTime) return;

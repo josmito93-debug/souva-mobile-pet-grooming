@@ -186,55 +186,13 @@ function AppContent() {
     ? "240, 215, 175"
     : "170, 139, 99";
 
-  if (currentView === "admin") {
-    return <AdminDashboard onBackToSite={navigateToSite} />;
-  }
-
-  if (currentView === "portal") {
-    return (
-      <ClientPortal
-        onBackToSite={navigateToSite}
-        onBookNewClick={() => {
-          navigateToSite();
-          setTimeout(() => {
-            scrollToBookingFlow();
-          }, 120);
-        }}
-      />
-    );
-  }
-
-  if (currentView === "links") {
-    return (
-      <>
-        <QuickLinks
-          isModal={false}
-          onBookClick={() => {
-            navigateToSite();
-            setTimeout(() => {
-              scrollToBookingFlow();
-            }, 120);
-          }}
-          onNavigateToSection={(sectionId) => {
-            navigateToSite();
-            setTimeout(() => {
-              const el = document.getElementById(sectionId);
-              if (el) {
-                el.scrollIntoView({ behavior: "smooth", block: "start" });
-              }
-            }, 120);
-          }}
-          onOpenAdmin={navigateToAdmin}
-          onOpenClientPortal={navigateToPortal}
-          onOpenTerms={() => setShowTermsModal(true)}
-        />
-        <TermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
-      </>
-    );
-  }
-
   // High-end GSAP entrance animations with BG Video playing until second 8
   useEffect(() => {
+    if (currentView !== "site") {
+      setLoading(false);
+      return;
+    }
+
     const ctx = gsap.context(() => {
       const tl = gsap.timeline();
       tlRef.current = tl;
@@ -325,7 +283,7 @@ function AppContent() {
     });
 
     return () => ctx.revert();
-  }, []);
+  }, [currentView]);
 
   const scrollToBookingFlow = () => {
     const el = document.getElementById("booking-flow-card") || document.getElementById("book");
@@ -337,6 +295,53 @@ function AppContent() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  if (currentView === "admin") {
+    return <AdminDashboard onBackToSite={navigateToSite} />;
+  }
+
+  if (currentView === "portal") {
+    return (
+      <ClientPortal
+        onBackToSite={navigateToSite}
+        onBookNewClick={() => {
+          navigateToSite();
+          setTimeout(() => {
+            scrollToBookingFlow();
+          }, 120);
+        }}
+      />
+    );
+  }
+
+  if (currentView === "links") {
+    return (
+      <>
+        <QuickLinks
+          isModal={false}
+          onBookClick={() => {
+            navigateToSite();
+            setTimeout(() => {
+              scrollToBookingFlow();
+            }, 120);
+          }}
+          onNavigateToSection={(sectionId) => {
+            navigateToSite();
+            setTimeout(() => {
+              const el = document.getElementById(sectionId);
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }, 120);
+          }}
+          onOpenAdmin={navigateToAdmin}
+          onOpenClientPortal={navigateToPortal}
+          onOpenTerms={() => setShowTermsModal(true)}
+        />
+        <TermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#161811] text-[#FAF0E2] flex flex-col justify-between selection:bg-[#AA8B63]/40 selection:text-[#FAF0E2] relative">

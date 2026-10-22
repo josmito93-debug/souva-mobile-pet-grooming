@@ -46,7 +46,12 @@ interface QuickLinksProps {
   onOpenClientPortal?: () => void;
 }
 
-export function QuickLinks({
+export function QuickLinks(props: QuickLinksProps) {
+  if (props.isModal && !props.isOpen) return null;
+  return <QuickLinksContent {...props} />;
+}
+
+function QuickLinksContent({
   isModal = false,
   isOpen = true,
   onClose,
@@ -196,8 +201,6 @@ export function QuickLinks({
       handleNavigate("book");
     }
   };
-
-  if (isModal && !isOpen) return null;
 
   const content = (
     <div

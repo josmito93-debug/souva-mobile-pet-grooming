@@ -7,19 +7,18 @@ interface TermsModalProps {
   onClose: () => void;
 }
 
-export function TermsModal({ isOpen, onClose }: TermsModalProps) {
+export function TermsModal(props: TermsModalProps) {
+  if (!props.isOpen) return null;
+  return <TermsModalContent {...props} />;
+}
+
+function TermsModalContent({ isOpen, onClose }: TermsModalProps) {
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
+  }, []);
 
   return (
     <div

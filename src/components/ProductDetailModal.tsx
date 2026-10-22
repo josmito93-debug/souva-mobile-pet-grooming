@@ -11,11 +11,20 @@ export function ProductDetailModal({
   product: Product | null;
   onClose: () => void;
 }) {
+  if (!product) return null;
+  return <ProductDetailModalContent key={product.id} product={product} onClose={onClose} />;
+}
+
+function ProductDetailModalContent({
+  product,
+  onClose,
+}: {
+  product: Product;
+  onClose: () => void;
+}) {
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-
-  if (!product) return null;
 
   const handleAdd = () => {
     addToCart(product, quantity);

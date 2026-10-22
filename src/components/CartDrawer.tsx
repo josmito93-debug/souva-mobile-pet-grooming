@@ -12,9 +12,14 @@ import { WhatsAppIcon } from "@/components/BrandIcons";
 import { useCart } from "@/lib/cartContext";
 
 export function CartDrawer() {
+  const { isOpen } = useCart();
+  if (!isOpen) return null;
+  return <CartDrawerContent />;
+}
+
+function CartDrawerContent() {
   const {
     items,
-    isOpen,
     setIsOpen,
     updateQuantity,
     removeFromCart,
@@ -30,8 +35,6 @@ export function CartDrawer() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [showCheckoutForm, setShowCheckoutForm] = useState(false);
   const [orderCompleted, setOrderCompleted] = useState(false);
-
-  if (!isOpen) return null;
 
   const shippingCost = subtotal >= freeShippingThreshold || subtotal === 0 ? 0 : 5.99;
   const total = subtotal + shippingCost;

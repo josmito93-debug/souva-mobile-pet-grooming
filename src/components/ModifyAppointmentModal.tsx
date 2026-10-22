@@ -40,14 +40,17 @@ interface ModifyAppointmentModalProps {
   onSaved: (updated: DispatchRequest) => void;
 }
 
-export function ModifyAppointmentModal({
+export function ModifyAppointmentModal(props: ModifyAppointmentModalProps) {
+  if (!props.isOpen || !props.appointment) return null;
+  return <ModifyAppointmentModalContent key={props.appointment.id} {...props} appointment={props.appointment} />;
+}
+
+function ModifyAppointmentModalContent({
   isOpen,
   appointment,
   onClose,
   onSaved,
-}: ModifyAppointmentModalProps) {
-  if (!isOpen || !appointment) return null;
-
+}: ModifyAppointmentModalProps & { appointment: DispatchRequest }) {
   // Active section tab in editor
   const [activeSection, setActiveSection] = useState<"datetime" | "service" | "address" | "pet">("datetime");
 
