@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Search, ExternalLink, Maximize2, Minimize2, MapPin, Compass } from "lucide-react";
+import { Search, ExternalLink, Maximize2, Minimize2, MapPin, Plus, Minus } from "lucide-react";
 import { DispatchRequest } from "@/lib/dispatchStore";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +24,8 @@ export function AdminMap({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<{ [id: string]: L.Marker }>({});
   const layerGroupRef = useRef<L.LayerGroup | null>(null);
+  const hasFittedInitialBoundsRef = useRef(false);
+  const lastSelectedIdRef = useRef<string | null>(null);
 
   // Map Mode: "satellite" (default for house & driveway parking zoom), "streets", "dark"
   const [mapMode, setMapMode] = useState<"satellite" | "streets" | "dark">("satellite");
@@ -40,11 +42,11 @@ export function AdminMap({
       const map = L.map(mapContainerRef.current, {
         center: [37.66, -122.42],
         zoom: 11,
-        maxZoom: 19,
+        minZoom: 8,
+        maxZoom: 21,
         zoomControl: false,
+        scrollWheelZoom: true,
       });
-
-      L.control.zoom({ position: "bottomright" }).addTo(map);
 
       // Dedicated layer group for hot-swapping map modes (Satellite, Streets, Dark)
       layerGroupRef.current = L.layerGroup().addTo(map);
@@ -92,7 +94,7 @@ export function AdminMap({
     };
   }, []);
 
-  // 2. Hot-Swap Tile Layers Based on mapMode (Satellite, Streets, Dark)
+  // 2. Hot-Swap Tile Layers Based on mapMode (Satellite, Streets, Dark) with maxZoom: 21 (driveway level)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -104,33 +106,33 @@ export function AdminMap({
     group.clearLayers();
 
     if (mapMode === "satellite") {
-      // High-resolution Esri World Imagery (level 19: houses, roofs, driveways & parked cars visible)
+      // High-resolution Esri World Imagery (zoom level up to 21 without 404s via maxNativeZoom: 18)
       const sat = L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
         {
           attribution: "Esri, Maxar, Earthstar Geographics",
-          maxZoom: 19,
-          maxNativeZoom: 19,
+          maxZoom: 21,
+          maxNativeZoom: 18,
         }
       );
-      // Street names & boundaries overlay
+      // Street names, house numbers & boundaries overlay
       const labels = L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
         {
-          maxZoom: 19,
-          maxNativeZoom: 19,
+          maxZoom: 21,
+          maxNativeZoom: 18,
         }
       );
       sat.addTo(group);
       labels.addTo(group);
     } else if (mapMode === "streets") {
-      // Clear daytime street map with building outlines, street numbers, road names
+      // Clear daytime street map with building footprints and street numbers
       const streets = L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
         {
           attribution: "Esri, HERE, Garmin, USGS",
-          maxZoom: 19,
-          maxNativeZoom: 19,
+          maxZoom: 21,
+          maxNativeZoom: 18,
         }
       );
       streets.addTo(group);
@@ -140,13 +142,15 @@ export function AdminMap({
         "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
         {
           attribution: "Esri, Garmin, © OpenStreetMap",
-          maxZoom: 16,
+          maxZoom: 18,
+          maxNativeZoom: 16,
         }
       );
       const darkLabels = L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
         {
-          maxZoom: 16,
+          maxZoom: 18,
+          maxNativeZoom: 16,
         }
       );
       darkBase.addTo(group);
@@ -175,7 +179,7 @@ export function AdminMap({
     }, 200);
   }, [isExpanded]);
 
-  // 5. Update Markers on requests change
+  // 5. Update Markers on requests change (WITHOUT forcing zoom back!)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -299,7 +303,9 @@ export function AdminMap({
       }
     });
 
-    if (requests.length > 0 && !selectedRequest) {
+    // ONLY fit bounds once on initial load — NEVER overwrite user zoom during interaction!
+    if (requests.length > 0 && !hasFittedInitialBoundsRef.current) {
+      hasFittedInitialBoundsRef.current = true;
       const validPoints = requests
         .map((r) => [Number(r.lat), Number(r.lng)])
         .filter(([lat, lng]) => !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0);
@@ -310,29 +316,30 @@ export function AdminMap({
         } catch {}
       }
     }
-
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 100);
   }, [requests, selectedRequest, onSelectRequest]);
 
-  // 6. Fly to selected request
+  // 6. Fly to selected request ONLY when a DIFFERENT booking is selected (Preserving zoom level!)
   useEffect(() => {
     if (!mapInstanceRef.current || !selectedRequest) return;
+    if (lastSelectedIdRef.current === selectedRequest.id) return;
+    lastSelectedIdRef.current = selectedRequest.id;
+
     const sLat = Number(selectedRequest.lat) || 37.7749;
     const sLng = Number(selectedRequest.lng) || -122.4194;
     try {
-      // Zoom to comfortable neighborhood level by default
-      mapInstanceRef.current.flyTo([sLat, sLng], 14, { duration: 1.2 });
+      const currentZoom = mapInstanceRef.current.getZoom();
+      // If user is already zoomed in exploring the driveway/house, preserve their zoom!
+      const targetZoom = currentZoom > 15 ? currentZoom : 16;
+      mapInstanceRef.current.flyTo([sLat, sLng], targetZoom, { duration: 0.8 });
     } catch {}
-  }, [selectedRequest]);
+  }, [selectedRequest?.id]);
 
-  // Helper: Zoom straight into house & driveway (level 18-19)
+  // Helper: Zoom straight into house & driveway (level 19)
   const handleZoomToDriveway = () => {
     if (!mapInstanceRef.current || !selectedRequest) return;
     const lat = Number(selectedRequest.lat) || 37.7749;
     const lng = Number(selectedRequest.lng) || -122.4194;
-    mapInstanceRef.current.flyTo([lat, lng], 18, { duration: 1.0 });
+    mapInstanceRef.current.flyTo([lat, lng], 19, { duration: 0.8 });
   };
 
   return (
@@ -390,6 +397,26 @@ export function AdminMap({
               <span>🌙 Dark</span>
             </button>
           </div>
+
+          {/* Dedicated Zoom In / Out Controls */}
+          <div className="flex items-center p-0.5 rounded-xl bg-[#14160F] border border-[#FAF0E2]/10 text-xs font-mono font-bold">
+            <button
+              type="button"
+              onClick={() => mapInstanceRef.current?.zoomIn()}
+              className="h-6 w-6 rounded-lg hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] flex items-center justify-center transition-colors cursor-pointer"
+              title="Zoom In (Deeper Detail)"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => mapInstanceRef.current?.zoomOut()}
+              className="h-6 w-6 rounded-lg hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] flex items-center justify-center transition-colors cursor-pointer"
+              title="Zoom Out"
+            >
+              <Minus className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Right side shortcuts */}
@@ -400,7 +427,7 @@ export function AdminMap({
               type="button"
               onClick={handleZoomToDriveway}
               className="px-2.5 py-1 rounded-xl bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-[10.5px] font-mono font-black flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
-              title="Zoom in maximum (Level 18) onto client house and driveway to check parking space"
+              title="Zoom in maximum (Level 19) onto client house and driveway to check parking space"
             >
               <Search className="h-3 w-3 stroke-[2.5]" />
               <span>Driveway Zoom</span>
