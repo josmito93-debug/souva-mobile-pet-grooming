@@ -1,4 +1,7 @@
 export default async function handler(req: any, res: any) {
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }

@@ -1,4 +1,5 @@
 import { PetSize } from "@/data/services";
+import { formatToIsoDate } from "@/lib/airtable";
 
 export type RequestStatus =
   | "pending"
@@ -308,11 +309,12 @@ export function rescheduleAppointment(
 ): void {
   const current = getStoredRequests();
   const updated = current.map((r) => {
-    if (r.id === id) {
+    if (r.id === id || r.airtableRecordId === id) {
       const rescheduleNote = notes || `Rescheduled to ${newDate} @ ${newTime}`;
+      const iso = formatToIsoDate(newDate);
       return {
         ...r,
-        scheduledDate: newDate,
+        scheduledDate: iso || newDate,
         scheduledTime: newTime,
         preferredTime: `${newDate} at ${newTime}`,
         rescheduledAt: new Date().toISOString(),
@@ -330,7 +332,7 @@ export function rescheduleAppointment(
 export function cancelAppointment(id: string, reason?: string): void {
   const current = getStoredRequests();
   const updated = current.map((r) => {
-    if (r.id === id) {
+    if (r.id === id || r.airtableRecordId === id) {
       return {
         ...r,
         status: "cancelled" as RequestStatus,
@@ -347,7 +349,7 @@ export function cancelAppointment(id: string, reason?: string): void {
 export function restoreAppointment(id: string, newStatus: RequestStatus = "pending"): void {
   const current = getStoredRequests();
   const updated = current.map((r) => {
-    if (r.id === id) {
+    if (r.id === id || r.airtableRecordId === id) {
       return {
         ...r,
         status: newStatus,

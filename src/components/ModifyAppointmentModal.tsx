@@ -98,32 +98,19 @@ function ModifyAppointmentModalContent({
   const isSlotBookedByOther = (isoDate: string, time: string) => {
     if (isDateBlocked(isoDate)) return true;
 
+    const normIso = formatToIsoDate(isoDate);
+
     // Allow keeping own current slot
     const ownIso = appointment.scheduledDate ? formatToIsoDate(appointment.scheduledDate) : "";
     const ownTime = appointment.scheduledTime || "";
-    if (ownIso === isoDate && isTimeMatching(time, ownTime)) {
+    if (ownIso === normIso && isTimeMatching(time, ownTime)) {
       return false;
     }
 
-    // Check Airtable live booked slots
-    const inAirtable = bookedSlots.some(
-      (b) => formatToIsoDate(b.date) === formatToIsoDate(isoDate) && isTimeMatching(time, b.time)
+    // Check Airtable live booked slots (ground truth)
+    return bookedSlots.some(
+      (b) => formatToIsoDate(b.date) === normIso && isTimeMatching(time, b.time)
     );
-    if (inAirtable) return true;
-
-    // Check local store
-    try {
-      const local = getStoredRequests();
-      const inLocal = local.some((r) => {
-        if (r.id === appointment.id || r.status === "cancelled") return false;
-        const rIso = formatToIsoDate(r.scheduledDate || r.preferredTime || "");
-        const rTime = r.scheduledTime || r.preferredTime || "";
-        return rIso === isoDate && isTimeMatching(time, rTime);
-      });
-      if (inLocal) return true;
-    } catch {}
-
-    return false;
   };
 
   // 2. Package & Addons State

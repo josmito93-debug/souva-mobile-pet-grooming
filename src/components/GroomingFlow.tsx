@@ -421,32 +421,29 @@ export function GroomingFlow({
 
   useEffect(() => {
     loadBookedSlots();
-    // Poll every 30 seconds to keep slots up to date in real time
-    const interval = setInterval(loadBookedSlots, 30000);
-    return () => clearInterval(interval);
+    // Poll every 15 seconds to keep slots up to date in real time
+    const interval = setInterval(loadBookedSlots, 15000);
+    const handleDispatchUpdate = () => loadBookedSlots();
+    window.addEventListener("souva_dispatch_updated", handleDispatchUpdate);
+    window.addEventListener("storage", handleDispatchUpdate);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("souva_dispatch_updated", handleDispatchUpdate);
+      window.removeEventListener("storage", handleDispatchUpdate);
+    };
   }, [loadBookedSlots]);
 
   const isSlotBooked = useCallback(
     (isoDate: string, time: string) => {
       if (!isoDate || !time) return false;
       if (isDateBlocked(isoDate)) return true;
-      const inAirtable = bookedSlots.some(
-        (b) => b.date === isoDate && isTimeMatching(time, b.time)
+
+      const normIso = formatToIsoDate(isoDate);
+
+      // Airtable is the centralized real-time database of all active booked slots
+      return bookedSlots.some(
+        (b) => formatToIsoDate(b.date) === normIso && isTimeMatching(time, b.time)
       );
-      if (inAirtable) return true;
-
-      try {
-        const local = getStoredRequests();
-        const inLocal = local.some((req) => {
-          if (req.status === "cancelled") return false;
-          const reqIso = formatToIsoDate(req.scheduledDate || req.preferredTime || "");
-          const reqTime = req.scheduledTime || req.preferredTime || "";
-          return reqIso === isoDate && isTimeMatching(time, reqTime);
-        });
-        if (inLocal) return true;
-      } catch {}
-
-      return false;
     },
     [bookedSlots]
   );

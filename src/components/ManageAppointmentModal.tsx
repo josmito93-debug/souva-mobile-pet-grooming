@@ -86,25 +86,13 @@ function ManageAppointmentModalContent({
 
   const isSlotOccupied = (isoDate: string, time: string) => {
     if (isDateBlocked(isoDate)) return true;
+    const normIso = formatToIsoDate(isoDate);
     const ownIso = formatToIsoDate(currentDate || "");
-    if (ownIso === isoDate && isTimeMatching(time, currentTime || "")) return false;
+    if (ownIso === normIso && isTimeMatching(time, currentTime || "")) return false;
 
-    const inAirtable = bookedSlots.some(
-      (b) => formatToIsoDate(b.date) === formatToIsoDate(isoDate) && isTimeMatching(time, b.time)
+    return bookedSlots.some(
+      (b) => formatToIsoDate(b.date) === normIso && isTimeMatching(time, b.time)
     );
-    if (inAirtable) return true;
-
-    try {
-      const local = getStoredRequests();
-      return local.some((r) => {
-        if (r.id === bookingId || r.status === "cancelled") return false;
-        const rIso = formatToIsoDate(r.scheduledDate || r.preferredTime || "");
-        const rTime = r.scheduledTime || r.preferredTime || "";
-        return rIso === isoDate && isTimeMatching(time, rTime);
-      });
-    } catch {}
-
-    return false;
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -161,6 +149,10 @@ function ManageAppointmentModalContent({
         }
       }
 
+      // Re-fetch booked slots so the modal and background immediately know the old slot is freed!
+      fetchBookedSlots().then((s) => setBookedSlots(s));
+      window.dispatchEvent(new CustomEvent("souva_dispatch_updated"));
+
       setCompletedAction("rescheduled");
       setStatusMessage({
         type: "success",
@@ -172,6 +164,8 @@ function ManageAppointmentModalContent({
       if (bookingId) {
         rescheduleAppointment(bookingId, fullNewDate, selectedTime, rescheduleNote);
       }
+      fetchBookedSlots().then((s) => setBookedSlots(s));
+      window.dispatchEvent(new CustomEvent("souva_dispatch_updated"));
       setCompletedAction("rescheduled");
       setStatusMessage({
         type: "success",
@@ -208,6 +202,9 @@ function ManageAppointmentModalContent({
           console.warn("Local cancel store update:", e);
         }
       }
+
+      fetchBookedSlots().then((s) => setBookedSlots(s));
+      window.dispatchEvent(new CustomEvent("souva_dispatch_updated"));
 
       setCompletedAction("cancelled");
       setStatusMessage({
