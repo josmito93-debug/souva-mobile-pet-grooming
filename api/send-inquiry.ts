@@ -208,6 +208,34 @@ Reply directly to this email to respond to ${name} (${email}).
       });
     }
 
+    // GA4 Server-Side Measurement Protocol: generate_lead
+    const gaMeasurementId = process.env.GA_MEASUREMENT_ID || "G-5MT50H7N7K";
+    const gaApiSecret = process.env.GA_MEASUREMENT_PROTOCOL_SECRET || "FPHUVxA5TdCjRQjb3TrSmQ";
+    if (gaMeasurementId && gaApiSecret) {
+      try {
+        await fetch(
+          `https://www.google-analytics.com/mp/collect?measurement_id=${gaMeasurementId}&api_secret=${gaApiSecret}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              client_id: `lead_${Math.floor(100000000 + Math.random() * 900000000)}`,
+              user_id: email ? email.toLowerCase().trim() : undefined,
+              events: [
+                {
+                  name: "generate_lead",
+                  params: {
+                    currency: "USD",
+                    value: 25,
+                  },
+                },
+              ],
+            }),
+          }
+        ).catch(() => {});
+      } catch {}
+    }
+
     return res.status(200).json({
       success: true,
       messageId: resendData.id,

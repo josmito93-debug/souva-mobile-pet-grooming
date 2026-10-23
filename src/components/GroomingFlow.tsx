@@ -877,6 +877,32 @@ export function GroomingFlow({
       console.warn("Meta Pixel track error:", pixelErr);
     }
 
+    // Track Google Analytics 4 Conversion Events (Purchase & Schedule)
+    try {
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        (window as any).gtag("event", "purchase", {
+          transaction_id: createdAirtableId || `SOU-${Date.now()}`,
+          value: finalTotal,
+          currency: "USD",
+          items: [
+            {
+              item_id: data.packageId || "signature-grooming",
+              item_name: finalPackages || "Mobile Dog Grooming",
+              item_category: "Mobile Grooming",
+              price: finalTotal,
+              quantity: data.dogCount || 1,
+            },
+          ],
+        });
+        (window as any).gtag("event", "schedule_appointment", {
+          value: finalTotal,
+          currency: "USD",
+        });
+      }
+    } catch (gaErr) {
+      console.warn("GA4 event track error:", gaErr);
+    }
+
     setIsSubmitting(false);
     setDir("fwd");
     setCompleted(true);

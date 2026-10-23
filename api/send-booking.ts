@@ -259,6 +259,57 @@ export default async function handler(req: any, res: any) {
       }
     }
 
+    // 1.7 Server-Side GA4 Measurement Protocol Event (Guaranteed Conversion Tracking)
+    const gaMeasurementId = process.env.GA_MEASUREMENT_ID || "G-5MT50H7N7K";
+    const gaApiSecret = process.env.GA_MEASUREMENT_PROTOCOL_SECRET || "FPHUVxA5TdCjRQjb3TrSmQ";
+
+    if (gaMeasurementId && gaApiSecret) {
+      try {
+        const gaPayload = {
+          client_id: booking.clientId || `cli_${Math.floor(100000000 + Math.random() * 900000000)}`,
+          user_id: email ? email.toLowerCase().trim() : undefined,
+          events: [
+            {
+              name: "purchase",
+              params: {
+                transaction_id: booking.bookingId || `SOU-${Date.now()}`,
+                value: Number(estimatedTotal) || 125,
+                currency: "USD",
+                items: [
+                  {
+                    item_id: (packageName || "Signature Grooming").toLowerCase().replace(/[^a-z0-9]/g, "-"),
+                    item_name: packageName || "Signature Grooming",
+                    item_category: "Mobile Grooming",
+                    price: Number(estimatedTotal) || 125,
+                    quantity: Number(dogCount) || 1,
+                  },
+                ],
+              },
+            },
+            {
+              name: "schedule_appointment",
+              params: {
+                transaction_id: booking.bookingId || `SOU-${Date.now()}`,
+                value: Number(estimatedTotal) || 125,
+                currency: "USD",
+              },
+            },
+          ],
+        };
+
+        await fetch(
+          `https://www.google-analytics.com/mp/collect?measurement_id=${gaMeasurementId}&api_secret=${gaApiSecret}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(gaPayload),
+          }
+        ).catch((e) => console.warn("GA4 MP track notice:", e));
+      } catch (mpErr) {
+        console.warn("GA4 Measurement Protocol error:", mpErr);
+      }
+    }
+
     if (!apiKey) {
       console.warn("RESEND_API_KEY is not configured in Vercel environment variables.");
       return res.status(200).json({
