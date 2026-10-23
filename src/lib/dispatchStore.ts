@@ -38,6 +38,7 @@ export interface DispatchRequest {
   phone: string;
   address: string;
   zipCode?: string;
+  serviceZone?: string;
   dogCount?: number;
   lat: number;
   lng: number;

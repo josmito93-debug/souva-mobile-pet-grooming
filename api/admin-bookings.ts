@@ -177,36 +177,61 @@ export default async function handler(req: any, res: any) {
       const phoneParam = (req.query?.phone || "").trim().replace(/[^0-9]/g, "");
       const bookingIdParam = (req.query?.bookingId || "").trim();
 
-      let recordsUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?sort%5B0%5D%5Bfield%5D=Created+At&sort%5B0%5D%5Bdirection%5D=desc&maxRecords=100`;
-
+      let filterFormula = "";
       if (bookingIdParam) {
-        recordsUrl += `&filterByFormula=${encodeURIComponent(`{Booking ID} = '${bookingIdParam.replace(/'/g, "\\'")}'`)}`;
+        filterFormula = `{Booking ID} = '${bookingIdParam.replace(/'/g, "\\'")}'`;
       } else if (emailParam || phoneParam) {
         const conds: string[] = [];
         if (emailParam) conds.push(`LOWER({Email}) = '${emailParam.replace(/'/g, "\\'")}'`);
         if (phoneParam && phoneParam.length >= 7) conds.push(`FIND('${phoneParam.slice(-7)}', {Phone}) > 0`);
-        const formula = conds.length > 1 ? `OR(${conds.join(",")})` : conds[0];
-        recordsUrl += `&filterByFormula=${encodeURIComponent(formula)}`;
+        filterFormula = conds.length > 1 ? `OR(${conds.join(",")})` : conds[0];
       }
 
-      const atRes = await fetch(recordsUrl, {
-        headers: {
-          Authorization: `Bearer ${AIRTABLE_KEY}`,
-        },
+      const allRecords: any[] = [];
+      let offset: string | null = null;
+
+      do {
+        let recordsUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?pageSize=100`;
+        if (filterFormula) {
+          recordsUrl += `&filterByFormula=${encodeURIComponent(filterFormula)}`;
+        }
+        if (offset) {
+          recordsUrl += `&offset=${encodeURIComponent(offset)}`;
+        }
+
+        const atRes = await fetch(recordsUrl, {
+          headers: {
+            Authorization: `Bearer ${AIRTABLE_KEY}`,
+          },
+        });
+
+        if (!atRes.ok) {
+          const errText = await atRes.text();
+          console.error("Airtable admin GET error:", atRes.status, errText);
+          if (allRecords.length === 0) {
+            return res.status(500).json({
+              error: "Failed to fetch from Airtable",
+              details: errText,
+            });
+          }
+          break;
+        }
+
+        const data = await atRes.json();
+        if (Array.isArray(data.records)) {
+          allRecords.push(...data.records);
+        }
+        offset = data.offset || null;
+      } while (offset && allRecords.length < 500);
+
+      // Sort by Scheduled Date descending, then createdTime
+      allRecords.sort((a, b) => {
+        const dateA = a.fields?.["Scheduled Date"] || a.createdTime || "";
+        const dateB = b.fields?.["Scheduled Date"] || b.createdTime || "";
+        return String(dateB).localeCompare(String(dateA));
       });
 
-      if (!atRes.ok) {
-        const errText = await atRes.text();
-        console.error("Airtable admin GET error:", atRes.status, errText);
-        return res.status(500).json({
-          error: "Failed to fetch from Airtable",
-          details: errText,
-        });
-      }
-
-      const data = await atRes.json();
-      const records = data.records || [];
-      const requests = records.map(mapAirtableRecordToRequest);
+      const requests = allRecords.map(mapAirtableRecordToRequest);
 
       return res.status(200).json({
         success: true,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Truck,
   MapPin,
@@ -92,6 +92,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<DispatchRequest | null>(null);
   const [fullEditTarget, setFullEditTarget] = useState<DispatchRequest | null>(null);
+  const rightPanelRef = useRef<HTMLDivElement>(null);
 
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
   const [isAirtableLoading, setIsAirtableLoading] = useState(false);
@@ -105,14 +106,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
   };
 
   const refreshData = async () => {
-    // 1. First render local data immediately
-    const local = getStoredRequests();
-    if (requests.length === 0 && local.length > 0) {
-      setRequests(local);
-      if (!selectedRequest) setSelectedRequest(local[0]);
-    }
-
-    // 2. Fetch live data from Airtable via serverless API
+    // Fetch live data directly from Airtable (single source of truth)
     setIsAirtableLoading(true);
     setAirtableSyncStatus("syncing");
     try {
@@ -120,34 +114,20 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.requests)) {
-          const airtableMap = new Map<string, DispatchRequest>();
-          data.requests.forEach((r: DispatchRequest) => {
-            airtableMap.set(r.id, r);
-          });
+          const liveRequests: DispatchRequest[] = data.requests;
 
-          // Retain any pending locally created requests that aren't old mocks
-          local.forEach((lr) => {
-            if (!airtableMap.has(lr.id) && !lr.id.startsWith("SOU-840")) {
-              airtableMap.set(lr.id, lr);
-            }
-          });
-
-          const merged = Array.from(airtableMap.values());
-          merged.sort((a, b) => {
-            const dateA = a.scheduledDate || a.createdAt || "";
-            const dateB = b.scheduledDate || b.createdAt || "";
-            return dateB.localeCompare(dateA);
-          });
-
-          setRequests(merged);
-          saveStoredRequests(merged);
+          setRequests(liveRequests);
+          saveStoredRequests(liveRequests); // Keep localStorage cleanly synced with real Airtable truth
           setAirtableSyncStatus("synced");
 
-          if (merged.length > 0) {
-            setSelectedRequest(merged[0]);
-          } else {
-            setSelectedRequest(null);
-          }
+          // Keep currently selected request if present, otherwise select the latest top booking
+          setSelectedRequest((prev) => {
+            if (prev) {
+              const matched = liveRequests.find((r) => r.id === prev.id);
+              if (matched) return matched;
+            }
+            return liveRequests[0] || null;
+          });
           return;
         }
       }
@@ -155,6 +135,11 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
     } catch (err) {
       console.warn("Airtable sync fallback to local store:", err);
       setAirtableSyncStatus("offline");
+      const local = getStoredRequests();
+      if (requests.length === 0 && local.length > 0) {
+        setRequests(local);
+        if (!selectedRequest) setSelectedRequest(local[0]);
+      }
     } finally {
       setIsAirtableLoading(false);
     }
@@ -653,6 +638,9 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
                       onClick={() => {
                         setSelectedRequest(req);
                         setMobileTab("details");
+                        if (rightPanelRef.current) {
+                          rightPanelRef.current.scrollTo({ top: 0, behavior: "smooth" });
+                        }
                       }}
                       className={cn(
                         "p-4 rounded-2xl border transition-all duration-300 cursor-pointer select-none relative",
@@ -927,7 +915,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
           </div>
 
           {/* Right Side: Map & Deep Request Inspector */}
-          <div className={cn("md:col-span-6 xl:col-span-7 flex flex-col p-3 sm:p-5 bg-[#13150F] gap-4 max-h-[calc(100vh-65px)] overflow-y-auto", mobileTab === "list" && "hidden md:flex")}>
+          <div ref={rightPanelRef} className={cn("md:col-span-6 xl:col-span-7 flex flex-col p-3 sm:p-5 bg-[#13150F] gap-4 max-h-[calc(100vh-65px)] overflow-y-auto scroll-smooth", mobileTab === "list" && "hidden md:flex")}>
             <div className="w-full h-[320px] sm:h-[360px] md:h-[400px] shrink-0">
               <AdminMap
                 requests={requests}
@@ -942,7 +930,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
                 <button
                   type="button"
                   onClick={() => setMobileTab("list")}
-                  className="lg:hidden text-xs text-[#AA8B63] hover:underline flex items-center gap-1 font-mono pb-2 border-b border-[#FAF0E2]/10 w-full text-left"
+                  className="md:hidden text-xs text-[#AA8B63] hover:underline flex items-center gap-1 font-mono pb-2 border-b border-[#FAF0E2]/10 w-full text-left"
                 >
                   ← Back to Appointments List
                 </button>
@@ -1030,31 +1018,73 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
                   </div>
                 </div>
 
-                {/* Info Grid */}
-                <div className="grid sm:grid-cols-3 gap-3 text-xs font-mono">
-                  <div className="p-3 rounded-xl bg-[#14160F] border border-[#FAF0E2]/10">
-                    <span className="text-[10px] text-[#A4AA93] uppercase block mb-1">
-                      Client & Phone
+                {/* ── REAL CONFIRMED DOORSTEP ADDRESS CARD ── */}
+                <div className="p-4 rounded-2xl bg-[#14160F] border-2 border-[#AA8B63]/50 shadow-inner flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1">
+                    <span className="text-[10.5px] font-mono text-[#AA8B63] uppercase font-bold flex items-center gap-1.5">
+                      <MapPin className="h-4 w-4 text-[#AA8B63] shrink-0" />
+                      <span>Confirmed Doorstep Service Address</span>
                     </span>
-                    <strong className="text-[#FAF0E2] block">{selectedRequest.customerName}</strong>
-                    <span className="text-[#AA8B63]">{selectedRequest.phone}</span>
+                    <p className="font-display font-extrabold text-base sm:text-lg text-[#FAF0E2]">
+                      {selectedRequest.address || "Address not provided"}
+                    </p>
+                    <p className="text-xs font-mono text-[#A4AA93]">
+                      ZIP Code: <strong className="text-[#FAF0E2]">{selectedRequest.zipCode || "N/A"}</strong> · Zone: <span className="text-[#FAF0E2]">{selectedRequest.serviceZone || "San Francisco & Peninsula"}</span>
+                    </p>
+                    {selectedRequest.parkingNotes && (
+                      <p className="text-xs text-amber-300 font-mono mt-1 pt-1 border-t border-[#FAF0E2]/10 flex items-center gap-1.5">
+                        <span>🚐 Parking / Access:</span>
+                        <strong className="text-[#FAF0E2]">{selectedRequest.parkingNotes}</strong>
+                      </p>
+                    )}
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#14160F] border border-[#FAF0E2]/10">
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedRequest.address)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4 py-2.5 rounded-xl bg-[#22271A] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] text-xs font-mono font-bold flex items-center gap-2 transition-all shrink-0 border border-[#AA8B63]/30 shadow-md"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 text-[#AA8B63]" />
+                    <span>Open in Google Maps</span>
+                  </a>
+                </div>
+
+                {/* Info Grid */}
+                <div className="grid sm:grid-cols-3 gap-3 text-xs font-mono">
+                  <div className="p-3.5 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/10">
+                    <span className="text-[10px] text-[#A4AA93] uppercase block mb-1">
+                      Client Contact
+                    </span>
+                    <strong className="text-[#FAF0E2] text-sm block truncate">{selectedRequest.customerName}</strong>
+                    <a href={`tel:${selectedRequest.phone}`} className="text-[#AA8B63] hover:underline font-bold block mt-0.5">
+                      {selectedRequest.phone}
+                    </a>
+                    {selectedRequest.email && (
+                      <span className="text-[10.5px] text-[#A4AA93] block truncate mt-0.5">
+                        {selectedRequest.email}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/10">
                     <span className="text-[10px] text-[#A4AA93] uppercase block mb-1">
                       Scheduled Window
                     </span>
-                    <strong className="text-[#FAF0E2] block">{selectedRequest.scheduledDate || selectedRequest.preferredTime}</strong>
-                    <span className="text-[#AA8B63]">{selectedRequest.scheduledTime || selectedRequest.preferredTime}</span>
+                    <strong className="text-[#FAF0E2] text-sm block">{selectedRequest.scheduledDate || selectedRequest.preferredTime}</strong>
+                    <span className="text-[#AA8B63] font-bold block mt-0.5">{selectedRequest.scheduledTime || selectedRequest.preferredTime}</span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#14160F] border border-[#FAF0E2]/10">
+                  <div className="p-3.5 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/10">
                     <span className="text-[10px] text-[#A4AA93] uppercase block mb-1">
                       Van & Estimate
                     </span>
-                    <span className="text-[#FAF0E2] font-bold block">{selectedRequest.vanName}</span>
-                    <span className="text-emerald-400 font-bold">
-                      ${selectedRequest.estimatedTotal || 125} Total
+                    <span className="text-[#FAF0E2] font-bold block truncate">{selectedRequest.vanName}</span>
+                    <span className="text-emerald-400 font-extrabold text-base block mt-0.5">
+                      ${selectedRequest.estimatedTotal || 125}.00 Total
+                    </span>
+                    <span className="text-[10px] text-[#A4AA93] block">
+                      {selectedRequest.paymentStatus || "Pay at Doorstep"}
                     </span>
                   </div>
                 </div>
