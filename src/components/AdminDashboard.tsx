@@ -92,6 +92,7 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<DispatchRequest | null>(null);
   const [fullEditTarget, setFullEditTarget] = useState<DispatchRequest | null>(null);
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
   const rightPanelRef = useRef<HTMLDivElement>(null);
 
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
@@ -916,11 +917,13 @@ export function AdminDashboard({ onBackToSite }: { onBackToSite: () => void }) {
 
           {/* Right Side: Map & Deep Request Inspector */}
           <div ref={rightPanelRef} className={cn("md:col-span-6 xl:col-span-7 flex flex-col p-3 sm:p-5 bg-[#13150F] gap-4 max-h-[calc(100vh-65px)] overflow-y-auto scroll-smooth", mobileTab === "list" && "hidden md:flex")}>
-            <div className="w-full h-[320px] sm:h-[360px] md:h-[400px] shrink-0">
+            <div className={cn("w-full transition-all duration-300 shrink-0", isMapExpanded ? "h-[540px] sm:h-[620px] md:h-[680px]" : "h-[340px] sm:h-[380px] md:h-[420px]")}>
               <AdminMap
                 requests={requests}
                 selectedRequest={selectedRequest}
                 onSelectRequest={(r) => setSelectedRequest(r)}
+                isExpanded={isMapExpanded}
+                onToggleExpand={() => setIsMapExpanded((prev) => !prev)}
               />
             </div>
 

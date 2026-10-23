@@ -1,28 +1,37 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { Search, ExternalLink, Maximize2, Minimize2, MapPin, Compass } from "lucide-react";
 import { DispatchRequest } from "@/lib/dispatchStore";
+import { cn } from "@/lib/utils";
 
 interface AdminMapProps {
   requests: DispatchRequest[];
   selectedRequest: DispatchRequest | null;
   onSelectRequest: (r: DispatchRequest) => void;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 export function AdminMap({
   requests,
   selectedRequest,
   onSelectRequest,
+  isExpanded = false,
+  onToggleExpand,
 }: AdminMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<{ [id: string]: L.Marker }>({});
+  const layerGroupRef = useRef<L.LayerGroup | null>(null);
+
+  // Map Mode: "satellite" (default for house & driveway parking zoom), "streets", "dark"
+  const [mapMode, setMapMode] = useState<"satellite" | "streets" | "dark">("satellite");
 
   // 1. Initialize Map Once
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    // Reset container if previously initialized to avoid Leaflet error
     if ((mapContainerRef.current as any)._leaflet_id) {
       delete (mapContainerRef.current as any)._leaflet_id;
     }
@@ -31,27 +40,14 @@ export function AdminMap({
       const map = L.map(mapContainerRef.current, {
         center: [37.66, -122.42],
         zoom: 11,
+        maxZoom: 19,
         zoomControl: false,
       });
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
-      // Esri World Dark Gray Base (100% Free, No API key, No watermark)
-      L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-        {
-          attribution: "Esri, Garmin, © OpenStreetMap",
-          maxZoom: 16,
-        }
-      ).addTo(map);
-
-      // Esri World Dark Gray Reference Labels (streets & city labels)
-      L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
-        {
-          maxZoom: 16,
-        }
-      ).addTo(map);
+      // Dedicated layer group for hot-swapping map modes (Satellite, Streets, Dark)
+      layerGroupRef.current = L.layerGroup().addTo(map);
 
       // Central SOUVA Bay Area Hub marker
       const depotIcon = L.divIcon({
@@ -71,9 +67,9 @@ export function AdminMap({
       L.marker([37.75, -122.44], { icon: depotIcon })
         .addTo(map)
         .bindPopup(
-          `<div style="font-family: sans-serif; padding: 4px; color: #161811;">
-            <strong style="color: #59593E;">SOUVA FLEET DISPATCH HUB</strong><br/>
-            <span style="font-size: 11px;">San Francisco & Peninsula Solar Van Operations</span>
+          `<div style="font-family: sans-serif; padding: 6px; color: #161811; font-size: 12px;">
+            <strong style="color: #AA8B63;">SOUVA FLEET DISPATCH HUB</strong><br/>
+            <span>San Francisco & Peninsula Solar Van Operations</span>
           </div>`
         );
 
@@ -96,7 +92,69 @@ export function AdminMap({
     };
   }, []);
 
-  // 2. Keep map properly sized upon container resize
+  // 2. Hot-Swap Tile Layers Based on mapMode (Satellite, Streets, Dark)
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (!layerGroupRef.current) {
+      layerGroupRef.current = L.layerGroup().addTo(map);
+    }
+    const group = layerGroupRef.current;
+    group.clearLayers();
+
+    if (mapMode === "satellite") {
+      // High-resolution Esri World Imagery (level 19: houses, roofs, driveways & parked cars visible)
+      const sat = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        {
+          attribution: "Esri, Maxar, Earthstar Geographics",
+          maxZoom: 19,
+          maxNativeZoom: 19,
+        }
+      );
+      // Street names & boundaries overlay
+      const labels = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+        {
+          maxZoom: 19,
+          maxNativeZoom: 19,
+        }
+      );
+      sat.addTo(group);
+      labels.addTo(group);
+    } else if (mapMode === "streets") {
+      // Clear daytime street map with building outlines, street numbers, road names
+      const streets = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+        {
+          attribution: "Esri, HERE, Garmin, USGS",
+          maxZoom: 19,
+          maxNativeZoom: 19,
+        }
+      );
+      streets.addTo(group);
+    } else {
+      // Dark gray luxury fleet radar
+      const darkBase = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        {
+          attribution: "Esri, Garmin, © OpenStreetMap",
+          maxZoom: 16,
+        }
+      );
+      const darkLabels = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+        {
+          maxZoom: 16,
+        }
+      );
+      darkBase.addTo(group);
+      darkLabels.addTo(group);
+    }
+  }, [mapMode]);
+
+  // 3. Keep map properly sized upon container resize / mobile orientation change
   useEffect(() => {
     if (!mapContainerRef.current) return;
     const ro = new ResizeObserver(() => {
@@ -108,7 +166,16 @@ export function AdminMap({
     return () => ro.disconnect();
   }, []);
 
-  // 3. Update Markers on requests change
+  // 4. Invalidate size when isExpanded toggles
+  useEffect(() => {
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 200);
+  }, [isExpanded]);
+
+  // 5. Update Markers on requests change
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -160,7 +227,7 @@ export function AdminMap({
         <div style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer;">
           ${
             isSelected
-              ? `<div style="position: absolute; width: 44px; height: 44px; border-radius: 50%; border: 2px solid #FAF0E2; background: rgba(170, 139, 99, 0.3); animation: pulse 1.5s infinite;"></div>`
+              ? `<div style="position: absolute; width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid #FAF0E2; background: rgba(170, 139, 99, 0.4); animation: pulse 1.5s infinite;"></div>`
               : ""
           }
           <div style="
@@ -172,7 +239,7 @@ export function AdminMap({
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.85);
             overflow: hidden;
           ">
             ${
@@ -185,14 +252,14 @@ export function AdminMap({
             margin-top: 3px;
             background: #161811;
             color: #FAF0E2;
-            border: 1px solid rgba(250, 240, 226, 0.2);
+            border: 1px solid rgba(250, 240, 226, 0.3);
             padding: 2px 6px;
             border-radius: 6px;
             font-size: 10px;
             font-family: monospace;
             font-weight: bold;
             white-space: nowrap;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.7);
           ">
             ${req.petName} · ${req.etaMinutes}m
           </div>
@@ -212,6 +279,15 @@ export function AdminMap({
         if (isSelected) {
           marker.setZIndexOffset(1000);
         }
+
+        marker.bindTooltip(
+          `<div style="font-family: monospace; font-size: 11px; padding: 2px;">
+            <strong>${req.petName}</strong> (${req.breed})<br/>
+            <span>Client: ${req.customerName}</span><br/>
+            <span>📍 ${req.address}</span>
+          </div>`,
+          { direction: "top", offset: [0, -20] }
+        );
 
         marker.on("click", () => {
           onSelectRequest(req);
@@ -240,38 +316,138 @@ export function AdminMap({
     }, 100);
   }, [requests, selectedRequest, onSelectRequest]);
 
-  // 4. Fly to selected request
+  // 6. Fly to selected request
   useEffect(() => {
     if (!mapInstanceRef.current || !selectedRequest) return;
     const sLat = Number(selectedRequest.lat) || 37.7749;
     const sLng = Number(selectedRequest.lng) || -122.4194;
     try {
-      mapInstanceRef.current.flyTo([sLat, sLng], 13, { duration: 1.2 });
+      // Zoom to comfortable neighborhood level by default
+      mapInstanceRef.current.flyTo([sLat, sLng], 14, { duration: 1.2 });
     } catch {}
   }, [selectedRequest]);
 
-  return (
-    <div className="relative w-full h-full min-h-[380px] rounded-3xl overflow-hidden border border-[#FAF0E2]/15 shadow-2xl">
-      <div ref={mapContainerRef} className="w-full h-full min-h-[380px] z-0" />
+  // Helper: Zoom straight into house & driveway (level 18-19)
+  const handleZoomToDriveway = () => {
+    if (!mapInstanceRef.current || !selectedRequest) return;
+    const lat = Number(selectedRequest.lat) || 37.7749;
+    const lng = Number(selectedRequest.lng) || -122.4194;
+    mapInstanceRef.current.flyTo([lat, lng], 18, { duration: 1.0 });
+  };
 
-      {/* Map Overlay Badge */}
-      <div className="absolute top-4 left-4 right-4 z-10 px-3 py-1.5 rounded-xl bg-[#161811]/90 backdrop-blur-md border border-[#FAF0E2]/15 text-xs font-mono text-[#FAF0E2] flex items-center justify-between gap-2 shadow-lg">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#AA8B63] animate-pulse" />
-          <span className="font-bold text-[11px] sm:text-xs">LIVE FLEET RADAR · SF & PENINSULA</span>
+  return (
+    <div className="relative w-full h-full rounded-3xl overflow-hidden border border-[#FAF0E2]/15 shadow-2xl flex flex-col">
+      <div ref={mapContainerRef} className="w-full flex-1 min-h-[320px] z-0" />
+
+      {/* ── TOP OPERATIONAL OVERLAY CONTROL BAR ── */}
+      <div className="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 p-2 rounded-2xl bg-[#161811]/90 backdrop-blur-md border border-[#FAF0E2]/15 shadow-2xl">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#202517] border border-[#AA8B63]/30 text-[10.5px] font-mono text-[#FAF0E2] font-bold">
+            <span className="h-2 w-2 rounded-full bg-[#AA8B63] animate-pulse" />
+            <span className="hidden sm:inline">RADAR ·</span>
+            <span>SF & PENINSULA</span>
+          </div>
+
+          {/* Mode Switcher Buttons */}
+          <div className="flex items-center p-0.5 rounded-xl bg-[#14160F] border border-[#FAF0E2]/10 text-[10px] font-mono font-bold">
+            <button
+              type="button"
+              onClick={() => setMapMode("satellite")}
+              className={cn(
+                "px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1",
+                mapMode === "satellite"
+                  ? "bg-[#AA8B63] text-[#161811] shadow-sm font-black"
+                  : "text-[#A4AA93] hover:text-[#FAF0E2]"
+              )}
+              title="Ultra-high-resolution aerial photography for inspecting house, driveway, and curb parking"
+            >
+              <span>🛰️ Satellite</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMapMode("streets")}
+              className={cn(
+                "px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1",
+                mapMode === "streets"
+                  ? "bg-[#AA8B63] text-[#161811] shadow-sm font-black"
+                  : "text-[#A4AA93] hover:text-[#FAF0E2]"
+              )}
+              title="Daytime street navigation with road numbers and building footprints"
+            >
+              <span>🗺️ Streets</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMapMode("dark")}
+              className={cn(
+                "px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1",
+                mapMode === "dark"
+                  ? "bg-[#AA8B63] text-[#161811] shadow-sm font-black"
+                  : "text-[#A4AA93] hover:text-[#FAF0E2]"
+              )}
+              title="SOUVA Dark night fleet radar mode"
+            >
+              <span>🌙 Dark</span>
+            </button>
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            if (mapInstanceRef.current) {
-              mapInstanceRef.current.setView([37.66, -122.42], 11);
-              mapInstanceRef.current.invalidateSize();
-            }
-          }}
-          className="px-2.5 py-0.5 rounded-lg bg-[#22271A] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] transition-colors cursor-pointer text-[10px] font-mono font-bold"
-        >
-          Center Hub
-        </button>
+
+        {/* Right side shortcuts */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Driveway Zoom Button */}
+          {selectedRequest && (
+            <button
+              type="button"
+              onClick={handleZoomToDriveway}
+              className="px-2.5 py-1 rounded-xl bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-[10.5px] font-mono font-black flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+              title="Zoom in maximum (Level 18) onto client house and driveway to check parking space"
+            >
+              <Search className="h-3 w-3 stroke-[2.5]" />
+              <span>Driveway Zoom</span>
+            </button>
+          )}
+
+          {/* Google Street View 360 link */}
+          {selectedRequest && (
+            <a
+              href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${selectedRequest.lat},${selectedRequest.lng}`}
+              target="_blank"
+              rel="noreferrer"
+              className="hidden sm:inline-flex px-2.5 py-1 rounded-xl bg-[#22271A] hover:bg-[#25D366] hover:text-[#161811] text-[#FAF0E2] text-[10.5px] font-mono font-bold items-center gap-1.5 transition-colors cursor-pointer border border-[#FAF0E2]/15 shadow-sm"
+              title="Open Google Street View 360 to see the house front, curb, and driveway"
+            >
+              <ExternalLink className="h-3 w-3 text-emerald-400" />
+              <span>360° Street View</span>
+            </a>
+          )}
+
+          {/* Center Hub */}
+          <button
+            type="button"
+            onClick={() => {
+              if (mapInstanceRef.current) {
+                mapInstanceRef.current.setView([37.66, -122.42], 11);
+                mapInstanceRef.current.invalidateSize();
+              }
+            }}
+            className="px-2.5 py-1 rounded-xl bg-[#22271A] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] transition-colors cursor-pointer text-[10px] font-mono font-bold border border-[#FAF0E2]/15"
+            title="Reset view to SOUVA Central Bay Area Depot"
+          >
+            Center Hub
+          </button>
+
+          {/* Toggle Expand / Theater Height */}
+          {onToggleExpand && (
+            <button
+              type="button"
+              onClick={onToggleExpand}
+              className="p-1.5 rounded-xl bg-[#22271A] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] transition-colors cursor-pointer border border-[#FAF0E2]/15"
+              title={isExpanded ? "Collapse map height" : "Expand map height"}
+            >
+              {isExpanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
