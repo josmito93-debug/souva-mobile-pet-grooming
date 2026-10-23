@@ -1,6 +1,31 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
   <head>
+    <!-- Google Consent Mode v2 Initialization (MUST run before GTM and gtag.js) -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+
+      var defaultConsent = 'denied';
+      try {
+        var savedConsent = localStorage.getItem('souva_consent_mode');
+        if (savedConsent === 'granted') {
+          defaultConsent = 'granted';
+        }
+      } catch (e) {}
+
+      gtag('consent', 'default', {
+        'ad_storage': defaultConsent,
+        'ad_user_data': defaultConsent,
+        'ad_personalization': defaultConsent,
+        'analytics_storage': defaultConsent,
+        'functionality_storage': 'granted',
+        'personalization_storage': 'granted',
+        'security_storage': 'granted',
+        'wait_for_update': 500
+      });
+    </script>
+
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -12,10 +37,7 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-5MT50H7N7K"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-5MT50H7N7K');
     </script>
 

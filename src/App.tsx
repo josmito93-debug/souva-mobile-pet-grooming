@@ -36,6 +36,7 @@ import { LocalSeoDirectory } from "@/components/LocalSeoDirectory";
 import { Footer } from "@/components/Footer";
 import { QuickLinks, QuickLinksFloatingButton } from "@/components/QuickLinks";
 import { TermsModal } from "@/components/TermsModal";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { ManageAppointmentModal } from "@/components/ManageAppointmentModal";
 import {
   SOUVA_PACKAGES,
@@ -1196,6 +1197,9 @@ function AppContent() {
         isOpen={showTermsModal}
         onClose={() => setShowTermsModal(false)}
       />
+
+      {/* Google Consent Mode v2 Custom Luxury Banner */}
+      <CookieConsentBanner onOpenTerms={() => setShowTermsModal(true)} />
 
       {/* Customer Self-Service Reschedule & Cancellation Modal */}
       <ManageAppointmentModal

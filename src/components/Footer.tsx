@@ -5,6 +5,7 @@ import {
   MapPin,
   Clock,
   Shield,
+  ShieldCheck,
   Sparkles,
   Zap,
   Heart,
@@ -421,6 +422,19 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
             >
               <FileText className="h-3 w-3" />
               <span>Terms & Conditions of Service (16 Articles)</span>
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("souva_open_cookie_settings"));
+                }
+              }}
+              className="text-[#A4AA93] hover:text-[#FAF0E2] hover:underline cursor-pointer flex items-center gap-1"
+            >
+              <ShieldCheck className="h-3 w-3 text-emerald-400" />
+              <span>Cookie Preferences</span>
             </button>
           </div>
 
