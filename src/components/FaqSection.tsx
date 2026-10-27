@@ -306,10 +306,12 @@ export function FaqSection({ onBookClick }: { onBookClick?: () => void }) {
                 <form onSubmit={handleSubmit} className="space-y-3.5">
                   {/* Category Pills */}
                   <div>
-                    <label className="text-[10.5px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold block mb-1.5">
+                    <label htmlFor="inquiry-category" className="text-[10.5px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold block mb-1.5">
                       Inquiry Subject
                     </label>
                     <select
+                      id="inquiry-category"
+                      aria-label="Inquiry Subject"
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-[#14160F] border border-[#FAF0E2]/20 text-xs text-[#FAF0E2] focus:outline-none focus:border-[#AA8B63] font-sans cursor-pointer"

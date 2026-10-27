@@ -96,11 +96,13 @@ export function PetBlueprint({
           loop
           muted
           playsInline
+          preload="none"
           className="w-full max-w-[280px] sm:max-w-[320px] h-[240px] sm:h-[280px] object-contain bg-transparent [mix-blend-mode:screen]"
         >
           <source src={activeDog.mov} type='video/mp4; codecs="hvc1"' />
           <source src={activeDog.mov} type="video/quicktime" />
           <source src={activeDog.webm} type="video/webm" />
+          <track kind="captions" src="" label="English" default />
         </video>
 
         <div className="mt-1 text-center">

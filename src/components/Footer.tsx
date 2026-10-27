@@ -21,7 +21,6 @@ import {
   User,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
-import { TermsModal } from "@/components/TermsModal";
 import { WhatsAppIcon, PhoneConciergeIcon } from "@/components/BrandIcons";
 import { COVERED_ZIP_CODES } from "@/data/coverage";
 
@@ -30,13 +29,15 @@ interface FooterProps {
   onBookClick?: () => void;
   onOpenQuickLinks?: () => void;
   onOpenClientPortal?: () => void;
+  onOpenTerms?: () => void;
   onNavigateSlug?: (slug: string) => void;
 }
 
-export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClientPortal, onNavigateSlug }: FooterProps) {
-  const [showTermsModal, setShowTermsModal] = useState(false);
+export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClientPortal, onOpenTerms, onNavigateSlug }: FooterProps) {
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+
+  const openTerms = onOpenTerms || (() => {});
 
   const handleLinkClick = (slug: string, sectionId: string, e?: React.MouseEvent) => {
     if (e) e.preventDefault();
@@ -244,7 +245,7 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
               <li>
                 <button
                   type="button"
-                  onClick={() => setShowTermsModal(true)}
+                  onClick={openTerms}
                   className="hover:text-[#FAF0E2] transition-colors block text-left cursor-pointer"
                 >
                   SOUVA Terms (16 Articles)
@@ -517,7 +518,7 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
             <span>•</span>
             <button
               type="button"
-              onClick={() => setShowTermsModal(true)}
+              onClick={openTerms}
               className="text-[#AA8B63] hover:underline cursor-pointer font-bold flex items-center gap-1"
             >
               <FileText className="h-3 w-3" />
@@ -561,9 +562,6 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
           </div>
         </div>
       </div>
-
-      {/* Official SOUVA CORP Terms & Conditions Modal */}
-      <TermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
     </footer>
   );
 }

@@ -659,10 +659,12 @@ function ModifyAppointmentModalContent({
 
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] text-[#A4AA93] uppercase font-semibold block mb-1">
+                  <label htmlFor="modify-temperament" className="text-[11px] text-[#A4AA93] uppercase font-semibold block mb-1">
                     Temperament / Handling:
                   </label>
                   <select
+                    id="modify-temperament"
+                    aria-label="Temperament and Handling"
                     value={temperament}
                     onChange={(e) => setTemperament(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#1B1E15] border border-[#FAF0E2]/15 text-xs text-[#FAF0E2] focus:border-[#AA8B63] outline-none cursor-pointer"

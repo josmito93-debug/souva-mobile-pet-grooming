@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
   <head>
+    <!-- ── LCP IMAGE PRELOAD ────────────────────────────────────── -->
+    <link rel="preload" as="image" href="/assets/souva-badge-circle-transparent.png" fetchpriority="high" type="image/png" />
+
     <!-- Google Consent Mode v2 Initialization (MUST run before GTM and gtag.js) -->
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -26,50 +29,54 @@
       });
     </script>
 
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-MBS9J4TJ');</script>
-    <!-- End Google Tag Manager -->
-
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5MT50H7N7K"></script>
+    <!-- Deferred Third-Party Analytics & SDKs (Meta Pixel, GTM, Google Maps Places) -->
     <script>
-      gtag('js', new Date());
-      gtag('config', 'G-5MT50H7N7K');
+      function initThirdPartyScripts() {
+        // 1. Google Tag Manager
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-MBS9J4TJ');
+
+        // 2. Meta Pixel Code
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '2167206993870451');
+        fbq('track', 'PageView');
+
+        // 3. Google Maps Places API (Loaded on idle)
+        var mapScript = document.createElement('script');
+        mapScript.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyB6cohDZYqMMKuGKsW01wXHaUMOj3daP1c&libraries=places,geometry';
+        mapScript.async = true;
+        mapScript.defer = true;
+        document.head.appendChild(mapScript);
+      }
+
+      // Schedule after initial render or idle
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(function() { setTimeout(initThirdPartyScripts, 1500); }, { timeout: 3500 });
+      } else {
+        window.addEventListener('load', function() { setTimeout(initThirdPartyScripts, 1800); });
+      }
     </script>
-
-    <!-- Google Identity Services (Google Sign-In) -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-    <!-- Google Maps JavaScript API (Places & Geocoding) -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB6cohDZYqMMKuGKsW01wXHaUMOj3daP1c&libraries=places,geometry" async defer></script>
-
-    <!-- Meta Pixel Code -->
-    <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '2167206993870451');
-      fbq('track', 'PageView');
-    </script>
-    <!-- End Meta Pixel Code -->
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/assets/souva-badge-circle-transparent.png" />
     <link rel="apple-touch-icon" href="/assets/souva-badge-circle-transparent.png" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#161811" />
 
-    <!-- Leaflet Map Stylesheets -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <!-- Leaflet Map Stylesheets (Non-blocking) -->
+    <link rel="preload" as="style" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" crossorigin="" />
+    <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" /></noscript>
 
     <!-- ── PRIMARY SEO META TAGS ─────────────────────────────────── -->
     <title>SOUVA · Luxury Solar Mobile Pet Grooming | San Francisco & Peninsula</title>
@@ -160,13 +167,26 @@
       content="https://www.souvagrooming.com/assets/souva-badge-circle-transparent.png"
     />
 
-    <!-- ── GOOGLE FONTS PRECONNECT ────────────────────────────────── -->
+    <!-- ── GOOGLE FONTS (NON-BLOCKING PRELOAD) ───────────────────── -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
     />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+      />
+    </noscript>
 
     <!-- ── SCHEMA.ORG LOCAL BUSINESS, SERVICE & GEO STRUCTURED DATA ── -->
     <script type="application/ld+json">

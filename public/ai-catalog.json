@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "SOUVA Mobile Pet Grooming",
+  "version": "1.0.0",
+  "description": "Autonomous solar mobile pet grooming salon service for San Francisco and the Peninsula.",
+  "homepage": "https://www.souvagrooming.com",
+  "documentation": "https://www.souvagrooming.com/llms.txt",
+  "provider": {
+    "name": "SOUVA CORP",
+    "url": "https://www.souvagrooming.com",
+    "email": "info@souvagrooming.com",
+    "phone": "+1-415-375-5823"
+  },
+  "capabilities": [
+    "mobile_pet_grooming",
+    "doorstep_dispatch",
+    "real_time_availability",
+    "appointment_booking",
+    "coverage_lookup"
+  ],
+  "serviceAreas": {
+    "region": "US-CA",
+    "counties": ["San Francisco", "San Mateo", "Santa Clara"],
+    "coveredZipCodesCount": 38,
+    "cities": [
+      "San Francisco",
+      "Daly City",
+      "Colma",
+      "Brisbane",
+      "South San Francisco",
+      "San Bruno",
+      "Pacifica",
+      "Millbrae",
+      "Burlingame",
+      "Hillsborough",
+      "San Mateo",
+      "Foster City",
+      "Belmont",
+      "San Carlos",
+      "Redwood City",
+      "Woodside",
+      "Atherton",
+      "Menlo Park",
+      "Palo Alto",
+      "Mountain View",
+      "Half Moon Bay"
+    ]
+  },
+  "catalog": [
+    {
+      "id": "bath-and-brush",
+      "name": "Bath & Brush Refresh",
+      "priceRange": { "currency": "USD", "min": 85, "max": 135 },
+      "url": "https://www.souvagrooming.com/services"
+    },
+    {
+      "id": "bath-and-tidy",
+      "name": "Bath & Tidy",
+      "priceRange": { "currency": "USD", "min": 105, "max": 155 },
+      "url": "https://www.souvagrooming.com/services"
+    },
+    {
+      "id": "essential-full-groom",
+      "name": "Essential Full Groom",
+      "priceRange": { "currency": "USD", "min": 125, "max": 195 },
+      "url": "https://www.souvagrooming.com/services"
+    },
+    {
+      "id": "signature-souva-grooming",
+      "name": "Signature SOUVA Grooming",
+      "priceRange": { "currency": "USD", "min": 145, "max": 225 },
+      "url": "https://www.souvagrooming.com/services"
+    }
+  ],
+  "endpoints": {
+    "checkCoverage": "https://www.souvagrooming.com/coverage",
+    "bookAppointment": "https://www.souvagrooming.com/",
+    "clientPortal": "https://www.souvagrooming.com/portal"
+  }
+}

@@ -2336,11 +2336,13 @@ function StepDogCareCondition({
         </div>
 
         <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
+          <label htmlFor="dog-medical-conditions" className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
             <Activity className="h-3 w-3 text-[#AA8B63]" />
             <span>Medical Conditions or Sensitivities</span>
           </label>
           <select
+            id="dog-medical-conditions"
+            aria-label="Medical Conditions or Sensitivities"
             value={data.medicalConditions}
             onChange={(e) => setData({ ...data, medicalConditions: e.target.value })}
             className="w-full h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl px-3 text-xs text-[#FAF0E2] focus:outline-none focus:border-[#AA8B63] cursor-pointer"

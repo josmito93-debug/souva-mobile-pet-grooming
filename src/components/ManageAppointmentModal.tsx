@@ -478,10 +478,12 @@ function ManageAppointmentModalContent({
               </div>
 
               <div>
-                <label className="text-xs font-mono font-bold uppercase tracking-wider text-[#AA8B63] block mb-2">
+                <label htmlFor="cancel-reason" className="text-xs font-mono font-bold uppercase tracking-wider text-[#AA8B63] block mb-2">
                   Please let us know the reason for cancellation:
                 </label>
                 <select
+                  id="cancel-reason"
+                  aria-label="Reason for cancellation"
                   value={cancelReason}
                   onChange={(e) => setCancelReason(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-xl bg-[#1B1E15] border border-[#FAF0E2]/15 text-xs text-[#FAF0E2] focus:border-[#AA8B63] outline-none"
