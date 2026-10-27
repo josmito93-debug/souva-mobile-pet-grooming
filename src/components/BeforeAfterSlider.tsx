@@ -182,10 +182,10 @@ function TransformationCard({ item }: { item: Transformation }) {
       <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
         <div>
           <div className="flex items-center justify-between gap-2 mb-1.5">
-            <h4 className="font-bold text-xl text-[#FAF0E2]">
+            <h3 className="font-bold text-xl text-[#FAF0E2]">
               {item.name}
-            </h4>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#AA8B63]/15 border border-[#AA8B63]/35 text-[#AA8B63] text-xs font-semibold">
+            </h3>
+            <span className="px-2.5 py-0.5 rounded-full bg-[#2A241A] border border-[#AA8B63]/50 text-[#EBDBC6] text-xs font-bold">
               {item.breed}
             </span>
           </div>

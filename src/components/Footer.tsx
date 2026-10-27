@@ -554,9 +554,9 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
             <button
               type="button"
               onClick={onOpenAdmin}
-              className="text-[#A4AA93]/60 hover:text-[#AA8B63] transition-colors flex items-center gap-1 cursor-pointer"
+              className="text-[#C5CCA9] hover:text-[#AA8B63] transition-colors flex items-center gap-1 cursor-pointer py-1"
             >
-              <Shield className="h-3 w-3" />
+              <Shield className="h-3 w-3 text-[#AA8B63]" />
               <span>Fleet Dispatch & Owner Portal (/admin)</span>
             </button>
           </div>

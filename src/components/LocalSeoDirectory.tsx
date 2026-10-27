@@ -239,7 +239,7 @@ export function LocalSeoDirectory({ onBookClick, onSelectCity, activeSlug }: Loc
         </div>
 
         {/* Local SEO Keywords Footer Text */}
-        <div className="text-[10.5px] leading-relaxed text-[#A4AA93]/70 space-y-1.5 border-t border-[#FAF0E2]/5 pt-4">
+        <div className="text-[10.5px] leading-relaxed text-[#D5D9C7] space-y-1.5 border-t border-[#FAF0E2]/15 pt-4">
           <p>
             <strong>Popular Searches:</strong> Mobile pet grooming near me, mobile dog grooming San Francisco, mobile dog groomer San Mateo, Burlingame mobile pet spa, cage free dog grooming Peninsula, luxury puppy grooming Palo Alto, cat and dog mobile bath Redwood City, mobile pet grooming 94122, dog wash 94010, mobile pet groomer Mountain View CA, solar mobile grooming van California.
           </p>

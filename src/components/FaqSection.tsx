@@ -453,7 +453,7 @@ export function FaqSection({ onBookClick }: { onBookClick?: () => void }) {
                     )}
                   </button>
 
-                  <p className="text-[10px] font-mono text-[#A4AA93]/70 text-center pt-1">
+                  <p className="text-[10px] font-mono text-[#C5CCA9] text-center pt-1">
                     Direct notification sent to dispatch team via Resend API · No spam policy
                   </p>
                 </form>

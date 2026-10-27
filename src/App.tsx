@@ -127,7 +127,7 @@ function AppContent() {
 
   const skipIntro = () => {
     if (tlRef.current) {
-      tlRef.current.seek(8.0);
+      tlRef.current.seek(3.8);
     }
     setLoading(false);
   };
@@ -265,72 +265,72 @@ function AppContent() {
         "<"
       );
 
-      // 2. Preloader curtain fades away quickly at 0.45s so content paints immediately (LCP < 1.5s)
+      // 2. Preloader curtain fades away at 0.5s so full cinematic video plays front & center
       tl.to(
         ".preloader",
         {
           opacity: 0,
-          duration: 0.35,
-          ease: "power2.out",
+          duration: 0.4,
+          ease: "power2.inOut",
           onComplete: () => {
             const el = document.querySelector(".preloader") as HTMLElement | null;
-            if (el) el.style.display = "none";
+            if (el) el.style.pointerEvents = "none";
           },
-        },
-        0.45
-      );
-
-      // 3. Background video ambient blend
-      tl.to(
-        ".hero-bg-video",
-        {
-          opacity: 0.20,
-          duration: 0.5,
-          ease: "power2.inOut",
         },
         0.5
       );
 
-      // 4. Hero spa atmosphere & gold glow fade in
-      tl.fromTo(".hero-spa-ambient", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.5);
-      tl.fromTo(".hero-gold-glow", { opacity: 0 }, { opacity: 0.85, duration: 0.4 }, 0.5);
+      // 3. Background video plays clearly until second 3.5 (faster, punchy intro)
+      tl.to(
+        ".hero-bg-video",
+        {
+          opacity: 0.22,
+          duration: 0.8,
+          ease: "power2.inOut",
+        },
+        3.5
+      );
 
-      // 5. App Header reveals at 0.55s
+      // 4. Hero spa atmosphere & gold glow fade in at 3.5s
+      tl.fromTo(".hero-spa-ambient", { opacity: 0 }, { opacity: 1, duration: 0.7 }, 3.5);
+      tl.fromTo(".hero-gold-glow", { opacity: 0 }, { opacity: 0.85, duration: 0.7 }, 3.5);
+
+      // 5. App Header reveals at 3.6s
       tl.fromTo(
         ".app-header",
-        { opacity: 0, y: -15 },
-        { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" },
-        0.55
+        { opacity: 0, y: -20 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        3.6
       );
 
-      // 6. Hero left content reveals at 0.6s
+      // 6. Hero left content reveals at 3.7s
       tl.fromTo(
         ".hero-left-content",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" },
-        0.6
+        { opacity: 0, y: 25 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" },
+        3.7
       );
 
-      // 7. Hero cockpit card reveals at 0.65s
+      // 7. Hero cockpit card reveals at 3.8s
       tl.fromTo(
         ".hero-right-content",
-        { opacity: 0, scale: 0.95 },
+        { opacity: 0, scale: 0.94 },
         {
           opacity: 1,
           scale: 1,
-          duration: 0.45,
+          duration: 0.55,
           ease: "back.out(1.1)",
           onComplete: () => setLoading(false),
         },
-        0.65
+        3.8
       );
 
-      // 8. Bento step cards reveal
+      // 8. Bento step cards reveal at 4.0s
       tl.fromTo(
         ".bento-steps-section",
         { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" },
-        0.75
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        4.0
       );
     });
 
@@ -393,20 +393,23 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#161811] text-[#FAF0E2] flex flex-col justify-between selection:bg-[#AA8B63]/40 selection:text-[#FAF0E2] relative">
-      {/* Background Ambient Video (Optimized for low-bandwidth mobile) */}
+      {/* Background Cinematic Presentation Video (Full view during intro, ambient afterwards) */}
       <video
-        className="hero-bg-video fixed inset-0 w-full h-full object-cover z-0 pointer-events-none opacity-20"
+        className={cn(
+          "hero-bg-video fixed inset-0 w-full h-full object-cover z-0 pointer-events-none transition-opacity duration-700",
+          loading ? "opacity-100" : "opacity-20"
+        )}
         src="/bg-video.mp4"
         autoPlay
         muted
         playsInline
         loop
-        preload="none"
+        preload="auto"
       >
         <track kind="captions" src="" label="English" default />
       </video>
 
-      {/* GSAP Preloader Overlay (Fast 0.5s transition for instant LCP) */}
+      {/* GSAP Preloader Overlay */}
       {loading && (
         <div className="preloader fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#13150F] overflow-hidden select-none">
           <div className="relative flex items-center justify-center max-w-[280px] w-full px-6">
@@ -429,6 +432,24 @@ function AppContent() {
               SAN FRANCISCO BAY AREA & PENINSULA
             </span>
           </div>
+        </div>
+      )}
+
+      {/* Floating Skip Intro Button during initial video presentation */}
+      {loading && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 animate-in fade-in duration-300">
+          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#161811]/90 backdrop-blur-md border border-[#FAF0E2]/20 text-[10.5px] font-mono text-[#FAF0E2] shadow-2xl">
+            <span className="h-2 w-2 rounded-full bg-[#AA8B63] animate-pulse" />
+            <span>SOUVA · CINEMATIC PRESENTATION</span>
+          </div>
+          <button
+            type="button"
+            onClick={skipIntro}
+            className="px-5 py-2.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-xs font-mono font-bold tracking-wider uppercase transition-all cursor-pointer shadow-2xl flex items-center gap-2 active:scale-95"
+          >
+            <span>Skip Intro</span>
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
       )}
 
@@ -777,7 +798,7 @@ function AppContent() {
                           </span>
                           <div className="flex items-center gap-1.5 justify-end">
                             {isFullGroom && (
-                              <span className="line-through text-xs font-mono text-[#A4AA93]/60">
+                              <span className="line-through text-xs font-mono text-[#C4CAA7]">
                                 ${originalPrice}
                               </span>
                             )}
@@ -1049,10 +1070,10 @@ function AppContent() {
                       <span>{rev.tag}</span>
                     </div>
                     <div className="absolute bottom-3 left-4">
-                      <h4 className="font-display font-bold text-lg text-[#FAF0E2] drop-shadow-md">
+                      <h3 className="font-display font-bold text-lg text-[#FAF0E2] drop-shadow-md">
                         {rev.petName}
-                      </h4>
-                      <span className="text-[11px] font-mono text-[#AA8B63] drop-shadow-sm">
+                      </h3>
+                      <span className="text-[11px] font-mono text-[#D8B98E] font-semibold drop-shadow-sm">
                         {rev.breed}
                       </span>
                     </div>

@@ -1,23 +1,20 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  Play,
-  Pause,
   Maximize2,
   X,
-  Zap,
-  Shield,
-  Sparkles,
-  Droplets,
+  Play,
+  Pause,
   Calendar,
-  Layers,
+  Sparkles,
+  Shield,
+  Zap,
   CheckCircle2,
-  VolumeX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export interface VanPhotoItem {
+export interface VanPhoto {
   id: string;
   src: string;
   title: string;
@@ -26,12 +23,12 @@ export interface VanPhotoItem {
   specs: string[];
 }
 
-export const VAN_FLEET_PHOTOS: VanPhotoItem[] = [
+export const VAN_FLEET_PHOTOS: VanPhoto[] = [
   {
     id: "van-01",
     src: "/assets/van-fleet/van-01.jpg",
     title: "Autonomous Solar Mobile Salon",
-    subtitle: "Custom Mercedes-Benz Sprinter High-Roof Suite",
+    subtitle: "Custom Mercedes-Benz High-Roof Luxury Suite",
     category: "Exterior",
     specs: ["100% Solar-Powered Battery Bank", "Zero Generator Noise & Zero Fumes", "Direct Doorstep Driveway Setup"],
   },
@@ -39,7 +36,7 @@ export const VAN_FLEET_PHOTOS: VanPhotoItem[] = [
     id: "van-02",
     src: "/assets/van-fleet/van-02.jpg",
     title: "Precision Stainless Hydro-Spa Tub",
-    subtitle: "Custom Ergonomic Canine Bath Station",
+    subtitle: "Warm Water Hydro-Massage Spa Bath",
     category: "Hydro-Spa",
     specs: ["Continuous Warm Water Heating", "Dual Micro-Filtration Clean Water Tanks", "Gentle Hydro-Massage Wand"],
   },
@@ -54,16 +51,16 @@ export const VAN_FLEET_PHOTOS: VanPhotoItem[] = [
   {
     id: "van-04",
     src: "/assets/van-fleet/van-04.jpg",
-    title: "Clinical UV Sanitization System",
+    title: "Clinical UV Sanitization Suite",
     subtitle: "Sterilized Environment Between Every Pet",
     category: "Interior Suite",
-    specs: ["Hospital UV-C Surface Disinfection", "Medical Air Filter Cycle", "Fresh Sanitized Towels Every Session"],
+    specs: ["Hospital UV-C Surface Disinfection", "Medical Air Filter Exchange", "Fresh Sanitized Towels Every Session"],
   },
   {
     id: "van-05",
     src: "/assets/van-fleet/van-05.jpg",
     title: "Whisper-Quiet Acoustic Insulation",
-    subtitle: "Sanctuary-Grade Noise Dampening",
+    subtitle: "Sanctuary-Grade Noise Isolation Suite",
     category: "Solar Tech",
     specs: ["Automotive 4-Layer Sound Proofing", "Vibration-Free Pure Electric Operation", "Stress Reduction for Anxious Pets"],
   },
@@ -73,12 +70,12 @@ export const VAN_FLEET_PHOTOS: VanPhotoItem[] = [
     title: "Warm Ambient Light Therapy",
     subtitle: "Low-Stress Visual Environment",
     category: "Interior Suite",
-    specs: ["3200K Soft Spectrum Lumens", "No Glare or Harsh Fluorescent Tubes", "Panoramic Natural Light Skylight"],
+    specs: ["3200K Soft Spectrum Lumens", "No Harsh Fluorescent Flickers", "Natural Panoramic Light Skylight"],
   },
   {
     id: "van-07",
     src: "/assets/van-fleet/van-07.jpg",
-    title: "Master Styling & Scissor Station",
+    title: "Master Styling & Scissor Cockpit",
     subtitle: "Japanese Precision Shears & Grooming Bar",
     category: "Interior Suite",
     specs: ["Handcrafted Convex Edge Scissors", "Quiet Variable-Speed Fluff Dryers", "Never Any Cage Dryers"],
@@ -86,7 +83,7 @@ export const VAN_FLEET_PHOTOS: VanPhotoItem[] = [
   {
     id: "van-08",
     src: "/assets/van-fleet/van-08.jpg",
-    title: "Self-Contained Fresh Water Tanks",
+    title: "Self-Contained Fresh Water System",
     subtitle: "Zero Street Hookups or Home Utilities Needed",
     category: "Solar Tech",
     specs: ["50-Gallon Food-Grade Clean Tank", "Isolated Grey Water Disposal System", "100% Self-Sufficient Autonomous Fleet"],
@@ -95,33 +92,33 @@ export const VAN_FLEET_PHOTOS: VanPhotoItem[] = [
     id: "van-09",
     src: "/assets/van-fleet/van-09.jpg",
     title: "Hydra® Professional Cosmetics Bar",
-    subtitle: "Brazilian Salon Luxury Formulations",
+    subtitle: "Brazilian Salon Botanical Formulations",
     category: "Hydro-Spa",
-    specs: ["Colloidal Oatmeal & Botanical Extracts", "Sulfate-Free Hypoallergenic Formulas", "Dematted Coat Silk Conditioning"],
+    specs: ["Colloidal Oatmeal & Botanical Extracts", "Sulfate-Free Hypoallergenic Formulas", "Silk Coat Restoration Treatments"],
   },
   {
     id: "van-10",
     src: "/assets/van-fleet/van-10.jpg",
-    title: "Real-Time Solar Lithium Telemetry",
-    subtitle: "Digital Energy Management Console",
+    title: "Solar Lithium Telemetry Console",
+    subtitle: "Digital Energy Management & Monitoring",
     category: "Solar Tech",
     specs: ["Victron Smart Lithium Battery Core", "Roof Solar Panel Regeneration", "Sustainable Zero-Carbon Footprint"],
   },
   {
     id: "van-11",
     src: "/assets/van-fleet/van-11.jpg",
-    title: "Climate Control & Clean Air Exchange",
-    subtitle: "Optimal Temperature in Any Season",
+    title: "Dual AC Climate Control",
+    subtitle: "Constant 72°F Ideal Comfort Year-Round",
     category: "Interior Suite",
-    specs: ["Automated Dual AC & Heating", "Continuous HEPA Air Recirculation", "Constant 72°F Ideal Comfort"],
+    specs: ["Automated Dual AC & Heating", "Continuous HEPA Air Recirculation", "Independent Battery-Driven Climate"],
   },
   {
     id: "van-12",
     src: "/assets/van-fleet/van-12.jpg",
-    title: "Signature Fleet Golden Wrap",
-    subtitle: "San Francisco Bay Area Mobile Presence",
+    title: "Signature Golden Fleet Exterior",
+    subtitle: "California Licensed & Insured SOUVA Van",
     category: "Exterior",
-    specs: ["California Licensed & Insured SOUVA Fleet", "Discreet Neighborhood Footprint", "Doorstep Luxury Service Across 38 ZIPs"],
+    specs: ["California Licensed & Insured SOUVA Fleet", "Discreet Neighborhood Footprint", "Doorstep Service Across 38 Bay Area ZIPs"],
   },
 ];
 
@@ -130,78 +127,52 @@ interface Van3dCarouselProps {
 }
 
 export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
-  const [rotation, setRotation] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isDragging, setIsDragging] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Responsive dimensions
-  const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== "undefined" ? window.innerWidth : 1200));
-
-  // Drag physics tracking
+  // Drag interaction state
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const dragStartX = useRef(0);
-  const dragStartRotation = useRef(0);
-  const lastDragTime = useRef(0);
+  const dragCurrentX = useRef(0);
   const dragVelocity = useRef(0);
-  const animationFrameId = useRef<number | null>(null);
+  const lastDragTime = useRef(0);
   const isHovered = useRef(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  const totalCards = VAN_FLEET_PHOTOS.length;
-  const anglePerCard = 360 / totalCards;
+  // Filter photos by category if selected
+  const filteredPhotos = selectedCategory === "All"
+    ? VAN_FLEET_PHOTOS
+    : VAN_FLEET_PHOTOS.filter((p) => p.category === selectedCategory);
 
-  // Compute responsive layout parameters
-  const layout = useRef({
-    radius: 560,
-    cardWidth: 340,
-    cardHeight: 460,
-    perspective: 1400,
-  });
+  const total = filteredPhotos.length;
 
-  if (viewportWidth < 640) {
-    layout.current = { radius: 290, cardWidth: 230, cardHeight: 330, perspective: 900 };
-  } else if (viewportWidth < 1024) {
-    layout.current = { radius: 420, cardWidth: 280, cardHeight: 390, perspective: 1100 };
-  } else {
-    layout.current = { radius: 560, cardWidth: 340, cardHeight: 460, perspective: 1400 };
-  }
+  // Safe Index Wrapping
+  const wrapIndex = useCallback((idx: number) => {
+    return ((idx % total) + total) % total;
+  }, [total]);
 
-  // Handle Resize
-  useEffect(() => {
-    const handleResize = () => {
-      setViewportWidth(window.innerWidth);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const goTo = useCallback((idx: number) => {
+    setCurrentIndex(wrapIndex(idx));
+    setDragOffset(0);
+  }, [wrapIndex]);
 
-  // Compute Active Index from current rotation
-  const activeIndex = useMemo(() => {
-    const normalized = ((-rotation % 360) + 360) % 360;
-    return Math.round(normalized / anglePerCard) % totalCards;
-  }, [rotation, anglePerCard, totalCards]);
-
-  // Smooth Snap To Angle
-  const snapToCard = useCallback((targetIndex: number) => {
-    setRotation(-targetIndex * anglePerCard);
-  }, [anglePerCard]);
-
-  // Next / Prev Actions
   const handlePrev = useCallback(() => {
-    setRotation((prev) => prev + anglePerCard);
-  }, [anglePerCard]);
+    goTo(currentIndex - 1);
+  }, [currentIndex, goTo]);
 
   const handleNext = useCallback(() => {
-    setRotation((prev) => prev - anglePerCard);
-  }, [anglePerCard]);
+    goTo(currentIndex + 1);
+  }, [currentIndex, goTo]);
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (lightboxIndex !== null) {
         if (e.key === "Escape") setLightboxIndex(null);
-        if (e.key === "ArrowLeft") setLightboxIndex((prev) => (prev !== null ? (prev - 1 + totalCards) % totalCards : 0));
-        if (e.key === "ArrowRight") setLightboxIndex((prev) => (prev !== null ? (prev + 1) % totalCards : 0));
+        if (e.key === "ArrowLeft") setLightboxIndex((prev) => (prev !== null ? wrapIndex(prev - 1) : 0));
+        if (e.key === "ArrowRight") setLightboxIndex((prev) => (prev !== null ? wrapIndex(prev + 1) : 0));
         return;
       }
       if (e.key === "ArrowLeft") handlePrev();
@@ -209,35 +180,58 @@ export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handlePrev, handleNext, lightboxIndex, totalCards]);
+  }, [handlePrev, handleNext, lightboxIndex, wrapIndex]);
 
-  // Silky 60fps Continuous Auto-Rotation Loop
+  // Auto-Play Timer
   useEffect(() => {
-    let lastTime = performance.now();
+    if (!isAutoPlaying || isDragging || isHovered.current || lightboxIndex !== null) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => wrapIndex(prev + 1));
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [isAutoPlaying, isDragging, lightboxIndex, wrapIndex]);
 
-    const loop = (currentTime: number) => {
-      const delta = (currentTime - lastTime) / 1000;
-      lastTime = currentTime;
+  // Touch Handlers for Fluid Swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    dragStartX.current = e.touches[0].clientX;
+    dragCurrentX.current = e.touches[0].clientX;
+    lastDragTime.current = performance.now();
+    dragVelocity.current = 0;
+  };
 
-      if (isAutoPlaying && !isDragging && !isHovered.current && lightboxIndex === null) {
-        // Continuous gentle speed: ~4 degrees per second
-        setRotation((prev) => prev - 4 * delta);
-      }
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const currentX = e.touches[0].clientX;
+    const deltaX = currentX - dragStartX.current;
+    const now = performance.now();
+    const timeDelta = (now - lastDragTime.current) || 16;
 
-      animationFrameId.current = requestAnimationFrame(loop);
-    };
+    dragVelocity.current = (currentX - dragCurrentX.current) / timeDelta;
+    dragCurrentX.current = currentX;
+    lastDragTime.current = now;
 
-    animationFrameId.current = requestAnimationFrame(loop);
-    return () => {
-      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
-    };
-  }, [isAutoPlaying, isDragging, lightboxIndex]);
+    setDragOffset(deltaX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+
+    const threshold = 50;
+    if (dragOffset > threshold || dragVelocity.current > 0.35) {
+      handlePrev();
+    } else if (dragOffset < -threshold || dragVelocity.current < -0.35) {
+      handleNext();
+    }
+    setDragOffset(0);
+  };
 
   // Mouse Drag Handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
     dragStartX.current = e.clientX;
-    dragStartRotation.current = rotation;
+    dragCurrentX.current = e.clientX;
     lastDragTime.current = performance.now();
     dragVelocity.current = 0;
   };
@@ -249,62 +243,32 @@ export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
     const now = performance.now();
     const timeDelta = (now - lastDragTime.current) || 16;
 
-    // Convert pixel delta into rotational degrees based on radius
-    const degPerPixel = 360 / (layout.current.radius * Math.PI * 2);
-    const newRot = dragStartRotation.current + deltaX * degPerPixel;
-    dragVelocity.current = (deltaX * degPerPixel) / timeDelta;
+    dragVelocity.current = (currentX - dragCurrentX.current) / timeDelta;
+    dragCurrentX.current = currentX;
     lastDragTime.current = now;
 
-    setRotation(newRot);
+    setDragOffset(deltaX);
   };
 
   const handleMouseUp = () => {
     if (!isDragging) return;
     setIsDragging(false);
 
-    // Inertia spring snap to closest card
-    const target = Math.round((-rotation + dragVelocity.current * 12) / anglePerCard) % totalCards;
-    const finalIndex = (target + totalCards) % totalCards;
-    snapToCard(finalIndex);
+    const threshold = 50;
+    if (dragOffset > threshold || dragVelocity.current > 0.35) {
+      handlePrev();
+    } else if (dragOffset < -threshold || dragVelocity.current < -0.35) {
+      handleNext();
+    }
+    setDragOffset(0);
   };
 
-  // Touch Swipe Handlers (Mobile / Tablet)
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length !== 1) return;
-    setIsDragging(true);
-    dragStartX.current = e.touches[0].clientX;
-    dragStartRotation.current = rotation;
-    lastDragTime.current = performance.now();
-    dragVelocity.current = 0;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || e.touches.length !== 1) return;
-    const currentX = e.touches[0].clientX;
-    const deltaX = currentX - dragStartX.current;
-    const now = performance.now();
-    const timeDelta = (now - lastDragTime.current) || 16;
-
-    const degPerPixel = 360 / (layout.current.radius * Math.PI * 2);
-    const newRot = dragStartRotation.current + deltaX * degPerPixel;
-    dragVelocity.current = (deltaX * degPerPixel) / timeDelta;
-    lastDragTime.current = now;
-
-    setRotation(newRot);
-  };
-
-  const handleTouchEnd = () => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    const target = Math.round((-rotation + dragVelocity.current * 15) / anglePerCard) % totalCards;
-    const finalIndex = (target + totalCards) % totalCards;
-    snapToCard(finalIndex);
-  };
+  const activePhoto = filteredPhotos[currentIndex] || filteredPhotos[0];
 
   return (
     <section
       id="gallery"
-      className="py-16 md:py-28 px-3 sm:px-6 lg:px-8 bg-[#12140D] border-t border-[#FAF0E2]/15 relative overflow-hidden select-none"
+      className="py-14 sm:py-20 md:py-28 px-3 sm:px-6 lg:px-8 bg-[#12140D] border-t border-[#FAF0E2]/15 relative overflow-hidden select-none"
       onMouseEnter={() => {
         isHovered.current = true;
       }}
@@ -313,272 +277,280 @@ export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
         if (isDragging) handleMouseUp();
       }}
     >
-      {/* Background Radial Glow & Cinematic Stage Vignette */}
+      {/* Background Soft Stage Glow */}
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(170,139,99,0.14),transparent_65%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_35%,rgba(170,139,99,0.14),transparent_65%)]"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute -bottom-24 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-emerald-500/5 blur-[120px] rounded-full"
+        className="pointer-events-none absolute -bottom-24 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-emerald-500/5 blur-[90px] rounded-full"
         aria-hidden="true"
       />
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* ── SECTION HEADER & LUXURY CONTROLS HUD ─────────────────────── */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 md:mb-16">
+      <div className="max-w-6xl mx-auto relative z-10">
+        {/* ── SECTION HEADER & CATEGORIES ─────────────────────────────── */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 md:mb-10">
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#AA8B63] font-bold">
-                // SOUVA FLEET RADAR // 3D VIRTUAL INSPECTION
+                // SOUVA FLEET RADAR // 3D TOUR //
               </span>
             </div>
             <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-[#FAF0E2] tracking-tight">
               Inside Our Solar Mobile Van
             </h2>
             <p className="text-xs sm:text-sm text-[#E2D7C5]/85 leading-relaxed">
-              Step inside our custom Mercedes-Benz Sprinter salon. Drag or rotate in 3D to explore the
-              whisper-quiet lithium battery suite, medical-grade stainless hydro-spa, and master scissor cockpit.
+              Step inside our custom Mercedes-Benz Sprinter luxury mobile salon. Fully equipped with an autonomous
+              solar battery bank, warm hydro-massage bath station, and ergonomic 360° hydraulic lift table.
             </p>
           </div>
 
-          {/* HUD Control Bar */}
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 self-start md:self-auto">
-            {/* Auto-Play Toggle */}
-            <button
-              type="button"
-              onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-              className={cn(
-                "px-3.5 py-2 rounded-full border text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm",
-                isAutoPlaying
-                  ? "bg-[#1C2216] border-[#AA8B63]/70 text-[#FAF0E2]"
-                  : "bg-[#181A13] border-[#FAF0E2]/15 text-[#A4AA93] hover:text-[#FAF0E2]"
-              )}
-              title={isAutoPlaying ? "Pause 3D auto-orbit" : "Resume 3D auto-orbit"}
-            >
-              {isAutoPlaying ? (
-                <>
-                  <Pause className="h-3.5 w-3.5 text-[#AA8B63]" />
-                  <span className="text-[11px]">Orbit Active</span>
-                </>
-              ) : (
-                <>
-                  <Play className="h-3.5 w-3.5 text-emerald-400" />
-                  <span className="text-[11px]">Play Orbit</span>
-                </>
-              )}
-            </button>
-
-            {/* Navigation Buttons */}
-            <div className="flex items-center gap-1.5">
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-2xl bg-[#191D13] border border-[#FAF0E2]/10 self-start md:self-auto shadow-inner">
+            {["All", "Exterior", "Interior Suite", "Hydro-Spa", "Solar Tech"].map((cat) => (
               <button
+                key={cat}
                 type="button"
-                onClick={handlePrev}
-                className="h-10 w-10 rounded-full bg-[#1A1D14] border border-[#FAF0E2]/20 text-[#FAF0E2] hover:border-[#AA8B63] hover:text-[#AA8B63] hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow-md"
-                aria-label="Previous 3D Slide"
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setCurrentIndex(0);
+                  setDragOffset(0);
+                }}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer min-h-[36px]",
+                  selectedCategory === cat
+                    ? "bg-[#AA8B63] text-[#161811] font-bold shadow-md"
+                    : "text-[#A4AA93] hover:text-[#FAF0E2] hover:bg-[#25281D]"
+                )}
               >
-                <ChevronLeft className="h-5 w-5" />
+                {cat}
               </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                className="h-10 w-10 rounded-full bg-[#1A1D14] border border-[#FAF0E2]/20 text-[#FAF0E2] hover:border-[#AA8B63] hover:text-[#AA8B63] hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow-md"
-                aria-label="Next 3D Slide"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Active Counter Indicator */}
-            <div className="px-3.5 py-2 rounded-full bg-[#181B13] border border-[#FAF0E2]/15 text-[#AA8B63] font-mono font-bold text-xs">
-              <span>{String(activeIndex + 1).padStart(2, "0")}</span>
-              <span className="text-[#A4AA93]/50 mx-1">/</span>
-              <span className="text-[#A4AA93]">{String(totalCards).padStart(2, "0")}</span>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* ── 3D CYLINDER VIEWPORT STAGE ──────────────────────────────── */}
+        {/* ── TIGHT 3D COVERFLOW STAGE (ZERO DEAD SPACE) ──────────────── */}
         <div
-          ref={containerRef}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className={cn(
-            "relative w-full mx-auto flex items-center justify-center py-6 cursor-grab active:cursor-grabbing",
-            "touch-pan-y"
-          )}
+          className="relative w-full max-w-4xl mx-auto h-[260px] sm:h-[380px] md:h-[460px] flex items-center justify-center cursor-grab active:cursor-grabbing touch-pan-y"
           style={{
-            height: `${layout.current.cardHeight + 120}px`,
-            perspective: `${layout.current.perspective}px`,
+            perspective: "1100px",
+            perspectiveOrigin: "50% 50%",
           }}
         >
-          {/* 3D Carousel Cylinder Container */}
-          <div
-            className="relative w-full h-full flex items-center justify-center"
-            style={{
-              transformStyle: "preserve-3d",
-              willChange: "transform",
-            }}
-          >
-            {VAN_FLEET_PHOTOS.map((item, index) => {
-              // Calculate continuous circular theta
-              const cardBaseAngle = index * anglePerCard;
-              const currentAngle = cardBaseAngle + rotation;
-              const normalizedAngle = ((currentAngle % 360) + 360) % 360;
+          {/* Subtle Stage Floor Shadow */}
+          <div className="pointer-events-none absolute bottom-1 left-1/2 -translate-x-1/2 w-[70%] max-w-[500px] h-10 bg-black/70 blur-xl rounded-full" />
 
-              // Distance from front (0 degrees)
-              const diffFromFront = Math.abs(normalizedAngle > 180 ? 360 - normalizedAngle : normalizedAngle);
-              const cosVal = Math.cos((normalizedAngle * Math.PI) / 180);
+          {/* Render Active + Neighboring Cards with Tight Overlap (No Gaps) */}
+          {filteredPhotos.map((item, idx) => {
+            let diff = idx - currentIndex;
+            if (diff > total / 2) diff -= total;
+            if (diff < -total / 2) diff += total;
 
-              // Attenuation for realistic optical depth of field
-              const isFront = diffFromFront < 18;
-              const isVisibleInFrustum = diffFromFront < 105;
+            // Only show visible cards (-2, -1, 0, 1, 2)
+            const isVisible = Math.abs(diff) <= 2;
+            if (!isVisible) return null;
 
-              // Smooth scale from 1.05 down to 0.72
-              const scale = 0.72 + (cosVal + 1) * 0.165;
-              // Opacity attenuation
-              const opacity = Math.max(0.2, (cosVal + 1) / 2);
-              // Z-Index calculation
-              const zIndex = Math.round((cosVal + 1) * 50);
-              // Depth blur for background cards
-              const blurPx = Math.max(0, (1 - cosVal) * 2.2);
+            const isCenter = diff === 0;
+            const isLeft = diff < 0;
+            const isRight = diff > 0;
 
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    if (!isFront) {
-                      snapToCard(index);
-                    } else {
-                      setLightboxIndex(index);
-                    }
-                  }}
-                  className={cn(
-                    "absolute top-1/2 left-1/2 rounded-3xl overflow-hidden transition-shadow duration-300 group select-none",
-                    isFront
-                      ? "ring-2 ring-[#AA8B63] shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_35px_rgba(170,139,99,0.35)] cursor-pointer"
-                      : "border border-[#FAF0E2]/15 shadow-xl hover:border-[#AA8B63]/60 cursor-pointer"
-                  )}
-                  style={{
-                    width: `${layout.current.cardWidth}px`,
-                    height: `${layout.current.cardHeight}px`,
-                    marginLeft: `-${layout.current.cardWidth / 2}px`,
-                    marginTop: `-${layout.current.cardHeight / 2}px`,
-                    transform: `rotateY(${currentAngle}deg) translateZ(${layout.current.radius}px) scale(${scale})`,
-                    opacity: opacity,
-                    zIndex: zIndex,
-                    filter: blurPx > 0.4 ? `blur(${blurPx}px)` : "none",
-                    willChange: "transform, opacity, filter",
-                    transformStyle: "preserve-3d",
-                    backfaceVisibility: "hidden",
-                  }}
-                >
-                  {/* Image Surface with Subtle Reflective Grain */}
-                  <div className="relative w-full h-full bg-[#181B13]">
-                    <img
-                      src={item.src}
-                      alt={item.title}
-                      loading={index < 4 ? "eager" : "lazy"}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      draggable={false}
-                    />
+            // Tightly calculated percentage overlap:
+            // Center is at 0. Side cards sit tightly at -48% and +48% of card width!
+            const basePercentX = isCenter ? 0 : diff > 0 ? (diff === 1 ? 50 : 88) : (diff === -1 ? -50 : -88);
+            const dragPx = isCenter ? dragOffset : dragOffset * 0.4;
 
-                    {/* Gradient Depth Tint */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#12140D] via-[#12140D]/40 to-transparent" />
+            // 3D rotations and scale
+            const rotateY = isCenter ? (isDragging ? dragOffset * 0.04 : 0) : isLeft ? 18 : -18;
+            const translateZ = isCenter ? 30 : -90 * Math.abs(diff);
+            const scale = isCenter ? 1.0 : Math.max(0.82, 1 - Math.abs(diff) * 0.12);
+            const opacity = isCenter ? 1.0 : Math.max(0.45, 0.85 - Math.abs(diff) * 0.35);
+            const zIndex = 30 - Math.abs(diff) * 10;
 
-                    {/* Category Tag & Expand Icon (Top) */}
-                    <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
-                      <span className="px-2.5 py-1 rounded-full bg-[#12140D]/85 backdrop-blur-md border border-[#FAF0E2]/15 text-[10px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold">
-                        {item.category}
-                      </span>
+            return (
+              <div
+                key={item.id}
+                onClick={() => {
+                  if (isCenter) {
+                    setLightboxIndex(idx);
+                  } else {
+                    goTo(idx);
+                  }
+                }}
+                className={cn(
+                  "absolute top-1/2 left-1/2 rounded-3xl overflow-hidden shadow-2xl transition-all select-none group",
+                  isDragging ? "transition-none" : "duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                  isCenter
+                    ? "ring-2 ring-[#AA8B63] shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_35px_rgba(170,139,99,0.3)] cursor-pointer"
+                    : "border border-[#FAF0E2]/20 shadow-xl hover:border-[#AA8B63]/60 cursor-pointer"
+                )}
+                style={{
+                  width: "min(84vw, 560px)",
+                  aspectRatio: "4 / 3",
+                  marginLeft: "max(-42vw, -280px)",
+                  marginTop: "max(-31.5vw, -210px)",
+                  transform: `translateX(calc(${basePercentX}% + ${dragPx}px)) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
+                  opacity,
+                  zIndex,
+                  transformStyle: "preserve-3d",
+                  willChange: "transform, opacity",
+                }}
+              >
+                {/* 100% Crisp Photo Surface with Zero Muddy Overlays */}
+                <div className="relative w-full h-full bg-[#181B13]">
+                  <img
+                    src={item.src}
+                    alt={item.title}
+                    loading={Math.abs(diff) <= 1 ? "eager" : "lazy"}
+                    decoding="async"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
+                    draggable={false}
+                  />
 
+                  {/* Top Minimal Pill Badge */}
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+                    <span className="px-2.5 py-1 rounded-full bg-[#12140D]/90 backdrop-blur-md border border-[#FAF0E2]/20 text-[10px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold shadow-md">
+                      {idx + 1}/{total} · {item.category}
+                    </span>
+
+                    {isCenter && (
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setLightboxIndex(index);
+                          setLightboxIndex(idx);
                         }}
-                        className="h-8 w-8 rounded-full bg-[#12140D]/80 backdrop-blur-md border border-[#FAF0E2]/20 flex items-center justify-center text-[#FAF0E2] hover:text-[#AA8B63] hover:scale-110 transition-all shadow-md"
-                        title="Inspect in 5K Fullscreen"
+                        className="pointer-events-auto h-8 w-8 rounded-full bg-[#12140D]/90 backdrop-blur-md border border-[#FAF0E2]/25 flex items-center justify-center text-[#FAF0E2] hover:text-[#AA8B63] hover:scale-110 active:scale-95 transition-all shadow-md cursor-pointer"
+                        title="View in Fullscreen"
+                        aria-label="Inspect Fullscreen"
                       >
                         <Maximize2 className="h-3.5 w-3.5" />
                       </button>
-                    </div>
-
-                    {/* Bottom Content Card */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 space-y-2">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-mono text-emerald-400 font-bold block">
-                          SOUVA SPEC · {item.id.toUpperCase()}
-                        </span>
-                        <h3 className="font-display font-bold text-base sm:text-lg text-[#FAF0E2] leading-tight line-clamp-1">
-                          {item.title}
-                        </h3>
-                        <p className="text-[11px] text-[#A4AA93] line-clamp-1 leading-snug">
-                          {item.subtitle}
-                        </p>
-                      </div>
-
-                      {/* Primary Spec Bullet */}
-                      {item.specs.length > 0 && (
-                        <div className="pt-1.5 border-t border-[#FAF0E2]/10 flex items-center gap-1.5 text-[10.5px] font-mono text-[#FAF0E2]/90">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-[#AA8B63] shrink-0" />
-                          <span className="truncate">{item.specs[0]}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Active Golden Highlight Ring */}
-                    {isFront && (
-                      <div className="pointer-events-none absolute inset-0 border-2 border-[#AA8B63]/60 rounded-3xl" />
                     )}
                   </div>
+
+                  {/* Golden Inset Border on Active Center Photo */}
+                  {isCenter && (
+                    <div className="pointer-events-none absolute inset-0 border-2 border-[#AA8B63]/60 rounded-3xl" />
+                  )}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* ── INTERACTIVE SCRUBBER / DOT PAGINATION ────────────────────── */}
-        <div className="mt-8 flex flex-col items-center justify-center gap-4">
-          <div className="flex items-center gap-1.5 max-w-full overflow-x-auto py-2 px-3 rounded-full bg-[#181B13] border border-[#FAF0E2]/10 shadow-inner">
-            {VAN_FLEET_PHOTOS.map((item, idx) => {
-              const isActive = idx === activeIndex;
+        {/* ── CLEAN INFORMATION HUD STRIP (BELOW IMAGE, ZERO OVERLAY) ─── */}
+        <div className="mt-8 sm:mt-10 max-w-3xl mx-auto space-y-5">
+          {/* Navigation Controls: Previous / Play-Pause / Next */}
+          <div className="flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={handlePrev}
+              className="h-11 w-11 rounded-full bg-[#1A1D14] border border-[#FAF0E2]/25 text-[#FAF0E2] hover:border-[#AA8B63] hover:text-[#AA8B63] hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow-lg min-h-[44px] min-w-[44px]"
+              aria-label="Previous Photo"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+
+            {/* Play/Pause Button */}
+            <button
+              type="button"
+              onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+              className={cn(
+                "px-5 py-2.5 rounded-full border text-xs font-mono font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md min-h-[44px]",
+                isAutoPlaying
+                  ? "bg-[#1C2216] border-[#AA8B63]/80 text-[#FAF0E2]"
+                  : "bg-[#181A13] border-[#FAF0E2]/20 text-[#A4AA93] hover:text-[#FAF0E2]"
+              )}
+            >
+              {isAutoPlaying ? (
+                <>
+                  <Pause className="h-3.5 w-3.5 text-[#AA8B63]" />
+                  <span className="text-[11px]">Auto-Orbit Active</span>
+                </>
+              ) : (
+                <>
+                  <Play className="h-3.5 w-3.5 text-emerald-400" />
+                  <span className="text-[11px]">Play Tour</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNext}
+              className="h-11 w-11 rounded-full bg-[#1A1D14] border border-[#FAF0E2]/25 text-[#FAF0E2] hover:border-[#AA8B63] hover:text-[#AA8B63] hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow-lg min-h-[44px] min-w-[44px]"
+              aria-label="Next Photo"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Interactive Filmstrip Mini-Thumbnails (4:3 ratio) */}
+          <div className="w-full overflow-x-auto pb-2 flex items-center justify-center gap-2 px-2 scrollbar-none">
+            {filteredPhotos.map((photo, index) => {
+              const isActive = index === currentIndex;
               return (
                 <button
-                  key={item.id}
+                  key={photo.id}
                   type="button"
-                  onClick={() => snapToCard(idx)}
+                  onClick={() => goTo(index)}
                   className={cn(
-                    "transition-all duration-300 rounded-full cursor-pointer",
+                    "relative h-12 w-16 sm:h-14 sm:w-18 rounded-xl overflow-hidden border transition-all duration-300 shrink-0 cursor-pointer p-0 min-h-[44px] min-w-[44px]",
                     isActive
-                      ? "h-2 w-8 bg-[#AA8B63] shadow-[0_0_10px_rgba(170,139,99,0.8)]"
-                      : "h-2 w-2 bg-[#FAF0E2]/20 hover:bg-[#FAF0E2]/50"
+                      ? "border-[#AA8B63] ring-2 ring-[#AA8B63]/70 scale-105 opacity-100 shadow-lg"
+                      : "border-[#FAF0E2]/15 opacity-45 hover:opacity-85 hover:border-[#AA8B63]/60"
                   )}
-                  aria-label={`Jump to ${item.title}`}
-                  title={`${idx + 1}. ${item.title}`}
-                />
+                  title={`${index + 1}. ${photo.title}`}
+                  aria-label={`Jump to photo ${index + 1}: ${photo.title}`}
+                >
+                  <img
+                    src={photo.src}
+                    alt={photo.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  {isActive && (
+                    <div className="absolute inset-0 bg-[#AA8B63]/15" />
+                  )}
+                </button>
               );
             })}
           </div>
 
-          {/* Active Card Specs Summary Strip & CTA */}
-          <div className="w-full max-w-3xl p-4 sm:p-5 rounded-2xl bg-[#181B13] border border-[#FAF0E2]/10 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
-            <div className="flex items-center gap-3 text-center sm:text-left">
-              <div className="h-10 w-10 rounded-xl bg-[#AA8B63]/15 border border-[#AA8B63]/40 flex items-center justify-center shrink-0">
-                <Sparkles className="h-5 w-5 text-[#AA8B63]" />
+          {/* Active Photo Details HUD Card with 3 Detailed Specs */}
+          <div className="p-5 sm:p-6 rounded-3xl bg-[#181B13] border border-[#FAF0E2]/15 flex flex-col sm:flex-row items-center justify-between gap-5 shadow-2xl">
+            <div className="space-y-2 text-center sm:text-left flex-1 min-w-0">
+              <div className="flex items-center justify-center sm:justify-start gap-2.5">
+                <span className="text-[10px] font-mono text-[#AA8B63] font-bold uppercase tracking-wider">
+                  FEATURED VIEW · {activePhoto.category}
+                </span>
+                <span className="text-[10px] font-mono text-emerald-400">
+                  ● Autonomous Suite Active
+                </span>
               </div>
-              <div className="space-y-0.5">
-                <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
-                  {VAN_FLEET_PHOTOS[activeIndex].title}
-                </h4>
-                <p className="text-[11px] text-[#A4AA93]">
-                  {VAN_FLEET_PHOTOS[activeIndex].specs.join(" · ")}
-                </p>
+
+              <h3 className="font-display font-bold text-lg sm:text-xl text-[#FAF0E2] leading-tight">
+                {activePhoto.title}
+              </h3>
+              <p className="text-xs text-[#E2D7C5]/80">
+                {activePhoto.subtitle}
+              </p>
+
+              {/* 3 Key Specs List */}
+              <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1.5 text-xs text-[#FAF0E2]/90 font-mono">
+                {activePhoto.specs.map((spec) => (
+                  <div key={spec} className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-[#AA8B63] shrink-0" />
+                    <span className="text-[11px]">{spec}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -586,10 +558,10 @@ export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
               <button
                 type="button"
                 onClick={onBookClick}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-md shrink-0 flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full sm:w-auto px-6 py-3 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-md shrink-0 flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
               >
                 <Calendar className="h-3.5 w-3.5" />
-                <span>Book This Van to Doorstep</span>
+                <span>Book This Van</span>
               </button>
             )}
           </div>
@@ -600,7 +572,7 @@ export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
       {lightboxIndex !== null && (
         <div
           onClick={() => setLightboxIndex(null)}
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 bg-black/92 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -610,21 +582,21 @@ export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
             <div className="p-4 sm:p-5 border-b border-[#FAF0E2]/10 flex items-center justify-between bg-[#181B13]">
               <div className="flex items-center gap-3">
                 <span className="px-2.5 py-0.5 rounded-full bg-[#AA8B63]/20 border border-[#AA8B63]/50 text-[#AA8B63] text-[10px] font-mono font-bold uppercase">
-                  {VAN_FLEET_PHOTOS[lightboxIndex].category}
+                  {filteredPhotos[lightboxIndex].category}
                 </span>
                 <h3 className="font-display font-bold text-base sm:text-lg text-[#FAF0E2]">
-                  {VAN_FLEET_PHOTOS[lightboxIndex].title}
+                  {filteredPhotos[lightboxIndex].title}
                 </h3>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <span className="text-xs font-mono text-[#A4AA93]">
-                  {lightboxIndex + 1} / {totalCards}
+                  {lightboxIndex + 1} / {total}
                 </span>
                 <button
                   type="button"
                   onClick={() => setLightboxIndex(null)}
-                  className="h-8 w-8 rounded-full bg-[#202418] border border-[#FAF0E2]/15 flex items-center justify-center text-[#FAF0E2] hover:text-[#AA8B63] cursor-pointer"
+                  className="h-9 w-9 rounded-full bg-[#202418] border border-[#FAF0E2]/20 flex items-center justify-center text-[#FAF0E2] hover:text-[#AA8B63] cursor-pointer min-h-[36px] min-w-[36px]"
                   aria-label="Close Inspection"
                 >
                   <X className="h-4 w-4" />
@@ -633,26 +605,26 @@ export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
             </div>
 
             {/* Modal Body: Large Image */}
-            <div className="relative flex-1 bg-black flex items-center justify-center overflow-hidden min-h-[320px] max-h-[62vh]">
+            <div className="relative flex-1 bg-black flex items-center justify-center overflow-hidden min-h-[300px] max-h-[62vh]">
               <img
-                src={VAN_FLEET_PHOTOS[lightboxIndex].src}
-                alt={VAN_FLEET_PHOTOS[lightboxIndex].title}
+                src={filteredPhotos[lightboxIndex].src}
+                alt={filteredPhotos[lightboxIndex].title}
                 className="w-full h-full object-contain max-h-[62vh]"
               />
 
               {/* Prev / Next Modal Buttons */}
               <button
                 type="button"
-                onClick={() => setLightboxIndex((prev) => (prev !== null ? (prev - 1 + totalCards) % totalCards : 0))}
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-[#AA8B63] hover:text-black transition-all cursor-pointer shadow-lg"
+                onClick={() => setLightboxIndex((prev) => (prev !== null ? wrapIndex(prev - 1) : 0))}
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-[#AA8B63] hover:text-black transition-all cursor-pointer shadow-lg min-h-[44px] min-w-[44px]"
                 aria-label="Previous Photo"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 type="button"
-                onClick={() => setLightboxIndex((prev) => (prev !== null ? (prev + 1) % totalCards : 0))}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-[#AA8B63] hover:text-black transition-all cursor-pointer shadow-lg"
+                onClick={() => setLightboxIndex((prev) => (prev !== null ? wrapIndex(prev + 1) : 0))}
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-[#AA8B63] hover:text-black transition-all cursor-pointer shadow-lg min-h-[44px] min-w-[44px]"
                 aria-label="Next Photo"
               >
                 <ChevronRight className="h-5 w-5" />
@@ -660,13 +632,13 @@ export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
             </div>
 
             {/* Modal Footer: Engineering Specs List & Book Button */}
-            <div className="p-4 sm:p-6 bg-[#161911] border-t border-[#FAF0E2]/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="p-4 sm:p-5 bg-[#161911] border-t border-[#FAF0E2]/10 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="space-y-1 w-full sm:w-auto">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-[#AA8B63] font-bold block">
                   Engineering Specifications
                 </span>
                 <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#E2D7C5]/90">
-                  {VAN_FLEET_PHOTOS[lightboxIndex].specs.map((spec) => (
+                  {filteredPhotos[lightboxIndex].specs.map((spec) => (
                     <li key={spec} className="flex items-center gap-1.5">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                       <span>{spec}</span>
@@ -682,7 +654,7 @@ export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
                     setLightboxIndex(null);
                     onBookClick();
                   }}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-md shrink-0 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-md shrink-0 flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px]"
                 >
                   <Calendar className="h-3.5 w-3.5" />
                   <span>Reserve This Van</span>

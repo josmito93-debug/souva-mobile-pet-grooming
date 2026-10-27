@@ -294,9 +294,9 @@ function StepHeader({
           {eyebrow}
         </span>
       </div>
-      <h3 className="font-display text-lg sm:text-2xl font-bold tracking-tight text-[#FAF0E2] break-words">
+      <h2 className="font-display text-lg sm:text-2xl font-bold tracking-tight text-[#FAF0E2] break-words">
         {title}
-      </h3>
+      </h2>
       <p className="text-xs text-[#A4AA93] leading-relaxed max-w-xl break-words">
         {subtitle}
       </p>

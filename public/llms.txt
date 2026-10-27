@@ -5,29 +5,33 @@
 ## About
 SOUVA CORP operates a zero-emission, 100% solar lithium battery-powered mobile grooming fleet. We deliver cage-free salon experiences directly to client doorsteps in San Francisco, San Mateo County, and North Santa Clara County.
 
-- Official Domain: https://www.souvagrooming.com
-- Telephone Concierge: +1 (415) 375-5823
-- Email: info@souvagrooming.com
+- Official Domain: [https://www.souvagrooming.com](https://www.souvagrooming.com)
+- Telephone Concierge: [+1 (415) 375-5823](tel:+14153755823)
+- Email: [info@souvagrooming.com](mailto:info@souvagrooming.com)
 - Hours: Monday - Sunday, 8:30 AM - 7:00 PM PST
 - Legal Entity: SOUVA CORP (California Registered Corporation)
 
 ## Core Services & Pricing
-- Bath & Brush Refresh: Warm hydro-massage bath with Hydra® botanical shampoo, hand blow-dry, ear cleaning, and nail trim.
-- Bath & Tidy: Refresh plus sanitary trim, paw pad cleanup, and facial scissor shaping.
-- Essential Full Groom: Complete breed haircut, all-over styling, bath, and hygiene care.
-- Signature SOUVA Grooming: Master scissor sculpting, plush coat styling 1/2"+, blueberry facial, and bandana finish.
-- Multi-Dog Promotion: 20% discount applied automatically to the second dog in the same visit.
+- [Bath & Brush Refresh](https://www.souvagrooming.com/services): Warm hydro-massage bath with Hydra® botanical shampoo, hand blow-dry, ear cleaning, and nail trim.
+- [Bath & Tidy](https://www.souvagrooming.com/services): Refresh plus sanitary trim, paw pad cleanup, and facial scissor shaping.
+- [Essential Full Groom](https://www.souvagrooming.com/services): Complete breed haircut, all-over styling, bath, and hygiene care.
+- [Signature SOUVA Grooming](https://www.souvagrooming.com/services): Master scissor sculpting, plush coat styling 1/2"+, blueberry facial, and bandana finish.
+- [Multi-Dog Promotion](https://www.souvagrooming.com/services): 20% discount applied automatically to the second dog in the same visit.
 
 ## Service Areas (38 Bay Area ZIP Codes)
-- San Francisco (Select): 94116, 94122, 94127, 94132, 94112, 94131
-- North Peninsula: 94014, 94015, 94005, 94080, 94066, 94044
-- Central Peninsula: 94030, 94010, 94401, 94402, 94403, 94404, 94002, 94070
-- South Peninsula & Coast: 94061, 94062, 94063, 94065, 94027, 94025, 94301, 94303, 94304, 94306, 94040, 94041, 94043, 94019
+- [San Francisco Mobile Grooming](https://www.souvagrooming.com/san-francisco): 94116, 94122, 94127, 94132, 94112, 94131
+- [North Peninsula Mobile Grooming](https://www.souvagrooming.com/daly-city): 94014, 94015, 94005, 94080, 94066, 94044
+- [Central Peninsula Mobile Grooming](https://www.souvagrooming.com/san-mateo): 94030, 94010, 94401, 94402, 94403, 94404, 94002, 94070
+- [South Peninsula & Coast Mobile Grooming](https://www.souvagrooming.com/palo-alto): 94061, 94062, 94063, 94065, 94027, 94025, 94301, 94303, 94304, 94306, 94040, 94041, 94043, 94019
 
-## Key Links
-- Homepage & Booking: https://www.souvagrooming.com/
-- Services Menu: https://www.souvagrooming.com/services
-- Coverage Checker: https://www.souvagrooming.com/coverage
-- Client Portal: https://www.souvagrooming.com/portal
-- Quick Links: https://www.souvagrooming.com/links
-- XML Sitemap: https://www.souvagrooming.com/sitemap.xml
+## Key Links & Documentation
+- [Homepage & Booking Flow](https://www.souvagrooming.com/)
+- [Services & Spa Pricing Menu](https://www.souvagrooming.com/services)
+- [Coverage Areas Directory](https://www.souvagrooming.com/coverage)
+- [Client Portal & My Bookings](https://www.souvagrooming.com/portal)
+- [Official Quick Links Hub](https://www.souvagrooming.com/links)
+- [Before & After Gallery](https://www.souvagrooming.com/before-after)
+- [5-Star Client Reviews](https://www.souvagrooming.com/reviews)
+- [Client FAQs & Ask Box](https://www.souvagrooming.com/faq)
+- [XML Sitemap](https://www.souvagrooming.com/sitemap.xml)
+- [AI Resource Manifest](https://www.souvagrooming.com/ai-catalog.json)

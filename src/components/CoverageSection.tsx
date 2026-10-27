@@ -270,7 +270,7 @@ export function CoverageSection({ onBookClick, activeGeo, onSelectCity }: Covera
                   <h3 className="font-display font-bold text-sm text-[#FAF0E2]">
                     {zone.title}
                   </h3>
-                  <span className="text-[9px] font-mono font-bold text-[#AA8B63] bg-[#AA8B63]/15 px-2 py-0.5 rounded-full">
+                  <span className="text-[9px] font-mono font-bold text-[#FAF0E2] bg-[#2A241A] border border-[#AA8B63]/50 px-2.5 py-0.5 rounded-full shadow-sm">
                     {zone.badge}
                   </span>
                 </div>
