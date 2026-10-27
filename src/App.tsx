@@ -30,6 +30,7 @@ import { WhatsAppIcon, PhoneConciergeIcon } from "@/components/BrandIcons";
 import { GroomingFlow } from "@/components/GroomingFlow";
 import { StepCard } from "@/components/StepCard";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
+import { Van3dCarousel } from "@/components/Van3dCarousel";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { ClientPortal } from "@/components/ClientPortal";
 import { LocalSeoDirectory } from "@/components/LocalSeoDirectory";
@@ -46,6 +47,7 @@ import {
   SIZE_GUIDE,
   type PetSize,
 } from "@/data/services";
+import { applySeoMetadata, getSeoRouteMeta, OFFICIAL_DOMAIN, type SeoRouteMeta } from "@/lib/seoData";
 import { cn } from "@/lib/utils";
 
 export default function App() {
@@ -53,6 +55,14 @@ export default function App() {
 }
 
 function AppContent() {
+  const [activeGeoRoute, setActiveGeoRoute] = useState<SeoRouteMeta | null>(() => {
+    if (typeof window !== "undefined") {
+      const meta = getSeoRouteMeta(window.location.pathname);
+      return meta.isGeoRoute ? meta : null;
+    }
+    return null;
+  });
+
   const [currentView, setCurrentView] = useState<"site" | "admin" | "links" | "portal">(() => {
     if (typeof window !== "undefined") {
       const path = window.location.pathname;
@@ -132,10 +142,24 @@ function AppContent() {
 
     checkManageAppointmentParams();
 
+    // Initialize document SEO on mount
+    const initialMeta = applySeoMetadata(window.location.pathname);
+    if (initialMeta.isGeoRoute) {
+      setActiveGeoRoute(initialMeta);
+    }
+
     const onLocationChange = () => {
       checkManageAppointmentParams();
       const path = window.location.pathname;
       const search = window.location.search;
+
+      const meta = applySeoMetadata(path);
+      if (meta.isGeoRoute) {
+        setActiveGeoRoute(meta);
+      } else {
+        setActiveGeoRoute(null);
+      }
+
       if (path.startsWith("/admin") || search.includes("admin")) {
         setCurrentView("admin");
       } else if (path.startsWith("/links") || path.startsWith("/quick-links") || search.includes("links") || search.includes("quick-links")) {
@@ -144,35 +168,53 @@ function AppContent() {
         setCurrentView("portal");
       } else {
         setCurrentView("site");
+        if (meta.targetSection) {
+          setTimeout(() => {
+            const el = document.getElementById(meta.targetSection!);
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 250);
+        }
       }
     };
     window.addEventListener("popstate", onLocationChange);
     return () => window.removeEventListener("popstate", onLocationChange);
   }, []);
 
-  const navigateToAdmin = () => {
-    window.history.pushState({}, "", "/admin");
-    setCurrentView("admin");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const navigateToSlug = (slug: string) => {
+    window.history.pushState({}, "", slug);
+    const meta = applySeoMetadata(slug);
+    if (meta.isGeoRoute) {
+      setActiveGeoRoute(meta);
+    } else {
+      setActiveGeoRoute(null);
+    }
+
+    if (slug.startsWith("/admin")) {
+      setCurrentView("admin");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (slug.startsWith("/links") || slug.startsWith("/quick-links")) {
+      setCurrentView("links");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (slug.startsWith("/portal") || slug.startsWith("/account")) {
+      setCurrentView("portal");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      setCurrentView("site");
+      if (meta.targetSection) {
+        setTimeout(() => {
+          const el = document.getElementById(meta.targetSection!);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 150);
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
   };
 
-  const navigateToPortal = () => {
-    window.history.pushState({}, "", "/portal");
-    setCurrentView("portal");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const navigateToSite = () => {
-    window.history.pushState({}, "", "/");
-    setCurrentView("site");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const navigateToLinks = () => {
-    window.history.pushState({}, "", "/links");
-    setCurrentView("links");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const navigateToAdmin = () => navigateToSlug("/admin");
+  const navigateToPortal = () => navigateToSlug("/portal");
+  const navigateToSite = () => navigateToSlug("/");
+  const navigateToLinks = () => navigateToSlug("/links");
 
   useEffect(() => {
     if (flowStatus.dispatched && !prevDispatched.current) {
@@ -321,13 +363,7 @@ function AppContent() {
             }, 120);
           }}
           onNavigateToSection={(sectionId) => {
-            navigateToSite();
-            setTimeout(() => {
-              const el = document.getElementById(sectionId);
-              if (el) {
-                el.scrollIntoView({ behavior: "smooth", block: "start" });
-              }
-            }, 120);
+            navigateToSlug(`/${sectionId}`);
           }}
           onOpenAdmin={navigateToAdmin}
           onOpenClientPortal={navigateToPortal}
@@ -396,6 +432,7 @@ function AppContent() {
         onBookClick={scrollToBookingFlow}
         onOpenQuickLinks={() => setShowQuickLinksModal(true)}
         onOpenClientPortal={navigateToPortal}
+        onNavigateSlug={navigateToSlug}
       />
 
       {/* Main Content */}
@@ -904,7 +941,11 @@ function AppContent() {
         <AboutSection onBookClick={scrollToBookingFlow} />
 
         {/* COVERAGE AREAS SECTION */}
-        <CoverageSection onBookClick={scrollToBookingFlow} />
+        <CoverageSection
+          onBookClick={scrollToBookingFlow}
+          activeGeo={activeGeoRoute}
+          onSelectCity={navigateToSlug}
+        />
 
         {/* BEFORE & AFTER TRANSFORMATION SHOWCASE */}
         <section id="before-after" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 relative overflow-hidden">
@@ -924,93 +965,8 @@ function AppContent() {
           </div>
         </section>
 
-        {/* SALON GALLERY & SOLAR FLEET HIGHLIGHTS */}
-        <section id="gallery" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 bg-[#181B13]">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center max-w-2xl mx-auto mb-12">
-              <span className="text-[10px] font-bold font-mono tracking-widest text-[#AA8B63] uppercase block mb-2">
-                {"// OUR SOLAR-POWERED FLEET //"}
-              </span>
-              <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#FAF0E2]">
-                Cutting-Edge Technology & Gentle Care
-              </h2>
-              <p className="mt-3 text-[#A4AA93] text-sm leading-relaxed">
-                Every SOUVA mobile salon features independent climate control, an ergonomic
-                hydraulic lift table, silent warm airflow, and sanitized water filtration.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="rounded-3xl overflow-hidden border border-[#FAF0E2]/15 bg-[#202418] shadow-xl group">
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                    src="/assets/souva-salon-interior.png"
-                    alt="Interior of SOUVA Mobile Grooming Salon"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="p-5">
-                  <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
-                    Climate-Controlled & Sanitized Suite
-                  </h4>
-                  <p className="text-xs text-[#A4AA93] mt-1.5 leading-relaxed">
-                    Precision hydraulic grooming table and stainless steel tub ensuring comfort, stability, and zero stress for dogs of all ages.
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-3xl overflow-hidden border border-[#FAF0E2]/15 bg-[#202418] shadow-xl group">
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                    src="/assets/souva-products.png"
-                    alt="Artisan Botanical Pet Cosmetics"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
-                        Artisan Botanical Product Line
-                      </h4>
-                      <span className="text-[11px] font-mono font-bold text-[#AA8B63] block">
-                        Professional Botanical Pet Care
-                      </span>
-                    </div>
-                    <div className="p-2 rounded-xl bg-[#161811] border border-[#FAF0E2]/15 shrink-0 flex items-center justify-center">
-                      <img
-                        src="/assets/shampoo-logo-white.png"
-                        alt="Official Botanical Brand Logo"
-                        className="h-9 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
-                      />
-                    </div>
-                  </div>
-                  <p className="text-xs text-[#A4AA93] mt-2 leading-relaxed">
-                    Official salon-grade botanical shampoos: Colloidal Oatmeal Moisturizing, Chamomile Gentle, Aloe Deshedding, and Silky Conditioner without harsh sulfates or parabens.
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-3xl overflow-hidden border border-[#FAF0E2]/15 bg-[#202418] shadow-xl group">
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                    src="/assets/souva-van-profile.png"
-                    alt="SOUVA Solar Mobile Van"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="p-5">
-                  <h4 className="font-display font-bold text-lg text-[#FAF0E2]">
-                    100% Solar-Powered Autonomous Fleet
-                  </h4>
-                  <p className="text-xs text-[#A4AA93] mt-1.5 leading-relaxed">
-                    Self-sustaining clean battery systems, pure water tanks, and zero emissions while parked outside your Bay Area residence.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* SALON GALLERY & SOLAR FLEET 3D VIRTUAL INSPECTION */}
+        <Van3dCarousel onBookClick={scrollToBookingFlow} />
 
         {/* TESTIMONIALS */}
         <section id="reviews" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 bg-[#161811]">
@@ -1144,7 +1100,11 @@ function AppContent() {
         </section>
 
         {/* Local SEO & ZIP Code Geographic Crawlable Directory */}
-        <LocalSeoDirectory onBookClick={scrollToBookingFlow} />
+        <LocalSeoDirectory
+          onBookClick={scrollToBookingFlow}
+          activeSlug={activeGeoRoute?.slug || (typeof window !== "undefined" ? window.location.pathname : "/")}
+          onSelectCity={navigateToSlug}
+        />
       </main>
 
       {/* Floating WhatsApp Quick Concierge Button */}
@@ -1168,6 +1128,7 @@ function AppContent() {
         onBookClick={scrollToBookingFlow}
         onOpenQuickLinks={() => setShowQuickLinksModal(true)}
         onOpenClientPortal={navigateToPortal}
+        onNavigateSlug={navigateToSlug}
       />
 
       {/* Quick Links Interactive Modal */}
@@ -1181,8 +1142,7 @@ function AppContent() {
         }}
         onNavigateToSection={(sectionId) => {
           setShowQuickLinksModal(false);
-          const el = document.getElementById(sectionId);
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          navigateToSlug(`/${sectionId}`);
         }}
         onOpenAdmin={navigateToAdmin}
         onOpenClientPortal={navigateToPortal}

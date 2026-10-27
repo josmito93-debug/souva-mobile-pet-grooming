@@ -1,6 +1,7 @@
 # ==============================================================================
 # SOUVA Mobile Pet Grooming - robots.txt
-# https://www.souvagrooming.com
+# Official Domain: https://www.souvagrooming.com
+# Coverage: San Francisco & The Peninsula (38 Covered ZIP Codes)
 # ==============================================================================
 
 User-agent: *
@@ -8,33 +9,58 @@ Allow: /
 Allow: /assets/
 Allow: /portal
 Allow: /links
-Allow: /#services
-Allow: /#coverage
-Allow: /#about
-Allow: /#before-after
-Allow: /#reviews
-Allow: /#gallery
+Allow: /services
+Allow: /coverage
+Allow: /before-after
+Allow: /reviews
+Allow: /faq
+Allow: /about
+Allow: /gallery
 
-# Disallow private administrative tools
+# High-Ranking Local GEO Service Landing Slugs
+Allow: /san-francisco
+Allow: /san-mateo
+Allow: /burlingame
+Allow: /palo-alto
+Allow: /redwood-city
+Allow: /daly-city
+Allow: /south-san-francisco
+Allow: /san-bruno
+Allow: /pacifica
+Allow: /millbrae
+Allow: /foster-city
+Allow: /belmont
+Allow: /san-carlos
+Allow: /menlo-park
+Allow: /atherton
+Allow: /woodside
+Allow: /mountain-view
+Allow: /half-moon-bay
+
+# Disallow Private Administrative Console & API Handlers
 Disallow: /admin
 Disallow: /admin/
 Disallow: /api/
 
-# Search engine crawlers
+# Specialized Search Engine Directives
 User-agent: Googlebot
 Allow: /
+Allow: /assets/
 
 User-agent: Googlebot-Image
 Allow: /assets/
 
 User-agent: Bingbot
 Allow: /
+Allow: /assets/
 
 User-agent: Applebot
 Allow: /
+Allow: /assets/
 
 User-agent: DuckDuckBot
 Allow: /
+Allow: /assets/
 
-# Sitemap Index
+# Official XML Sitemap Index
 Sitemap: https://www.souvagrooming.com/sitemap.xml

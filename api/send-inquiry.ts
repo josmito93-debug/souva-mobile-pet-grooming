@@ -163,9 +163,9 @@ Reply directly to this email to respond to ${name} (${email}).
 
         <!-- Footer -->
         <div style="text-align: center; color: #A4AA93; font-size: 11px; border-top: 1px solid rgba(250, 240, 226, 0.1); padding-top: 18px; line-height: 1.6;">
-          <p style="margin: 0; font-weight: 700; color: #FAF0E2;">SOUVA Mobile Pet Grooming LLC</p>
+          <p style="margin: 0; font-weight: 700; color: #FAF0E2;">SOUVA CORP · Mobile Pet Grooming</p>
           <p style="margin: 2px 0;">San Francisco & Peninsula · 100% Solar-Powered Autonomous Fleet</p>
-          <p style="margin: 4px 0 0 0;">Concierge: +1 (415) 375-5823 · info@souvagrooming.com</p>
+          <p style="margin: 4px 0 0 0;">Concierge: +1 (415) 375-5823 · info@souvagrooming.com · <a href="https://www.souvagrooming.com" style="color: #AA8B63; text-decoration: none;">www.souvagrooming.com</a></p>
         </div>
       </div>
     `;

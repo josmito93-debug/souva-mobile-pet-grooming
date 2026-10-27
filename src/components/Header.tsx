@@ -26,19 +26,21 @@ interface HeaderProps {
   onBookClick: () => void;
   onOpenQuickLinks?: () => void;
   onOpenClientPortal?: () => void;
+  onNavigateSlug?: (slug: string) => void;
 }
 
-export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: HeaderProps) {
+export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal, onNavigateSlug }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleScrollToServices = (e?: React.MouseEvent) => {
+  const handleNavClick = (slug: string, sectionId: string, e?: React.MouseEvent) => {
     if (e) e.preventDefault();
     setMobileMenuOpen(false);
-    const servicesEl = document.getElementById("services");
-    if (servicesEl) {
-      servicesEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (onNavigateSlug) {
+      onNavigateSlug(slug);
     } else {
-      window.location.hash = "#services";
+      window.history.pushState({}, "", slug);
+      const el = document.getElementById(sectionId);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -66,12 +68,12 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: He
   const navItems = [
     { label: "Book Now", href: "#book", action: onBookClick, icon: Calendar, highlight: true },
     { label: "Client Portal (My Bookings)", href: "/portal", action: onOpenClientPortal, icon: User },
-    { label: "Services & Pricing", href: "#services", action: handleScrollToServices, icon: Scissors },
-    { label: "FAQs & Inquiries", href: "#faq", icon: HelpCircle },
-    { label: "About SOUVA", href: "#about", icon: Users },
-    { label: "Coverage Areas", href: "#coverage", icon: MapPin },
-    { label: "Gallery", href: "#gallery", icon: Camera },
-    { label: "Reviews", href: "#reviews", icon: Star },
+    { label: "Services & Pricing", href: "/services", action: (e?: React.MouseEvent) => handleNavClick("/services", "services", e), icon: Scissors },
+    { label: "Coverage Areas", href: "/coverage", action: (e?: React.MouseEvent) => handleNavClick("/coverage", "coverage", e), icon: MapPin },
+    { label: "FAQs & Inquiries", href: "/faq", action: (e?: React.MouseEvent) => handleNavClick("/faq", "faq", e), icon: HelpCircle },
+    { label: "About SOUVA", href: "/about", action: (e?: React.MouseEvent) => handleNavClick("/about", "about", e), icon: Users },
+    { label: "Gallery", href: "/gallery", action: (e?: React.MouseEvent) => handleNavClick("/gallery", "gallery", e), icon: Camera },
+    { label: "Reviews", href: "/reviews", action: (e?: React.MouseEvent) => handleNavClick("/reviews", "reviews", e), icon: Star },
     { label: "Call Us to Reserve · +1 (415) 375-5823", href: "tel:+14153755823", icon: PhoneConciergeIcon },
   ];
 
@@ -147,26 +149,46 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal }: He
             <span>Book Now</span>
           </button>
           <a
-            href="#services"
-            onClick={handleScrollToServices}
+            href="/services"
+            onClick={(e) => handleNavClick("/services", "services", e)}
             className="hover:text-[#AA8B63] transition-colors cursor-pointer"
           >
             Services & Pricing
           </a>
-          <a href="#faq" className="hover:text-[#AA8B63] transition-colors">
+          <a
+            href="/faq"
+            onClick={(e) => handleNavClick("/faq", "faq", e)}
+            className="hover:text-[#AA8B63] transition-colors cursor-pointer"
+          >
             FAQs
           </a>
-          <a href="#about" className="hover:text-[#AA8B63] transition-colors">
+          <a
+            href="/about"
+            onClick={(e) => handleNavClick("/about", "about", e)}
+            className="hover:text-[#AA8B63] transition-colors cursor-pointer"
+          >
             About SOUVA
           </a>
-          <a href="#coverage" className="hover:text-[#AA8B63] transition-colors flex items-center gap-1">
+          <a
+            href="/coverage"
+            onClick={(e) => handleNavClick("/coverage", "coverage", e)}
+            className="hover:text-[#AA8B63] transition-colors cursor-pointer flex items-center gap-1"
+          >
             <MapPin className="h-3 w-3 text-[#AA8B63]" />
             <span>Coverage Areas</span>
           </a>
-          <a href="#gallery" className="hover:text-[#AA8B63] transition-colors">
+          <a
+            href="/gallery"
+            onClick={(e) => handleNavClick("/gallery", "gallery", e)}
+            className="hover:text-[#AA8B63] transition-colors cursor-pointer"
+          >
             Gallery
           </a>
-          <a href="#reviews" className="hover:text-[#AA8B63] transition-colors">
+          <a
+            href="/reviews"
+            onClick={(e) => handleNavClick("/reviews", "reviews", e)}
+            className="hover:text-[#AA8B63] transition-colors cursor-pointer"
+          >
             Reviews
           </a>
         </nav>

@@ -78,7 +78,7 @@ export default async function handler(req: any, res: any) {
       `SOU-${Math.floor(1000 + Math.random() * 9000)}`
     ).trim();
 
-    const appUrl = (process.env.APP_URL || "https://www.souvagrooming.com").replace(/\/$/, "");
+    const appUrl = (process.env.APP_URL && !process.env.APP_URL.includes("localhost") ? process.env.APP_URL : "https://www.souvagrooming.com").replace(/\/$/, "");
     const portalUrl = `${appUrl}/portal?email=${encodeURIComponent(email)}`;
     const rescheduleUrl = `${appUrl}/?action=reschedule&bookingId=${encodeURIComponent(resolvedBookingId)}&pet=${encodeURIComponent(petName)}&date=${encodeURIComponent(scheduledDate)}&time=${encodeURIComponent(scheduledTime)}`;
     const cancelUrl = `${appUrl}/?action=cancel&bookingId=${encodeURIComponent(resolvedBookingId)}&pet=${encodeURIComponent(petName)}&date=${encodeURIComponent(scheduledDate)}&time=${encodeURIComponent(scheduledTime)}`;
@@ -595,9 +595,9 @@ Concierge / WhatsApp: +1 (415) 375-5823 · info@souvagrooming.com`;
 
         <!-- Footer -->
         <div style="text-align: center; color: #A4AA93; font-size: 11px; border-top: 1px solid rgba(250, 240, 226, 0.1); padding-top: 20px; line-height: 1.6;">
-          <p style="margin: 0; font-weight: 700; color: #FAF0E2;">SOUVA Mobile Pet Grooming LLC</p>
-          <p style="margin: 2px 0;">San Francisco Bay Area & Select East Bay Area CA</p>
-          <p style="margin: 4px 0 0 0;">Concierge / WhatsApp: <strong style="color: #FAF0E2;">+1 (415) 375-5823</strong> · info@souvagrooming.com</p>
+          <p style="margin: 0; font-weight: 700; color: #FAF0E2;">SOUVA CORP · Mobile Pet Grooming</p>
+          <p style="margin: 2px 0;">San Francisco & Peninsula · 100% Autonomous Solar Van Fleet</p>
+          <p style="margin: 4px 0 0 0;">Concierge / WhatsApp: <strong style="color: #FAF0E2;">+1 (415) 375-5823</strong> · info@souvagrooming.com · <a href="https://www.souvagrooming.com" style="color: #AA8B63; text-decoration: none;">www.souvagrooming.com</a></p>
         </div>
       </div>
     `;

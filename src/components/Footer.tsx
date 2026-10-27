@@ -30,12 +30,24 @@ interface FooterProps {
   onBookClick?: () => void;
   onOpenQuickLinks?: () => void;
   onOpenClientPortal?: () => void;
+  onNavigateSlug?: (slug: string) => void;
 }
 
-export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClientPortal }: FooterProps) {
+export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClientPortal, onNavigateSlug }: FooterProps) {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+
+  const handleLinkClick = (slug: string, sectionId: string, e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (onNavigateSlug) {
+      onNavigateSlug(slug);
+    } else {
+      window.history.pushState({}, "", slug);
+      const el = document.getElementById(sectionId);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,32 +188,56 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
                 </a>
               </li>
               <li>
-                <a href="#services" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/services"
+                  onClick={(e) => handleLinkClick("/services", "services", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Services & Pricing
                 </a>
               </li>
               <li>
-                <a href="#faq" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/faq"
+                  onClick={(e) => handleLinkClick("/faq", "faq", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Client FAQs & Ask Box
                 </a>
               </li>
               <li>
-                <a href="#coverage" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/coverage"
+                  onClick={(e) => handleLinkClick("/coverage", "coverage", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   38 Covered ZIP Codes
                 </a>
               </li>
               <li>
-                <a href="#before-after" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/before-after"
+                  onClick={(e) => handleLinkClick("/before-after", "before-after", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Before & After Results
                 </a>
               </li>
               <li>
-                <a href="#reviews" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/reviews"
+                  onClick={(e) => handleLinkClick("/reviews", "reviews", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   5-Star Client Reviews
                 </a>
               </li>
               <li>
-                <a href="#gallery" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/gallery"
+                  onClick={(e) => handleLinkClick("/gallery", "gallery", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Solar Fleet Specs
                 </a>
               </li>
@@ -224,37 +260,65 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
             </span>
             <ul className="space-y-2 text-xs">
               <li>
-                <a href="#services" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/services"
+                  onClick={(e) => handleLinkClick("/services", "services", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Bath & Brush Refresh
                 </a>
               </li>
               <li>
-                <a href="#services" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/services"
+                  onClick={(e) => handleLinkClick("/services", "services", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Bath & Tidy Hygiene Trim
                 </a>
               </li>
               <li>
-                <a href="#services" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/services"
+                  onClick={(e) => handleLinkClick("/services", "services", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Essential Full Haircut Groom
                 </a>
               </li>
               <li>
-                <a href="#services" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/services"
+                  onClick={(e) => handleLinkClick("/services", "services", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Signature Scissor Sculpt
                 </a>
               </li>
               <li>
-                <a href="#services" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/services"
+                  onClick={(e) => handleLinkClick("/services", "services", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Asian Fusion & Teddy Bear
                 </a>
               </li>
               <li>
-                <a href="#services" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/services"
+                  onClick={(e) => handleLinkClick("/services", "services", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Hydra® Colloidal Oat Spa
                 </a>
               </li>
               <li>
-                <a href="#services" className="text-[#AA8B63] hover:underline transition-colors block font-semibold">
+                <a
+                  href="/services"
+                  onClick={(e) => handleLinkClick("/services", "services", e)}
+                  className="text-[#AA8B63] hover:underline transition-colors block font-semibold"
+                >
                   🐾 20% Multi-Dog Offer
                 </a>
               </li>
@@ -268,42 +332,74 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
             </span>
             <ul className="space-y-2 text-xs">
               <li>
-                <a href="#coverage" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/san-francisco"
+                  onClick={(e) => handleLinkClick("/san-francisco", "coverage", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   San Francisco (Sunset)
                 </a>
               </li>
               <li>
-                <a href="#coverage" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/san-francisco"
+                  onClick={(e) => handleLinkClick("/san-francisco", "coverage", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   West Portal & Lake Merced
                 </a>
               </li>
               <li>
-                <a href="#coverage" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/daly-city"
+                  onClick={(e) => handleLinkClick("/daly-city", "coverage", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Daly City & Colma
                 </a>
               </li>
               <li>
-                <a href="#coverage" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/burlingame"
+                  onClick={(e) => handleLinkClick("/burlingame", "coverage", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Burlingame & Hillsborough
                 </a>
               </li>
               <li>
-                <a href="#coverage" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/san-mateo"
+                  onClick={(e) => handleLinkClick("/san-mateo", "coverage", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   San Mateo & Foster City
                 </a>
               </li>
               <li>
-                <a href="#coverage" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/redwood-city"
+                  onClick={(e) => handleLinkClick("/redwood-city", "coverage", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Redwood City & Woodside
                 </a>
               </li>
               <li>
-                <a href="#coverage" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/palo-alto"
+                  onClick={(e) => handleLinkClick("/palo-alto", "coverage", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Palo Alto & Menlo Park
                 </a>
               </li>
               <li>
-                <a href="#coverage" className="hover:text-[#FAF0E2] transition-colors block">
+                <a
+                  href="/half-moon-bay"
+                  onClick={(e) => handleLinkClick("/half-moon-bay", "coverage", e)}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
                   Half Moon Bay (Coast)
                 </a>
               </li>
@@ -412,6 +508,10 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
         <div className="mt-8 pt-6 border-t border-[#FAF0E2]/10 flex flex-col md:flex-row items-center justify-between gap-4 text-[10.5px] font-mono">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-[#A4AA93]">
             <span>© {new Date().getFullYear()} SOUVA CORP. All rights reserved.</span>
+            <span>•</span>
+            <a href="https://www.souvagrooming.com" className="text-[#FAF0E2] font-semibold hover:text-[#AA8B63] transition-colors">
+              www.souvagrooming.com
+            </a>
             <span>•</span>
             <span className="text-[#FAF0E2]/70">California Registered Corporation</span>
             <span>•</span>

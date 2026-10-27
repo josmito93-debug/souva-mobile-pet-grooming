@@ -1,7 +1,27 @@
-import { MapPin, ShieldCheck, Sparkles, Navigation, Phone, Calendar } from "lucide-react";
+import { MapPin, ShieldCheck, Sparkles, Navigation, Phone, Calendar, ArrowRight, ExternalLink } from "lucide-react";
 import { SOUVA_COVERAGE_ZONES, COVERED_ZIP_CODES } from "@/data/coverage";
+import { cn } from "@/lib/utils";
 
-export function LocalSeoDirectory({ onBookClick }: { onBookClick: () => void }) {
+interface LocalSeoDirectoryProps {
+  onBookClick: () => void;
+  onSelectCity?: (slug: string) => void;
+  activeSlug?: string;
+}
+
+export function LocalSeoDirectory({ onBookClick, onSelectCity, activeSlug }: LocalSeoDirectoryProps) {
+  const handleCityClick = (e: React.MouseEvent, slug: string) => {
+    e.preventDefault();
+    if (onSelectCity) {
+      onSelectCity(slug);
+    } else {
+      window.history.pushState({}, "", slug);
+      const coverageEl = document.getElementById("coverage");
+      if (coverageEl) {
+        coverageEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  };
+
   return (
     <section
       id="local-seo-directory"
@@ -33,15 +53,68 @@ export function LocalSeoDirectory({ onBookClick }: { onBookClick: () => void }) 
           </button>
         </div>
 
+        {/* Quick Local Hub Navigation Pills */}
+        <div className="p-4 rounded-2xl bg-[#171A12] border border-[#FAF0E2]/10 space-y-2.5">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#AA8B63] font-bold block">
+            📍 Select City Route For Doorstep Dispatch Details:
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { name: "San Francisco", slug: "/san-francisco" },
+              { name: "San Mateo", slug: "/san-mateo" },
+              { name: "Burlingame & Hillsborough", slug: "/burlingame" },
+              { name: "Palo Alto", slug: "/palo-alto" },
+              { name: "Redwood City", slug: "/redwood-city" },
+              { name: "Daly City", slug: "/daly-city" },
+              { name: "South San Francisco", slug: "/south-san-francisco" },
+              { name: "Pacifica", slug: "/pacifica" },
+              { name: "San Bruno", slug: "/san-bruno" },
+              { name: "Millbrae", slug: "/millbrae" },
+              { name: "Foster City", slug: "/foster-city" },
+              { name: "Belmont", slug: "/belmont" },
+              { name: "San Carlos", slug: "/san-carlos" },
+              { name: "Menlo Park", slug: "/menlo-park" },
+              { name: "Atherton", slug: "/atherton" },
+              { name: "Woodside", slug: "/woodside" },
+              { name: "Mountain View", slug: "/mountain-view" },
+              { name: "Half Moon Bay", slug: "/half-moon-bay" },
+            ].map((c) => (
+              <a
+                key={c.slug}
+                href={c.slug}
+                onClick={(e) => handleCityClick(e, c.slug)}
+                className={cn(
+                  "px-3 py-1.5 rounded-xl border text-xs font-mono transition-all flex items-center gap-1.5",
+                  activeSlug === c.slug
+                    ? "bg-[#AA8B63] text-[#161811] border-[#AA8B63] font-bold shadow-md scale-105"
+                    : "bg-[#1E2218] border-[#FAF0E2]/15 text-[#FAF0E2] hover:border-[#AA8B63] hover:text-[#AA8B63]"
+                )}
+              >
+                <span>{c.name}</span>
+                <ArrowRight className="h-2.5 w-2.5 opacity-60" />
+              </a>
+            ))}
+          </div>
+        </div>
+
         {/* 4 Regions Breakdown with Specific ZIP Codes */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Zone 1: San Francisco Select */}
           <div className="p-4 rounded-2xl bg-[#171A12] border border-[#FAF0E2]/10 space-y-2.5">
-            <div className="flex items-center gap-2 pb-1.5 border-b border-[#FAF0E2]/10">
-              <MapPin className="h-4 w-4 text-[#AA8B63] shrink-0" />
-              <h3 className="font-display font-bold text-sm text-[#FAF0E2]">
-                San Francisco (Select)
-              </h3>
+            <div className="flex items-center justify-between pb-1.5 border-b border-[#FAF0E2]/10">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-[#AA8B63] shrink-0" />
+                <h3 className="font-display font-bold text-sm text-[#FAF0E2]">
+                  San Francisco (Select)
+                </h3>
+              </div>
+              <a
+                href="/san-francisco"
+                onClick={(e) => handleCityClick(e, "/san-francisco")}
+                className="text-[10px] font-mono text-[#AA8B63] hover:underline"
+              >
+                Route View →
+              </a>
             </div>
             <p className="text-[11px] leading-relaxed text-[#A4AA93]">
               Premier mobile pet grooming in West SF. We park directly at your residence with zero street hookups.
@@ -57,11 +130,20 @@ export function LocalSeoDirectory({ onBookClick }: { onBookClick: () => void }) 
 
           {/* Zone 2: North Peninsula */}
           <div className="p-4 rounded-2xl bg-[#171A12] border border-[#FAF0E2]/10 space-y-2.5">
-            <div className="flex items-center gap-2 pb-1.5 border-b border-[#FAF0E2]/10">
-              <Navigation className="h-4 w-4 text-[#AA8B63] shrink-0" />
-              <h3 className="font-display font-bold text-sm text-[#FAF0E2]">
-                North Peninsula
-              </h3>
+            <div className="flex items-center justify-between pb-1.5 border-b border-[#FAF0E2]/10">
+              <div className="flex items-center gap-2">
+                <Navigation className="h-4 w-4 text-[#AA8B63] shrink-0" />
+                <h3 className="font-display font-bold text-sm text-[#FAF0E2]">
+                  North Peninsula
+                </h3>
+              </div>
+              <a
+                href="/daly-city"
+                onClick={(e) => handleCityClick(e, "/daly-city")}
+                className="text-[10px] font-mono text-[#AA8B63] hover:underline"
+              >
+                Route View →
+              </a>
             </div>
             <p className="text-[11px] leading-relaxed text-[#A4AA93]">
               Cage-free luxury bath and haircut appointments delivered across northern San Mateo county.
@@ -77,11 +159,20 @@ export function LocalSeoDirectory({ onBookClick }: { onBookClick: () => void }) 
 
           {/* Zone 3: Central Peninsula */}
           <div className="p-4 rounded-2xl bg-[#171A12] border border-[#FAF0E2]/10 space-y-2.5">
-            <div className="flex items-center gap-2 pb-1.5 border-b border-[#FAF0E2]/10">
-              <Sparkles className="h-4 w-4 text-[#AA8B63] shrink-0" />
-              <h3 className="font-display font-bold text-sm text-[#FAF0E2]">
-                Central Peninsula
-              </h3>
+            <div className="flex items-center justify-between pb-1.5 border-b border-[#FAF0E2]/10">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-[#AA8B63] shrink-0" />
+                <h3 className="font-display font-bold text-sm text-[#FAF0E2]">
+                  Central Peninsula
+                </h3>
+              </div>
+              <a
+                href="/san-mateo"
+                onClick={(e) => handleCityClick(e, "/san-mateo")}
+                className="text-[10px] font-mono text-[#AA8B63] hover:underline"
+              >
+                Route View →
+              </a>
             </div>
             <p className="text-[11px] leading-relaxed text-[#A4AA93]">
               Specialist Asian Fusion, breed standard scissoring, and luxury oat spa washes.
@@ -97,11 +188,20 @@ export function LocalSeoDirectory({ onBookClick }: { onBookClick: () => void }) 
 
           {/* Zone 4: South Peninsula & Coast */}
           <div className="p-4 rounded-2xl bg-[#171A12] border border-[#FAF0E2]/10 space-y-2.5">
-            <div className="flex items-center gap-2 pb-1.5 border-b border-[#FAF0E2]/10">
-              <ShieldCheck className="h-4 w-4 text-[#AA8B63] shrink-0" />
-              <h3 className="font-display font-bold text-sm text-[#FAF0E2]">
-                South Peninsula & Coast
-              </h3>
+            <div className="flex items-center justify-between pb-1.5 border-b border-[#FAF0E2]/10">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-[#AA8B63] shrink-0" />
+                <h3 className="font-display font-bold text-sm text-[#FAF0E2]">
+                  South Peninsula & Coast
+                </h3>
+              </div>
+              <a
+                href="/palo-alto"
+                onClick={(e) => handleCityClick(e, "/palo-alto")}
+                className="text-[10px] font-mono text-[#AA8B63] hover:underline"
+              >
+                Route View →
+              </a>
             </div>
             <p className="text-[11px] leading-relaxed text-[#A4AA93]">
               Private mobile salon service for estate homes, suburban driveways, and coastside communities.
@@ -144,7 +244,7 @@ export function LocalSeoDirectory({ onBookClick }: { onBookClick: () => void }) 
             <strong>Popular Searches:</strong> Mobile pet grooming near me, mobile dog grooming San Francisco, mobile dog groomer San Mateo, Burlingame mobile pet spa, cage free dog grooming Peninsula, luxury puppy grooming Palo Alto, cat and dog mobile bath Redwood City, mobile pet grooming 94122, dog wash 94010, mobile pet groomer Mountain View CA, solar mobile grooming van California.
           </p>
           <p>
-            Operated by SOUVA CORP. Official partner of Hydra® by Pet Society luxury botanical pet cosmetics. Certified master stylists offering gentle 1-on-1 care, warm water baths, hand blow-drying, sanitary styling, and custom Asian Fusion scissor haircuts.
+            Operated by SOUVA CORP. Official domain: <strong className="text-[#FAF0E2]">https://www.souvagrooming.com</strong>. Official partner of Hydra® by Pet Society luxury botanical pet cosmetics. Certified master stylists offering gentle 1-on-1 care, warm water baths, hand blow-drying, sanitary styling, and custom Asian Fusion scissor haircuts.
           </p>
         </div>
       </div>

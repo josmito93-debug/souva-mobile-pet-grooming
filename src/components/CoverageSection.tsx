@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MapPin,
   CheckCircle2,
@@ -11,13 +11,27 @@ import {
   Check,
 } from "lucide-react";
 import { checkCoverage, SOUVA_COVERAGE_ZONES, COVERED_ZIP_CODES } from "@/data/coverage";
+import { type SeoRouteMeta } from "@/lib/seoData";
 import { cn } from "@/lib/utils";
 
-export function CoverageSection({ onBookClick }: { onBookClick: () => void }) {
-  const [zipInput, setZipInput] = useState("");
-  const [hasChecked, setHasChecked] = useState(false);
+interface CoverageSectionProps {
+  onBookClick: () => void;
+  activeGeo?: SeoRouteMeta | null;
+  onSelectCity?: (slug: string) => void;
+}
+
+export function CoverageSection({ onBookClick, activeGeo, onSelectCity }: CoverageSectionProps) {
+  const [zipInput, setZipInput] = useState(activeGeo?.geoDefaultZip || "");
+  const [hasChecked, setHasChecked] = useState(Boolean(activeGeo?.geoDefaultZip));
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistJoined, setWaitlistJoined] = useState(false);
+
+  useEffect(() => {
+    if (activeGeo?.geoDefaultZip) {
+      setZipInput(activeGeo.geoDefaultZip);
+      setHasChecked(true);
+    }
+  }, [activeGeo]);
 
   const checkResult = zipInput.length >= 5 ? checkCoverage(zipInput) : null;
 
@@ -96,6 +110,45 @@ export function CoverageSection({ onBookClick }: { onBookClick: () => void }) {
             Our autonomous solar mobile spa travels directly to your doorstep across the following selected coverage zones.
           </p>
         </div>
+
+        {/* Active Local GEO Route Banner (When visiting e.g. /san-francisco, /san-mateo, etc.) */}
+        {activeGeo && activeGeo.isGeoRoute && (
+          <div className="max-w-2xl mx-auto mb-10 p-5 rounded-3xl bg-gradient-to-r from-[#1E2317] via-[#2A3120] to-[#1E2317] border-2 border-[#AA8B63]/70 shadow-[0_10px_35px_rgba(0,0,0,0.6)] animate-in fade-in slide-in-from-top-3 duration-300">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div className="h-11 w-11 rounded-2xl bg-[#AA8B63]/25 border border-[#AA8B63] flex items-center justify-center shrink-0 mt-0.5">
+                  <MapPin className="h-5 w-5 text-[#AA8B63]" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#AA8B63] font-bold">
+                      Active Route · {activeGeo.geoCity}
+                    </span>
+                  </div>
+                  <h3 className="font-display font-bold text-base sm:text-lg text-[#FAF0E2] leading-snug">
+                    Doorstep Solar Van Route Serving {activeGeo.geoCity}
+                  </h3>
+                  <p className="text-[11px] text-[#E2D7C5]/85 leading-relaxed">
+                    Key Areas: {activeGeo.geoNeighborhoods}
+                  </p>
+                  <p className="text-[10.5px] font-mono text-emerald-300">
+                    Covered Postcodes: {activeGeo.geoZips?.join(", ")}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={onBookClick}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-md shrink-0 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>Book in {activeGeo.geoCity}</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Live ZIP Code Checker Box */}
         <div className="max-w-xl mx-auto mb-14 p-5 sm:p-6 rounded-3xl bg-[#1D2116] border border-[#FAF0E2]/15 shadow-2xl">

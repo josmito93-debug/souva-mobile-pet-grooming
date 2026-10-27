@@ -90,25 +90,40 @@
       name="robots"
       content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
     />
-    <link rel="canonical" href="https://www.souvagrooming.com/" />
+    <link rel="canonical" id="souva-canonical" href="https://www.souvagrooming.com/" />
+    <link rel="alternate" hreflang="en-US" href="https://www.souvagrooming.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://www.souvagrooming.com/" />
 
-    <!-- ── GEO META TAGS (LOCAL SEARCH ENGINE INDEXING) ───────────── -->
+    <!-- ── GEO META TAGS & LOCAL SEARCH ENGINE INDEXING ───────────── -->
     <meta name="geo.region" content="US-CA" />
-    <meta name="geo.placename" content="San Francisco, Peninsula, California" />
+    <meta name="geo.placename" content="San Francisco, Daly City, San Mateo, Burlingame, Palo Alto, Redwood City, California" />
     <meta name="geo.position" content="37.7749;-122.4194" />
     <meta name="ICBM" content="37.7749, -122.4194" />
+
+    <!-- ── DUBLIN CORE METADATA ───────────────────────────────────── -->
+    <meta name="DC.title" content="SOUVA · Luxury Solar Mobile Pet Grooming | San Francisco & Peninsula" />
+    <meta name="DC.creator" content="SOUVA CORP" />
+    <meta name="DC.publisher" content="SOUVA CORP" />
+    <meta name="DC.subject" content="Mobile Dog Grooming, Luxury Pet Spa, Solar Grooming Van, Cage-Free Dog Grooming" />
+    <meta name="DC.description" content="Sanctuary-grade mobile dog grooming delivered directly to your doorstep in San Francisco and the Peninsula. 100% solar autonomous mobile salon vans." />
+    <meta name="DC.coverage" content="San Francisco, San Mateo County, Santa Clara County, California, USA" />
+    <meta name="DC.type" content="Service" />
+    <meta name="DC.format" content="text/html" />
+    <meta name="DC.language" content="en-US" />
 
     <!-- ── OPEN GRAPH (FACEBOOK, LINKEDIN, WHATSAPP, IMESSAGE) ───── -->
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:url" content="https://www.souvagrooming.com/" />
+    <meta property="og:url" id="souva-og-url" content="https://www.souvagrooming.com/" />
     <meta property="og:site_name" content="SOUVA Mobile Pet Grooming" />
     <meta
       property="og:title"
+      id="souva-og-title"
       content="SOUVA · Luxury Solar Mobile Pet Grooming | San Francisco & Peninsula"
     />
     <meta
       property="og:description"
+      id="souva-og-desc"
       content="Elevated 1-on-1 mobile dog grooming delivered directly to your doorstep in San Francisco and the Peninsula. Whisper-quiet solar mobile van, cage-free comfort, and Hydra® botanical spa treatments."
     />
     <meta
@@ -118,16 +133,26 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="SOUVA Mobile Pet Grooming Luxury Solar Fleet" />
+    <meta property="business:contact_data:locality" content="San Francisco" />
+    <meta property="business:contact_data:region" content="CA" />
+    <meta property="business:contact_data:country_name" content="United States" />
+    <meta property="business:contact_data:postal_code" content="94116" />
+    <meta property="business:contact_data:phone_number" content="+1-415-375-5823" />
+    <meta property="business:contact_data:website" content="https://www.souvagrooming.com/" />
+    <meta property="place:location:latitude" content="37.7749" />
+    <meta property="place:location:longitude" content="-122.4194" />
 
     <!-- ── TWITTER / X CARD ───────────────────────────────────────── -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://www.souvagrooming.com/" />
+    <meta name="twitter:url" id="souva-tw-url" content="https://www.souvagrooming.com/" />
     <meta
       name="twitter:title"
+      id="souva-tw-title"
       content="SOUVA · Luxury Solar Mobile Pet Grooming | San Francisco & Peninsula"
     />
     <meta
       name="twitter:description"
+      id="souva-tw-desc"
       content="Elevated 1-on-1 mobile dog grooming delivered directly to your doorstep in San Francisco and the Peninsula. Whisper-quiet solar mobile van, cage-free comfort, and Hydra® botanical spa treatments."
     />
     <meta
@@ -143,122 +168,237 @@
       rel="stylesheet"
     />
 
-    <!-- ── SCHEMA.ORG LOCAL BUSINESS & SERVICE STRUCTURED DATA ────── -->
+    <!-- ── SCHEMA.ORG LOCAL BUSINESS, SERVICE & GEO STRUCTURED DATA ── -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "LocalBusiness",
-        "additionalType": "https://schema.org/PetGroomingService",
-        "name": "SOUVA Mobile Pet Grooming",
-        "legalName": "SOUVA CORP",
-        "url": "https://www.souvagrooming.com/",
-        "logo": "https://www.souvagrooming.com/assets/souva-badge-circle-transparent.png",
-        "image": "https://www.souvagrooming.com/assets/souva-van-profile.png",
-        "telephone": "+1-415-375-5823",
-        "email": "info@souvagrooming.com",
-        "priceRange": "$$$",
-        "currenciesAccepted": "USD",
-        "paymentAccepted": "Cash, Credit Card, Debit Card, Check, Zelle",
-        "openingHoursSpecification": [
+        "@graph": [
           {
-            "@type": "OpeningHoursSpecification",
-            "dayOfWeek": [
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-              "Sunday"
+            "@type": ["LocalBusiness", "PetGroomingService"],
+            "@id": "https://www.souvagrooming.com/#business",
+            "name": "SOUVA Mobile Pet Grooming",
+            "legalName": "SOUVA CORP",
+            "url": "https://www.souvagrooming.com/",
+            "logo": "https://www.souvagrooming.com/assets/souva-badge-circle-transparent.png",
+            "image": [
+              "https://www.souvagrooming.com/assets/souva-van-profile.png",
+              "https://www.souvagrooming.com/assets/souva-salon-interior.png",
+              "https://www.souvagrooming.com/assets/souva-before-after.png",
+              "https://www.souvagrooming.com/assets/souva-badge-circle-transparent.png"
             ],
-            "opens": "08:30",
-            "closes": "19:00"
-          }
-        ],
-        "geo": {
-          "@type": "GeoCoordinates",
-          "latitude": 37.7749,
-          "longitude": -122.4194
-        },
-        "areaServed": [
-          { "@type": "PostalCode", "postalCode": "94116" },
-          { "@type": "PostalCode", "postalCode": "94122" },
-          { "@type": "PostalCode", "postalCode": "94127" },
-          { "@type": "PostalCode", "postalCode": "94132" },
-          { "@type": "PostalCode", "postalCode": "94112" },
-          { "@type": "PostalCode", "postalCode": "94131" },
-          { "@type": "PostalCode", "postalCode": "94014" },
-          { "@type": "PostalCode", "postalCode": "94015" },
-          { "@type": "PostalCode", "postalCode": "94005" },
-          { "@type": "PostalCode", "postalCode": "94080" },
-          { "@type": "PostalCode", "postalCode": "94066" },
-          { "@type": "PostalCode", "postalCode": "94044" },
-          { "@type": "PostalCode", "postalCode": "94030" },
-          { "@type": "PostalCode", "postalCode": "94010" },
-          { "@type": "PostalCode", "postalCode": "94401" },
-          { "@type": "PostalCode", "postalCode": "94402" },
-          { "@type": "PostalCode", "postalCode": "94403" },
-          { "@type": "PostalCode", "postalCode": "94404" },
-          { "@type": "PostalCode", "postalCode": "94002" },
-          { "@type": "PostalCode", "postalCode": "94070" },
-          { "@type": "PostalCode", "postalCode": "94061" },
-          { "@type": "PostalCode", "postalCode": "94062" },
-          { "@type": "PostalCode", "postalCode": "94063" },
-          { "@type": "PostalCode", "postalCode": "94065" },
-          { "@type": "PostalCode", "postalCode": "94027" },
-          { "@type": "PostalCode", "postalCode": "94025" },
-          { "@type": "PostalCode", "postalCode": "94303" },
-          { "@type": "PostalCode", "postalCode": "94301" },
-          { "@type": "PostalCode", "postalCode": "94304" },
-          { "@type": "PostalCode", "postalCode": "94306" },
-          { "@type": "PostalCode", "postalCode": "94040" },
-          { "@type": "PostalCode", "postalCode": "94041" },
-          { "@type": "PostalCode", "postalCode": "94043" },
-          { "@type": "PostalCode", "postalCode": "94019" }
-        ],
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "5.0",
-          "reviewCount": "158"
-        },
-        "hasOfferCatalog": {
-          "@type": "OfferCatalog",
-          "name": "Mobile Grooming Services",
-          "itemListElement": [
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Service",
-                "name": "Bath & Brush Refresh",
-                "description": "Warm water bath with Hydra botanical shampoo, hand blow-dry, ear cleaning, nail trim, and gentle brush out."
-              }
+            "telephone": "+1-415-375-5823",
+            "email": "info@souvagrooming.com",
+            "priceRange": "$$$",
+            "currenciesAccepted": "USD",
+            "paymentAccepted": "Cash, Credit Card, Debit Card, Check, Zelle, Apple Pay, Google Pay",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "San Francisco",
+              "addressRegion": "CA",
+              "postalCode": "94116",
+              "addressCountry": "US"
             },
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Service",
-                "name": "Bath & Tidy",
-                "description": "Full bath refresh plus sanitary trim, paw pad cleanup, and delicate facial scissor shaping."
-              }
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": 37.7749,
+              "longitude": -122.4194
             },
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Service",
-                "name": "Essential Full Groom",
-                "description": "Complete full haircut, shorter all-over breed trim, bath, and hygiene sanitization."
-              }
+            "serviceArea": {
+              "@type": "GeoCircle",
+              "geoMidpoint": {
+                "@type": "GeoCoordinates",
+                "latitude": 37.6000,
+                "longitude": -122.3800
+              },
+              "geoRadius": "50000"
             },
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Service",
-                "name": "Signature SOUVA Grooming",
-                "description": "Master scissor sculpting, longer plush coat styling ½\"+, blueberry facial, and festive bandana finish."
+            "openingHoursSpecification": [
+              {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": [
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday",
+                  "Sunday"
+                ],
+                "opens": "08:30",
+                "closes": "19:00"
               }
+            ],
+            "areaServed": [
+              { "@type": "City", "name": "San Francisco" },
+              { "@type": "City", "name": "Daly City" },
+              { "@type": "City", "name": "Colma" },
+              { "@type": "City", "name": "Brisbane" },
+              { "@type": "City", "name": "South San Francisco" },
+              { "@type": "City", "name": "San Bruno" },
+              { "@type": "City", "name": "Pacifica" },
+              { "@type": "City", "name": "Millbrae" },
+              { "@type": "City", "name": "Burlingame" },
+              { "@type": "City", "name": "Hillsborough" },
+              { "@type": "City", "name": "San Mateo" },
+              { "@type": "City", "name": "Foster City" },
+              { "@type": "City", "name": "Belmont" },
+              { "@type": "City", "name": "San Carlos" },
+              { "@type": "City", "name": "Redwood City" },
+              { "@type": "City", "name": "Woodside" },
+              { "@type": "City", "name": "Atherton" },
+              { "@type": "City", "name": "Menlo Park" },
+              { "@type": "City", "name": "East Palo Alto" },
+              { "@type": "City", "name": "Palo Alto" },
+              { "@type": "City", "name": "Mountain View" },
+              { "@type": "City", "name": "Half Moon Bay" },
+              { "@type": "PostalCode", "postalCode": "94116" },
+              { "@type": "PostalCode", "postalCode": "94122" },
+              { "@type": "PostalCode", "postalCode": "94127" },
+              { "@type": "PostalCode", "postalCode": "94132" },
+              { "@type": "PostalCode", "postalCode": "94112" },
+              { "@type": "PostalCode", "postalCode": "94131" },
+              { "@type": "PostalCode", "postalCode": "94014" },
+              { "@type": "PostalCode", "postalCode": "94015" },
+              { "@type": "PostalCode", "postalCode": "94005" },
+              { "@type": "PostalCode", "postalCode": "94080" },
+              { "@type": "PostalCode", "postalCode": "94066" },
+              { "@type": "PostalCode", "postalCode": "94044" },
+              { "@type": "PostalCode", "postalCode": "94030" },
+              { "@type": "PostalCode", "postalCode": "94010" },
+              { "@type": "PostalCode", "postalCode": "94401" },
+              { "@type": "PostalCode", "postalCode": "94402" },
+              { "@type": "PostalCode", "postalCode": "94403" },
+              { "@type": "PostalCode", "postalCode": "94404" },
+              { "@type": "PostalCode", "postalCode": "94002" },
+              { "@type": "PostalCode", "postalCode": "94070" },
+              { "@type": "PostalCode", "postalCode": "94061" },
+              { "@type": "PostalCode", "postalCode": "94062" },
+              { "@type": "PostalCode", "postalCode": "94063" },
+              { "@type": "PostalCode", "postalCode": "94065" },
+              { "@type": "PostalCode", "postalCode": "94027" },
+              { "@type": "PostalCode", "postalCode": "94025" },
+              { "@type": "PostalCode", "postalCode": "94303" },
+              { "@type": "PostalCode", "postalCode": "94301" },
+              { "@type": "PostalCode", "postalCode": "94304" },
+              { "@type": "PostalCode", "postalCode": "94306" },
+              { "@type": "PostalCode", "postalCode": "94040" },
+              { "@type": "PostalCode", "postalCode": "94041" },
+              { "@type": "PostalCode", "postalCode": "94043" },
+              { "@type": "PostalCode", "postalCode": "94019" }
+            ],
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "5.0",
+              "reviewCount": "158",
+              "bestRating": "5",
+              "worstRating": "1"
+            },
+            "review": [
+              {
+                "@type": "Review",
+                "author": { "@type": "Person", "name": "Elena R. & Teddy" },
+                "datePublished": "2026-09-15",
+                "reviewBody": "SOUVA's solar van is so whisper-quiet! Teddy usually panics with loud generators, but here he came out happy, smelling heavenly with Hydra products.",
+                "reviewRating": { "@type": "Rating", "ratingValue": "5" }
+              },
+              {
+                "@type": "Review",
+                "author": { "@type": "Person", "name": "Marcus C. & Winston" },
+                "datePublished": "2026-08-28",
+                "reviewBody": "The scissoring craftsmanship is world-class. Having them pull up right outside our home in Burlingame saves 3 hours of driving every month.",
+                "reviewRating": { "@type": "Rating", "ratingValue": "5" }
+              }
+            ],
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "SOUVA Mobile Dog Grooming Menu",
+              "itemListElement": [
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Bath & Brush Refresh",
+                    "description": "Warm water bath with Hydra botanical shampoo, hand blow-dry, ear cleaning, nail trim, and gentle brush out."
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Bath & Tidy",
+                    "description": "Full bath refresh plus sanitary trim, paw pad cleanup, and delicate facial scissor shaping."
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Essential Full Groom",
+                    "description": "Complete full haircut, shorter all-over breed trim, bath, and hygiene sanitization."
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Signature SOUVA Grooming",
+                    "description": "Master scissor sculpting, longer plush coat styling ½\"+, blueberry facial, and festive bandana finish."
+                  }
+                }
+              ]
             }
-          ]
-        }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.souvagrooming.com/#website",
+            "url": "https://www.souvagrooming.com/",
+            "name": "SOUVA Mobile Pet Grooming",
+            "publisher": {
+              "@id": "https://www.souvagrooming.com/#business"
+            },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://www.souvagrooming.com/?q={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "https://www.souvagrooming.com/#breadcrumbs",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://www.souvagrooming.com/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Services & Pricing",
+                "item": "https://www.souvagrooming.com/services"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Coverage Areas",
+                "item": "https://www.souvagrooming.com/coverage"
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "name": "Client Portal",
+                "item": "https://www.souvagrooming.com/portal"
+              },
+              {
+                "@type": "ListItem",
+                "position": 5,
+                "name": "Quick Links Hub",
+                "item": "https://www.souvagrooming.com/links"
+              }
+            ]
+          }
+        ]
       }
     </script>
 

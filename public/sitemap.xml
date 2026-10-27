@@ -5,10 +5,14 @@
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
-  <!-- Main Homepage -->
+  <!-- ========================================================================= -->
+  <!-- PRIMARY PILLARS & HUBS (OFFICIAL DOMAIN: https://www.souvagrooming.com) -->
+  <!-- ========================================================================= -->
+
+  <!-- Main Homepage & Doorstep Booking Hub -->
   <url>
     <loc>https://www.souvagrooming.com/</loc>
-    <lastmod>2026-10-21</lastmod>
+    <lastmod>2026-10-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -20,111 +24,241 @@
       <image:loc>https://www.souvagrooming.com/assets/souva-badge-circle-transparent.png</image:loc>
       <image:title>SOUVA Official Brand Logo</image:title>
     </image:image>
+    <image:image>
+      <image:loc>https://www.souvagrooming.com/assets/souva-salon-interior.png</image:loc>
+      <image:title>SOUVA Luxury Interior Salon Suite</image:title>
+      <image:caption>State of the art ergonomic hydraulic bath and groom table</image:caption>
+    </image:image>
   </url>
 
   <!-- Client Self-Service Portal & Account Dashboard -->
   <url>
     <loc>https://www.souvagrooming.com/portal</loc>
-    <lastmod>2026-10-21</lastmod>
+    <lastmod>2026-10-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
-  </url>
-
-  <!-- Service Coverage Areas & ZIP Codes -->
-  <url>
-    <loc>https://www.souvagrooming.com/#coverage</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <!-- Services & Pricing Menu -->
-  <url>
-    <loc>https://www.souvagrooming.com/#services</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <!-- Before and After Grooming Transformations -->
-  <url>
-    <loc>https://www.souvagrooming.com/#before-after</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-    <image:image>
-      <image:loc>https://www.souvagrooming.com/assets/before-after/poodle-after.jpg</image:loc>
-      <image:title>Toy Poodle Asian Fusion Scissor Cut Before and After</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://www.souvagrooming.com/assets/before-after/goldendoodle-after.jpg</image:loc>
-      <image:title>Goldendoodle Signature Spa Bath and Sculpt Before and After</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://www.souvagrooming.com/assets/before-after/bernedoodle-after.jpg</image:loc>
-      <image:title>Mini Bernedoodle Master Scissor Trim Before and After</image:title>
-    </image:image>
-  </url>
-
-  <!-- Verified Pet Parent Reviews -->
-  <url>
-    <loc>https://www.souvagrooming.com/#reviews</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://www.souvagrooming.com/assets/reviews/review-1.jpg</image:loc>
-      <image:title>Verified Customer Review Dog Teddy Apricot Doodle</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://www.souvagrooming.com/assets/reviews/review-2.jpg</image:loc>
-      <image:title>Verified Customer Review Dog Marcel French Bulldog</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://www.souvagrooming.com/assets/reviews/review-3.jpg</image:loc>
-      <image:title>Verified Customer Review Dog Bella Apricot Mini Doodle</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://www.souvagrooming.com/assets/reviews/review-4.jpg</image:loc>
-      <image:title>Verified Customer Review Dog Winston Bernedoodle</image:title>
-    </image:image>
-  </url>
-
-  <!-- Client FAQs & Concierge Inquiry Desk -->
-  <url>
-    <loc>https://www.souvagrooming.com/#faq</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-
-  <!-- About SOUVA Philosophy & Solar Fleet -->
-  <url>
-    <loc>https://www.souvagrooming.com/#about</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Solar Salon Fleet Gallery -->
-  <url>
-    <loc>https://www.souvagrooming.com/#gallery</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
   </url>
 
   <!-- Official Quick Links Hub & Fast Navigation -->
   <url>
     <loc>https://www.souvagrooming.com/links</loc>
-    <lastmod>2026-10-21</lastmod>
+    <lastmod>2026-10-27</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.90</priority>
     <image:image>
       <image:loc>https://www.souvagrooming.com/assets/souva-badge-circle-transparent.png</image:loc>
       <image:title>SOUVA Mobile Pet Grooming Official Quick Links Hub</image:title>
       <image:caption>Fast access to doorstep booking, phone concierge, WhatsApp, and 38 covered ZIP codes</image:caption>
     </image:image>
+  </url>
+
+  <!-- Services & Spa Pricing Menu -->
+  <url>
+    <loc>https://www.souvagrooming.com/services</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+
+  <!-- Service Coverage Areas, Radius & 38 ZIP Codes Directory -->
+  <url>
+    <loc>https://www.souvagrooming.com/coverage</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+
+  <!-- Before and After Grooming Transformations & Styling Portfolio -->
+  <url>
+    <loc>https://www.souvagrooming.com/before-after</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://www.souvagrooming.com/assets/souva-before-after.png</image:loc>
+      <image:title>SOUVA Master Scissor Transformations Before and After</image:title>
+      <image:caption>Asian Fusion, teddy bear heads, and breed standard styling</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Verified Pet Parent 5-Star Reviews -->
+  <url>
+    <loc>https://www.souvagrooming.com/reviews</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Client FAQs & Concierge Inquiry Desk -->
+  <url>
+    <loc>https://www.souvagrooming.com/faq</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- About SOUVA Philosophy & Autonomous Solar Fleet -->
+  <url>
+    <loc>https://www.souvagrooming.com/about</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- Solar Salon Fleet Gallery & Van Engineering -->
+  <url>
+    <loc>https://www.souvagrooming.com/gallery</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- ========================================================================= -->
+  <!-- HIGH-RANKING LOCAL GEO SLUGS (BAY AREA CITIES & SUB-REGIONS)             -->
+  <!-- ========================================================================= -->
+
+  <!-- San Francisco (Select West & Central Neighborhoods) -->
+  <url>
+    <loc>https://www.souvagrooming.com/san-francisco</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+
+  <!-- San Mateo -->
+  <url>
+    <loc>https://www.souvagrooming.com/san-mateo</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+
+  <!-- Burlingame & Hillsborough -->
+  <url>
+    <loc>https://www.souvagrooming.com/burlingame</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+
+  <!-- Palo Alto & Stanford Area -->
+  <url>
+    <loc>https://www.souvagrooming.com/palo-alto</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+
+  <!-- Redwood City & Woodside -->
+  <url>
+    <loc>https://www.souvagrooming.com/redwood-city</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+
+  <!-- Daly City & Colma -->
+  <url>
+    <loc>https://www.souvagrooming.com/daly-city</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+
+  <!-- South San Francisco -->
+  <url>
+    <loc>https://www.souvagrooming.com/south-san-francisco</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- San Bruno -->
+  <url>
+    <loc>https://www.souvagrooming.com/san-bruno</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Pacifica Coastal Route -->
+  <url>
+    <loc>https://www.souvagrooming.com/pacifica</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+
+  <!-- Millbrae -->
+  <url>
+    <loc>https://www.souvagrooming.com/millbrae</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Foster City -->
+  <url>
+    <loc>https://www.souvagrooming.com/foster-city</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Belmont -->
+  <url>
+    <loc>https://www.souvagrooming.com/belmont</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- San Carlos -->
+  <url>
+    <loc>https://www.souvagrooming.com/san-carlos</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Menlo Park -->
+  <url>
+    <loc>https://www.souvagrooming.com/menlo-park</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+
+  <!-- Atherton -->
+  <url>
+    <loc>https://www.souvagrooming.com/atherton</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+
+  <!-- Woodside -->
+  <url>
+    <loc>https://www.souvagrooming.com/woodside</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Mountain View -->
+  <url>
+    <loc>https://www.souvagrooming.com/mountain-view</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+
+  <!-- Half Moon Bay (Coastside) -->
+  <url>
+    <loc>https://www.souvagrooming.com/half-moon-bay</loc>
+    <lastmod>2026-10-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
   </url>
 
 </urlset>

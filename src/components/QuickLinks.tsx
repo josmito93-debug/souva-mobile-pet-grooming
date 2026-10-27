@@ -150,12 +150,9 @@ function QuickLinksContent({
     });
   };
 
-  // Copy or Share Quick Links URL
+  // Copy or Share Quick Links URL (Enforce professional domain)
   const handleCopyShare = async () => {
-    const url =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/links`
-        : "https://www.souvagrooming.com/links";
+    const url = "https://www.souvagrooming.com/links";
 
     if (navigator.share) {
       try {
