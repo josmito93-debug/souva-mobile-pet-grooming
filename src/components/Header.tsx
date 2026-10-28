@@ -205,12 +205,12 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal, onNa
             <span className="tracking-wide">+1 (415) 375-5823</span>
           </a>
 
-          {/* Client Portal Button */}
+          {/* Client Portal Button (Desktop only; tucked into mobile hamburger menu drawer on mobile/tablet) */}
           {onOpenClientPortal && (
             <button
               type="button"
               onClick={onOpenClientPortal}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#AA8B63]/40 bg-[#1C2016] px-3.5 py-1.5 text-xs font-mono font-medium text-[#FAF0E2] hover:border-[#AA8B63] hover:text-[#AA8B63] transition-all cursor-pointer shadow-sm"
+              className="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-[#AA8B63]/40 bg-[#1C2016] px-3.5 py-1.5 text-xs font-mono font-medium text-[#FAF0E2] hover:border-[#AA8B63] hover:text-[#AA8B63] transition-all cursor-pointer shadow-sm"
               title="Access Client Portal to view or modify bookings"
             >
               <User className="h-3.5 w-3.5 text-[#AA8B63]" />
