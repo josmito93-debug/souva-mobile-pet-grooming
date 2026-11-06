@@ -49,6 +49,7 @@
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
@@ -75,6 +76,17 @@
 
   button, input, select, textarea {
     font-family: var(--font-sans);
+  }
+
+  /* Prevent iOS Safari / Instagram In-App Browser auto-zoom when focusing form fields */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  @media screen and (max-width: 768px), (pointer: coarse) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
   }
 }
 
@@ -864,7 +876,8 @@
 
 /* ─────── Step Transitions (Cockpit) ─────── */
 .flow-view {
-  animation: step-in-fwd 0.45s var(--e-swift) both;
+  animation: step-in-fwd 0.32s var(--e-swift) both;
+  will-change: opacity, transform;
 }
 
 .flow-view[data-dir="back"] {
@@ -872,13 +885,13 @@
 }
 
 @keyframes step-in-fwd {
-  from { opacity: 0; transform: translateX(26px); }
-  to { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes step-in-back {
-  from { opacity: 0; transform: translateX(-26px); }
-  to { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Trust dot */

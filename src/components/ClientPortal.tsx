@@ -624,10 +624,12 @@ export function ClientPortal({
                     <input
                       type="text"
                       required
+                      autoComplete="name"
+                      enterKeyHint="next"
                       value={inputName}
                       onChange={(e) => setInputName(e.target.value)}
                       placeholder="e.g. Jessica Miller"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#14160F] border border-[#FAF0E2]/20 text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#14160F] border border-[#FAF0E2]/20 text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
                     />
                   </div>
                 )}
@@ -638,10 +640,15 @@ export function ClientPortal({
                   </label>
                   <input
                     type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    enterKeyHint="next"
                     value={inputEmail}
                     onChange={(e) => setInputEmail(e.target.value)}
                     placeholder="e.g. jessica@example.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#14160F] border border-[#FAF0E2]/20 text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#14160F] border border-[#FAF0E2]/20 text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
                   />
                 </div>
 
@@ -651,10 +658,13 @@ export function ClientPortal({
                   </label>
                   <input
                     type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    enterKeyHint="done"
                     value={inputPhone}
                     onChange={(e) => setInputPhone(e.target.value)}
                     placeholder="e.g. (415) 375-5823"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#14160F] border border-[#FAF0E2]/20 text-xs font-mono text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#14160F] border border-[#FAF0E2]/20 text-base sm:text-xs font-mono text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
                   />
                 </div>
 

@@ -124,6 +124,35 @@ function AppContent() {
   const [burst, setBurst] = useState(0);
   const prevDispatched = useRef(false);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Guarantee HTML5 video autoplay across iOS Safari and mobile WebViews
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = true;
+      video.defaultMuted = true;
+      video.playsInline = true;
+      video.setAttribute("muted", "");
+      video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
+
+      const tryPlay = () => {
+        video.play().catch(() => {});
+      };
+
+      tryPlay();
+
+      // Fallback for strict mobile low-power or autoplay policies
+      const onFirstTouch = () => {
+        tryPlay();
+        window.removeEventListener("touchstart", onFirstTouch);
+        window.removeEventListener("click", onFirstTouch);
+      };
+      window.addEventListener("touchstart", onFirstTouch, { once: true, passive: true });
+      window.addEventListener("click", onFirstTouch, { once: true, passive: true });
+    }
+  }, []);
 
   const skipIntro = () => {
     if (tlRef.current) {
@@ -395,17 +424,18 @@ function AppContent() {
     <div className="min-h-screen bg-[#161811] text-[#FAF0E2] flex flex-col justify-between selection:bg-[#AA8B63]/40 selection:text-[#FAF0E2] relative">
       {/* Background Cinematic Presentation Video (Full view during intro, ambient afterwards) */}
       <video
+        ref={videoRef}
         className={cn(
           "hero-bg-video fixed inset-0 w-full h-full object-cover z-0 pointer-events-none transition-opacity duration-700",
           loading ? "opacity-100" : "opacity-20"
         )}
-        src="/bg-video.mp4"
         autoPlay
         muted
         playsInline
         loop
         preload="auto"
       >
+        <source src="/bg-video.mp4" type="video/mp4" />
         <track kind="captions" src="" label="English" default />
       </video>
 
@@ -464,7 +494,7 @@ function AppContent() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col relative z-10">
         {/* HERO SECTION WITH THE COCKPIT MODAL */}
-        <section id="book" className="relative isolate px-3 sm:px-4 py-6 md:py-12 md:px-8 flex-1 flex flex-col justify-center w-full overflow-hidden">
+        <section id="book" className="relative isolate px-3 sm:px-4 py-6 md:py-12 md:px-8 flex-1 flex flex-col lg:justify-center w-full overflow-x-clip">
           <div className="hero-spa-ambient" aria-hidden="true" />
           <div className="hero-gold-glow" aria-hidden="true" />
 
@@ -587,19 +617,19 @@ function AppContent() {
                   />
 
                   {/* Booking Card Header */}
-                  <div className="flex items-center justify-between px-3.5 py-2 mb-2.5 rounded-2xl bg-[#1C2016]/90 border border-[#AA8B63]/30 backdrop-blur-md shadow-sm">
-                    <span className="text-[11px] font-mono text-[#FAF0E2] flex items-center gap-1.5 font-semibold">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>Doorstep Mobile Spa Reservation</span>
+                  <div className="flex flex-wrap items-center justify-between gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 mb-2.5 rounded-2xl bg-[#1C2016]/90 border border-[#AA8B63]/30 backdrop-blur-md shadow-sm">
+                    <span className="text-[10px] sm:text-[11px] font-mono text-[#FAF0E2] flex items-center gap-1.5 font-semibold truncate">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                      <span className="truncate">Doorstep Mobile Spa Reservation</span>
                     </span>
                     <button
                       type="button"
                       onClick={navigateToPortal}
-                      className="text-[11px] font-mono text-amber-300 hover:text-white font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                      className="text-[10px] sm:text-[11px] font-mono text-amber-300 hover:text-white font-bold flex items-center gap-1 cursor-pointer transition-colors shrink-0 ml-auto"
                       title="View or modify an existing appointment"
                     >
-                      <User className="h-3 w-3" />
-                      <span>Manage existing booking →</span>
+                      <User className="h-3 w-3 shrink-0" />
+                      <span>Manage booking →</span>
                     </button>
                   </div>
 
@@ -669,7 +699,7 @@ function AppContent() {
               </p>
             </div>
 
-            {/* OCTOBER PROMO SPECIAL BANNER */}
+            {/* SPECIAL PROMO BANNER */}
             <div className="mb-8 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-[#2B2314] via-[#212718] to-[#161B11] border-2 border-[#AA8B63] shadow-[0_0_30px_rgba(170,139,99,0.35)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-start sm:items-center gap-3.5">
                 <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#AA8B63] to-[#806440] text-[#161811] flex items-center justify-center text-2xl shrink-0 shadow-md">
@@ -678,7 +708,7 @@ function AppContent() {
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-stone-950 font-mono text-[9.5px] font-black uppercase tracking-wider shadow-sm">
-                      SPECIAL OCTOBER PROMO
+                      SPECIAL INTRO PROMO
                     </span>
                     <span className="px-2 py-0.5 rounded-full bg-[#AA8B63]/25 border border-[#AA8B63]/60 text-[#FAF0E2] font-mono text-[9px] font-bold uppercase">
                       FIRST 50 BOOKINGS ONLY

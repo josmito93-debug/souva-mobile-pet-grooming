@@ -462,10 +462,16 @@ export function GroomingFlow({
   // 3. AUTO-SCROLL TO COCKPIT TOP ON STEP CHANGE (NOT on initial page load!)
   const scrollToTop = useCallback(() => {
     if (flowTopRef.current) {
-      const stickyHeaderOffset = 80;
+      const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+      const stickyHeaderOffset = isMobile ? 64 : 80;
       const rect = flowTopRef.current.getBoundingClientRect();
-      const targetY = rect.top + window.scrollY - stickyHeaderOffset;
-      window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
+      const targetY = Math.max(0, rect.top + window.scrollY - stickyHeaderOffset);
+      const isLargeJump = Math.abs(window.scrollY - targetY) > 280;
+
+      window.scrollTo({
+        top: targetY,
+        behavior: isMobile && isLargeJump ? "auto" : "smooth",
+      });
     }
   }, []);
 
@@ -474,10 +480,10 @@ export function GroomingFlow({
       isFirstMount.current = false;
       return; // Do NOT auto-scroll on initial mount! Page stays at top (top: 0)!
     }
-    // Give browser a frame to paint the new step view before computing scroll
+    // Give browser two frames to paint the new step view before computing scroll
     const timer = setTimeout(() => {
       scrollToTop();
-    }, 40);
+    }, 60);
     return () => clearTimeout(timer);
   }, [step, completed, scrollToTop]);
 
@@ -1304,7 +1310,7 @@ function StepServicePackage({
         subtitle="Upfront pricing calibrated for your dog's size. Select any luxury spa upgrades."
       />
 
-      {/* October Promo Banner matching the flyer */}
+      {/* Intro Promo Banner matching the flyer */}
       <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-r from-[#292215] via-[#202517] to-[#181C12] border-2 border-[#AA8B63] shadow-[0_0_20px_rgba(170,139,99,0.35)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div className="flex items-start sm:items-center gap-2.5 min-w-0">
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#AA8B63] to-[#826643] text-[#161811] flex items-center justify-center font-black text-sm shrink-0 shadow-sm mt-0.5 sm:mt-0">
@@ -1353,11 +1359,11 @@ function StepServicePackage({
                 <div>
                   {item.isPromo && (
                     <div className="mb-1">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[8px] sm:text-[8.5px] font-mono font-black uppercase tracking-wider shadow-sm">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[8px] sm:text-[8.5px] font-mono font-black uppercase tracking-wider shadow-sm truncate max-w-full">
                         ⚡ 1ST 50 BOOKINGS · $99
                       </span>
                       <span className={cn(
-                        "block text-[8px] sm:text-[8.5px] font-mono font-bold mt-0.5",
+                        "block text-[8px] sm:text-[8.5px] font-mono font-bold mt-0.5 truncate",
                         isSelected ? "text-[#161811]" : "text-amber-300"
                       )}>
                         {isOver50Lbs ? "Includes +$30 (>50 lb)" : "+$30 over 50 lb ($129)"}
@@ -1516,6 +1522,21 @@ function StepLocationCoverage({
   const [waitlistJoined, setWaitlistJoined] = useState(false);
   const [showZonesList, setShowZonesList] = useState(false);
   const addressInputRef = useRef<HTMLInputElement>(null);
+  const addressContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      if (addressContainerRef.current && !addressContainerRef.current.contains(e.target as Node)) {
+        setShowAddressDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, []);
 
   const coverage = checkCoverage(data.zipCode);
 
@@ -1722,13 +1743,13 @@ function StepLocationCoverage({
   return (
     <div>
       <StepHeader
-        eyebrow="Step 3 · Service Location & Coverage"
-        title="Check Service Coverage & Address"
-        subtitle="We service San Francisco (Select zones) and Peninsula. Verify if our solar van covers your doorstep."
+        eyebrow="Step 3 · Service Location"
+        title="Doorstep Address & Coverage"
+        subtitle="We service San Francisco (select zones) and the Peninsula. Confirm our solar van covers your address."
       />
 
       <div className="mt-4 space-y-3.5">
-        <div className="relative">
+        <div className="relative" ref={addressContainerRef}>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
             Doorstep Address
           </label>
@@ -1737,11 +1758,13 @@ function StepLocationCoverage({
             <input
               ref={addressInputRef}
               type="text"
+              autoComplete="street-address"
+              enterKeyHint="next"
               value={data.address}
               onChange={(e) => handleAddressChange(e.target.value)}
               onFocus={() => setShowAddressDropdown(true)}
               placeholder="e.g. 1420 19th Ave, San Francisco, CA"
-              className="w-full pl-9 pr-28 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+              className="w-full pl-9 pr-28 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
             />
             <button
               type="button"
@@ -1752,9 +1775,9 @@ function StepLocationCoverage({
               {isLocating ? "SYNCING..." : "GPS LOCATE"}
             </button>
           </div>
-          <div className="mt-1 flex items-center justify-between text-[10px] font-mono text-[#A4AA93]">
-            <span>Google Maps Autocomplete & Geocoding Active</span>
-            <span className="text-emerald-400">● Live Satellite GPS</span>
+          <div className="mt-1.5 flex flex-wrap items-center justify-between gap-1 text-[9.5px] sm:text-[10px] font-mono text-[#A4AA93]">
+            <span className="truncate">Google Maps & GPS Active</span>
+            <span className="text-emerald-400 shrink-0 font-semibold">● Live Satellite</span>
           </div>
 
           {showAddressDropdown && filteredSuggestions.length > 0 && (
@@ -1796,6 +1819,10 @@ function StepLocationCoverage({
 
           <input
             type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="postal-code"
+            enterKeyHint="next"
             maxLength={5}
             value={data.zipCode}
             onChange={(e) => {
@@ -1804,7 +1831,7 @@ function StepLocationCoverage({
             }}
             placeholder="e.g. 94122, 94010, 94401..."
             className={cn(
-              "w-full px-3 h-11 bg-[#1B1E15] border rounded-xl text-xs font-mono font-bold tracking-wider placeholder:text-[#FAF0E2]/30 focus:outline-none transition-all shadow-inner",
+              "w-full px-3 h-11 bg-[#1B1E15] border rounded-xl text-base sm:text-xs font-mono font-bold tracking-wider placeholder:text-[#FAF0E2]/30 focus:outline-none transition-all shadow-inner",
               data.zipCode.length === 5 && coverage.covered
                 ? "border-emerald-500 bg-emerald-950/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
                 : data.zipCode.length === 5 && !coverage.covered
@@ -1892,10 +1919,11 @@ function StepLocationCoverage({
 
           <input
             type="text"
+            enterKeyHint="done"
             value={data.parkingNotes}
             onChange={(e) => setData({ ...data, parkingNotes: e.target.value })}
             placeholder="e.g. Park on right driveway, gate code #4821, van needs 2 car lengths..."
-            className="w-full px-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+            className="w-full px-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
           />
         </div>
       </div>
@@ -1938,10 +1966,15 @@ function StepLocationCoverage({
                 <div className="flex gap-2">
                   <input
                     type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    enterKeyHint="done"
                     value={waitlistEmail}
                     onChange={(e) => setWaitlistEmail(e.target.value)}
                     placeholder="youremail@example.com"
-                    className="flex-1 px-3 h-9 bg-[#14160F] border border-[#FAF0E2]/20 rounded-xl text-xs text-[#FAF0E2]"
+                    className="flex-1 px-3 h-9 bg-[#14160F] border border-[#FAF0E2]/20 rounded-xl text-base sm:text-xs text-[#FAF0E2]"
                   />
                   <button
                     type="button"
@@ -1989,21 +2022,23 @@ function StepClientInfo({
   return (
     <div>
       <StepHeader
-        eyebrow="Step 4 · Pet Parent Contact Information"
-        title="Pet Parent Contact Information"
-        subtitle="We will coordinate doorstep arrival, send appointment reminders, and deliver your invoice to these details."
+        eyebrow="Step 4 · Contact Details"
+        title="Pet Parent Information"
+        subtitle="We will coordinate doorstep arrival, send appointment reminders, and deliver your invoice."
       />
 
-      <div className="mt-4 space-y-3.5">
-        <div className="grid sm:grid-cols-2 gap-2.5">
+      <div className="mt-3.5 space-y-2.5 sm:space-y-3.5">
+        <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
           <div>
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+            <label className="text-[10.5px] sm:text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 truncate">
               First Name
             </label>
             <div className="relative">
-              <User className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
+              <User className="pointer-events-none absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
               <input
                 type="text"
+                autoComplete="given-name"
+                enterKeyHint="next"
                 value={data.firstName}
                 onChange={(e) => {
                   const firstName = e.target.value;
@@ -2014,17 +2049,19 @@ function StepClientInfo({
                   });
                 }}
                 placeholder="e.g. Jessica"
-                className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+                className="w-full pl-8 sm:pl-9 pr-2 sm:pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+            <label className="text-[10.5px] sm:text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 truncate">
               Last Name
             </label>
             <input
               type="text"
+              autoComplete="family-name"
+              enterKeyHint="next"
               value={data.lastName}
               onChange={(e) => {
                 const lastName = e.target.value;
@@ -2035,40 +2072,48 @@ function StepClientInfo({
                 });
               }}
               placeholder="e.g. Miller"
-              className="w-full px-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+              className="w-full px-2.5 sm:px-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
             />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-2.5">
           <div>
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+            <label className="text-[10.5px] sm:text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
               Phone Number
             </label>
             <div className="relative">
-              <Phone className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
+              <Phone className="pointer-events-none absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
               <input
                 type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                enterKeyHint="next"
                 value={data.phone}
                 onChange={(e) => setData({ ...data, phone: e.target.value })}
                 placeholder="+1 (555) 000-0000"
-                className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+                className="w-full pl-8 sm:pl-9 pr-2.5 sm:pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+            <label className="text-[10.5px] sm:text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
               Email Address (Correo)
             </label>
             <div className="relative">
-              <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
+              <Mail className="pointer-events-none absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
               <input
                 type="email"
+                inputMode="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                enterKeyHint="done"
                 value={data.email}
                 onChange={(e) => setData({ ...data, email: e.target.value })}
                 placeholder="name@domain.com"
-                className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+                className="w-full pl-8 sm:pl-9 pr-2.5 sm:pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
               />
             </div>
           </div>
@@ -2124,10 +2169,12 @@ function StepDogInfo({
             <Heart className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
             <input
               type="text"
+              autoComplete="off"
+              enterKeyHint="next"
               value={data.petName}
               onChange={(e) => setData({ ...data, petName: e.target.value })}
               placeholder="e.g. Milo, Luna, Bella..."
-              className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+              className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
             />
           </div>
         </div>
@@ -2140,6 +2187,7 @@ function StepDogInfo({
             <Sparkles className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
             <input
               type="text"
+              enterKeyHint="done"
               value={data.breed}
               onChange={(e) => {
                 setData({ ...data, breed: e.target.value });
@@ -2147,7 +2195,7 @@ function StepDogInfo({
               }}
               onFocus={() => setIsOpen(true)}
               placeholder="e.g. Golden Retriever, Doodle, Frenchie..."
-              className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+              className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
               autoComplete="off"
             />
           </div>
@@ -2345,7 +2393,7 @@ function StepDogCareCondition({
             aria-label="Medical Conditions or Sensitivities"
             value={data.medicalConditions}
             onChange={(e) => setData({ ...data, medicalConditions: e.target.value })}
-            className="w-full h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl px-3 text-xs text-[#FAF0E2] focus:outline-none focus:border-[#AA8B63] cursor-pointer"
+            className="w-full h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl px-3 text-base sm:text-xs text-[#FAF0E2] focus:outline-none focus:border-[#AA8B63] cursor-pointer"
           >
             {medicalOptions.map((opt) => (
               <option key={opt} value={opt} className="bg-[#191C13] text-[#FAF0E2]">
@@ -2364,7 +2412,7 @@ function StepDogCareCondition({
             onChange={(e) => setData({ ...data, groomerNotes: e.target.value })}
             placeholder="Special handling, sensitive spots, haircut preferences..."
             rows={2}
-            className="w-full p-2.5 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] resize-none"
+            className="w-full p-2.5 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] resize-none"
           />
         </div>
 
@@ -2724,7 +2772,7 @@ function StepBookingCalendar({
                 max={maxIso}
                 value={selectedDateObj.isoDate}
                 onChange={handleJumpDateInput}
-                className="bg-[#1C2016] border border-[#AA8B63]/50 rounded-lg px-2 py-0.5 text-[11px] font-mono text-[#FAF0E2] focus:outline-none focus:border-[#AA8B63] cursor-pointer shadow-sm"
+                className="bg-[#1C2016] border border-[#AA8B63]/50 rounded-lg px-2 py-0.5 text-base sm:text-[11px] font-mono text-[#FAF0E2] focus:outline-none focus:border-[#AA8B63] cursor-pointer shadow-sm"
                 title="Pick any date across the entire year"
               />
             </div>
