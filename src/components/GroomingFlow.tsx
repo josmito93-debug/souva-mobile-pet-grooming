@@ -946,7 +946,9 @@ export function GroomingFlow({
         </div>
       </div>
 
-      <StatusLedGrid activeIndex={activeIndex} hot={completed} />
+      <div className="hidden sm:block">
+        <StatusLedGrid activeIndex={activeIndex} hot={completed} />
+      </div>
 
       {/* Header controls with multi-dog notification */}
       <div className="flex items-center justify-between pb-3">
@@ -1203,11 +1205,33 @@ export function GroomingFlow({
               )}
             </button>
 
-            {/* Warning if on Step 2 (Location) with non-covered ZIP */}
-            {step === 2 && data.zipCode.length === 5 && !isCoveredZip && (
-              <div className="mt-2 text-center text-xs font-mono font-bold text-red-400 bg-red-950/60 border border-red-500/50 p-2.5 rounded-xl animate-pulse flex items-center justify-center gap-1.5 shadow-md">
-                <AlertCircle className="h-4 w-4 text-red-400 shrink-0" />
-                <span>Please enter a covered ZIP code (San Francisco or Peninsula) to proceed</span>
+            {/* Contextual guidance if validation not met */}
+            {!canNext && (
+              <div className="mt-2 text-center text-[11px] font-mono font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-500/30 p-2 rounded-xl flex items-center justify-center gap-1.5">
+                <AlertCircle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                <span>
+                  {step === 0
+                    ? "Please select your dog's size above"
+                    : step === 1
+                    ? "Please choose a grooming service above"
+                    : step === 2
+                    ? !data.address.trim() || data.address.trim().length < 4
+                      ? "Enter your doorstep address above"
+                      : !data.zipCode || data.zipCode.length < 5
+                      ? "Enter your 5-digit ZIP code to confirm coverage"
+                      : !isCoveredZip
+                      ? "Enter a covered ZIP code (SF or Peninsula)"
+                      : "Complete address and ZIP code to continue"
+                    : step === 3
+                    ? !data.firstName.trim() && data.ownerName.trim().length < 2
+                      ? "Enter your First Name above"
+                      : data.phone.trim().length < 7
+                      ? "Enter a valid Phone Number"
+                      : !data.email.includes("@")
+                      ? "Enter a valid Email Address"
+                      : "Complete all contact fields to continue"
+                    : "Please complete required fields above to proceed"}
+                </span>
               </div>
             )}
           </>
@@ -1575,6 +1599,14 @@ function StepLocationCoverage({
                   extractedZip = comp.short_name || comp.long_name || "";
                   break;
                 }
+              }
+            }
+
+            // Fallback: extract 5-digit zip from formatted_address
+            if (!extractedZip && formattedAddress) {
+              const zipMatch = formattedAddress.match(/\b(9\d{4})\b/);
+              if (zipMatch && zipMatch[1]) {
+                extractedZip = zipMatch[1];
               }
             }
 

@@ -607,7 +607,7 @@ function AppContent() {
               </div>
 
               {/* Right Side: The Interactive Cockpit Card */}
-              <div id="booking-flow-card" className="hero-right-content lg:col-span-7 flex flex-col justify-center w-full min-w-0 max-w-full">
+              <div id="booking-flow-card" className="hero-right-content lg:col-span-7 flex flex-col lg:justify-center w-full min-w-0 max-w-full">
                 <div className="relative w-full max-w-full lg:max-w-xl mx-auto lg:mr-0 min-w-0">
                   <div
                     className={cn(
