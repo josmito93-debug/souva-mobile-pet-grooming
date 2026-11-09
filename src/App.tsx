@@ -275,6 +275,12 @@ function AppContent() {
       return;
     }
 
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    if (isMobile) {
+      setLoading(false);
+      return;
+    }
+
     const ctx = gsap.context(() => {
       const tl = gsap.timeline();
       tlRef.current = tl;
@@ -421,7 +427,7 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#161811] text-[#FAF0E2] flex flex-col justify-between selection:bg-[#AA8B63]/40 selection:text-[#FAF0E2] relative">
+    <div className="min-h-[100dvh] w-full max-w-full overflow-x-clip bg-[#161811] text-[#FAF0E2] flex flex-col justify-between selection:bg-[#AA8B63]/40 selection:text-[#FAF0E2] relative">
       {/* Background Cinematic Presentation Video (Full view during intro, ambient afterwards) */}
       <video
         ref={videoRef}
@@ -439,9 +445,9 @@ function AppContent() {
         <track kind="captions" src="" label="English" default />
       </video>
 
-      {/* GSAP Preloader Overlay */}
+      {/* GSAP Preloader Overlay (Desktop only to prevent mobile Chrome cut-off/freeze) */}
       {loading && (
-        <div className="preloader fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#13150F] overflow-hidden select-none">
+        <div className="preloader fixed inset-0 z-50 hidden md:flex flex-col items-center justify-center bg-[#13150F] overflow-hidden select-none">
           <div className="relative flex items-center justify-center max-w-[280px] w-full px-6">
             <div className="preloader-glow absolute inset-0 bg-[#AA8B63]/25 blur-3xl rounded-full w-52 h-52 mx-auto" />
             <img
@@ -467,7 +473,7 @@ function AppContent() {
 
       {/* Floating Skip Intro Button during initial video presentation */}
       {loading && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 animate-in fade-in duration-300">
+        <div className="fixed bottom-6 right-6 z-50 hidden md:flex items-center gap-3 animate-in fade-in duration-300">
           <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#161811]/90 backdrop-blur-md border border-[#FAF0E2]/20 text-[10.5px] font-mono text-[#FAF0E2] shadow-2xl">
             <span className="h-2 w-2 rounded-full bg-[#AA8B63] animate-pulse" />
             <span>SOUVA · CINEMATIC PRESENTATION</span>
@@ -494,7 +500,7 @@ function AppContent() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col relative z-10">
         {/* HERO SECTION WITH THE COCKPIT MODAL */}
-        <section id="book" className="relative isolate px-3 sm:px-4 py-6 md:py-12 md:px-8 flex-1 flex flex-col lg:justify-center w-full overflow-x-clip">
+        <section id="book" className="relative isolate px-3 sm:px-4 py-4 sm:py-6 md:py-12 md:px-8 flex-1 flex flex-col lg:justify-center w-full max-w-full overflow-x-clip">
           <div className="hero-spa-ambient" aria-hidden="true" />
           <div className="hero-gold-glow" aria-hidden="true" />
 

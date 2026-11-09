@@ -80,8 +80,8 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal, onNa
   return (
     <>
       {/* ── TOP PROMO MARQUEE (GREEN VIBRANT PET-FRIENDLY STYLE) ──────── */}
-      <div className="bg-gradient-to-r from-[#0F5132] via-[#15803D] to-[#166534] border-b-2 border-emerald-400/50 py-2 px-3 sm:px-6 text-white relative z-50 shadow-md">
-        <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-2.5">
+      <div className="w-full max-w-full overflow-hidden bg-gradient-to-r from-[#0F5132] via-[#15803D] to-[#166534] border-b-2 border-emerald-400/50 py-1.5 sm:py-2 px-3 sm:px-6 text-white relative z-50 shadow-md">
+        <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-2">
           {/* Main Pet-Friendly Promo Offer */}
           <div className="flex items-center gap-2.5 min-w-0">
             {/* Promo Tag Badge */}
@@ -125,7 +125,7 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal, onNa
       </div>
 
       {/* ── STICKY MAIN NAVBAR ───────────────────────────────────────── */}
-      <header className="app-header sticky top-0 z-40 flex items-center justify-between px-4 py-3 md:px-8 bg-[#14160F]/95 backdrop-blur-md border-b border-[#FAF0E2]/10 shadow-lg">
+      <header className="app-header sticky top-0 z-40 w-full max-w-full flex items-center justify-between px-3.5 sm:px-4 py-2.5 sm:py-3 md:px-8 bg-[#14160F]/95 backdrop-blur-md border-b border-[#FAF0E2]/10 shadow-lg">
         {/* Brand Logo */}
         <div className="flex items-center gap-3">
           <a href="#" className="cursor-pointer">

@@ -46,22 +46,19 @@
 
   html {
     scroll-behavior: smooth;
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
+    overflow-x: clip;
     -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     background-color: var(--bg-deep);
     color: var(--beiz-cream);
     font-family: var(--font-sans);
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
+    overflow-x: clip;
     position: relative;
-    touch-action: pan-y;
-    -webkit-text-size-adjust: 100%;
+    min-height: 100%;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   h1, h2, h3, .font-display {
@@ -262,13 +259,6 @@
   object-fit: cover;
   z-index: 0;
   pointer-events: none;
-}
-
-.app-header,
-.hero-left-content,
-.hero-right-content,
-.bento-steps-section {
-  opacity: 0;
 }
 
 /* App Header & Blur */
