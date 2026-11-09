@@ -56,8 +56,16 @@ export default async function handler(req: any, res: any) {
     });
 
     const fromEmail =
-      process.env.RESEND_FROM_EMAIL || "SOUVA Mobile Grooming <info@souvagrooming.com>";
-    const staffRecipient = "souvamobilepetgrooming@gmail.com";
+      process.env.RESEND_FROM_EMAIL || "Souva Mobile Grooming <info@souvagrooming.com>";
+    
+    // Multiple staff inboxes to ensure inquiry is never missed
+    const adminEmails: string[] = ["souvamobilepetgrooming@gmail.com", "info@souvagrooming.com"];
+    if (process.env.ADMIN_NOTIFICATION_EMAIL) {
+      process.env.ADMIN_NOTIFICATION_EMAIL.split(",").forEach((item) => {
+        const clean = item.trim();
+        if (clean && !adminEmails.includes(clean)) adminEmails.push(clean);
+      });
+    }
 
     // Plaintext Fallback
     const plainText = `
@@ -180,8 +188,8 @@ Reply directly to this email to respond to ${name} (${email}).
       });
     }
 
-    // Send Notification to SOUVA Concierge
-    const resendRes = await fetch("https://api.resend.com/emails", {
+    // Send Notification to SOUVA Concierge Inboxes
+    let resendRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -189,15 +197,42 @@ Reply directly to this email to respond to ${name} (${email}).
       },
       body: JSON.stringify({
         from: fromEmail,
-        to: [staffRecipient],
+        to: adminEmails,
         reply_to: email,
-        subject: `🐾 New Inquiry from ${name}: "${truncate(question, 45)}"`,
+        subject: `[SOUVA Inquiry] ${category} from ${name}: ${truncate(question, 45)}`,
         text: plainText,
         html: htmlEmail,
       }),
     });
 
-    const resendData = await resendRes.json();
+    let resendData = await resendRes.json();
+
+    // Fallback if domain restriction or multi-recipient error
+    if (!resendRes.ok && (resendData?.message?.includes("testing emails") || resendData?.message?.includes("domain"))) {
+      console.warn("Resend test domain or domain restriction detected. Retrying with primary account email:", resendData);
+      try {
+        const retryRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: ["info@souvagrooming.com"],
+            subject: `[SOUVA Inquiry] ${category} from ${name} (Client: ${email})`,
+            text: plainText,
+            html: `<div style="padding: 10px; background-color: #AA8B63; color: #161811; font-weight: bold; border-radius: 8px; margin-bottom: 15px; font-size: 12px;">Delivered via Resend fallback to info@souvagrooming.com (Client: ${email})</div>` + htmlEmail,
+          }),
+        });
+        if (retryRes.ok) {
+          resendRes = retryRes;
+          resendData = await retryRes.json();
+        }
+      } catch (retryErr) {
+        console.error("Resend fallback attempt failed:", retryErr);
+      }
+    }
 
     if (!resendRes.ok) {
       console.error("Resend API returned error:", resendData);

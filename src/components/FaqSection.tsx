@@ -45,9 +45,9 @@ const FAQ_LIST: FAQItem[] = [
   {
     id: "coverage",
     category: "Service Areas",
-    question: "Which Bay Area neighborhoods and ZIP codes do you serve?",
+    question: "Which Bay Area neighborhoods and areas do you serve?",
     answer:
-      "We cover 38 designated ZIP codes across San Francisco (Sunset, West Portal, Lake Merced, Ingleside, Diamond Heights) and the Peninsula (Daly City, San Bruno, Burlingame, Hillsborough, San Mateo, Foster City, Redwood City, Menlo Park, Palo Alto, Half Moon Bay, Mountain View).",
+      "Our mobile salon fleet departs from Daly City, CA, servicing a 40-mile radius across San Francisco, the Peninsula, South Bay, and surrounding neighborhoods. In certain extended areas outside our primary corridor, a nominal travel/distance fee may apply.",
   },
   {
     id: "multi-dog",
@@ -146,8 +146,7 @@ export function FaqSection({ onBookClick }: { onBookClick?: () => void }) {
       }
     } catch (err: any) {
       console.error("Inquiry transmission error:", err);
-      // In dev or local without serverless runtime, provide graceful success state
-      setSubmitted(true);
+      setErrorMessage("Unable to transmit your inquiry due to a network issue. Please call us directly at +1 (415) 375-5823 or reach us on WhatsApp.");
     } finally {
       setLoading(false);
     }

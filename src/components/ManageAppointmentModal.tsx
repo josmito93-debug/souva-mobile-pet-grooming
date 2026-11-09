@@ -111,13 +111,6 @@ function ManageAppointmentModalContent({
 
   const handleReschedule = async () => {
     if (!selectedDate || !selectedTime) return;
-    if (isDateBlocked(selectedDate.isoDate)) {
-      setStatusMessage({
-        type: "error",
-        text: "The week of October 19–25 is blocked. Please select another date.",
-      });
-      return;
-    }
 
     setIsSubmitting(true);
     setStatusMessage(null);

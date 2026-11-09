@@ -711,7 +711,7 @@ function AppContent() {
                       SPECIAL INTRO PROMO
                     </span>
                     <span className="px-2 py-0.5 rounded-full bg-[#AA8B63]/25 border border-[#AA8B63]/60 text-[#FAF0E2] font-mono text-[9px] font-bold uppercase">
-                      FIRST 50 BOOKINGS ONLY
+                      FIRST 50 BOOKINGS ONLY · 25/50 CLAIMED (25 LEFT)
                     </span>
                     <span className="px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-400/50 text-emerald-300 font-mono text-[9px] font-bold uppercase">
                       NEW CUSTOMERS
@@ -724,7 +724,7 @@ function AppContent() {
                     </span>
                   </h3>
                   <p className="text-xs text-[#A4AA93] mt-1 leading-relaxed">
-                    Upfront doorstep grooming. Regular rates $110–$170. Includes luxury bath, blow-dry, ear flush, nail grind & full haircut.
+                    Upfront doorstep grooming. Regular rates $120–$180. Includes luxury bath, blow-dry, ear flush, nail grind & full haircut.
                   </p>
                 </div>
               </div>
@@ -799,7 +799,7 @@ function AppContent() {
                     {isFullGroom ? (
                       <div className="mb-3.5 flex items-center justify-between">
                         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[#AA8B63] to-[#C4A67E] text-[#161811] text-[10px] font-black font-mono uppercase tracking-wider shadow-md">
-                          ⚡ 1ST 50 BOOKINGS · $99 PROMO
+                          ⚡ 1ST 50 BOOKINGS · $99 PROMO (25/50 CLAIMED)
                         </span>
                         <span className="text-[9.5px] font-mono font-bold text-amber-300 uppercase">
                           Special Offer

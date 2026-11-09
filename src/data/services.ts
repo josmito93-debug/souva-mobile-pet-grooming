@@ -23,9 +23,9 @@ export const SOUVA_PACKAGES: ServicePackage[] = [
     name: "Bath & Refresh",
     tagline: "A refreshing maintenance service designed to keep your pet clean, comfortable and beautifully cared for between grooming appointments.",
     prices: {
-      small: 65,
-      medium: 85,
-      large: 100,
+      small: 75,
+      medium: 95,
+      large: 105,
       xlarge: 130,
     },
     duration: "45 - 60 min",
@@ -44,10 +44,10 @@ export const SOUVA_PACKAGES: ServicePackage[] = [
     name: "Bath & Tidy",
     tagline: "The perfect refresh between full grooming appointments. This service cleans and tidies the essential areas while preserving your pet’s overall coat length.",
     prices: {
-      small: 80,
-      medium: 100,
-      large: 115,
-      xlarge: 145,
+      small: 90,
+      medium: 110,
+      large: 125,
+      xlarge: 150,
     },
     duration: "60 - 75 min",
     includes: [
@@ -68,10 +68,10 @@ export const SOUVA_PACKAGES: ServicePackage[] = [
     name: "Essential Full Groom",
     tagline: "A complete, low-maintenance haircut designed for comfort, practicality and easier upkeep at home. Ideal for shorter styles and shave-downs.",
     prices: {
-      small: 110,
-      medium: 130,
-      large: 150,
-      xlarge: 170,
+      small: 120,
+      medium: 140,
+      large: 160,
+      xlarge: 180,
     },
     duration: "75 - 90 min",
     includes: [
@@ -91,10 +91,10 @@ export const SOUVA_PACKAGES: ServicePackage[] = [
     tagline: "Our elevated grooming experience for longer styles, customized finishes and more detailed coat work. Designed for pets requiring specialized styling, breed-inspired grooming, balanced proportions, defined angulation or Asian Fusion techniques.",
     popular: true,
     prices: {
-      small: 125,
-      medium: 150,
-      large: 170,
-      xlarge: 190,
+      small: 150,
+      medium: 170,
+      large: 190,
+      xlarge: 210,
     },
     duration: "90 - 115 min",
     includes: [
@@ -145,8 +145,14 @@ export const SPA_UPGRADES = [
   {
     id: "deshedding-treatment",
     name: "De-Shedding Treatment",
-    price: "Starting at $25",
-    desc: "A multi-step coat treatment designed to loosen and remove excess undercoat and help reduce shedding at home. Pricing varies according to your pet’s size, coat density and the time required.",
+    price: "$30",
+    desc: "A multi-step coat treatment designed to loosen and remove excess undercoat and help reduce shedding at home.",
+  },
+  {
+    id: "flea-tick",
+    name: "Flea & Tick Treatment",
+    price: "$30",
+    desc: "A gentle botanical and medicated cleanse formulated to safely eliminate fleas and ticks while restoring skin comfort.",
   },
 ];
 

@@ -2,6 +2,18 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fs from "fs";
 import path from "path";
 
+function getAddonPriceNumber(addonNameOrId: string): number {
+  const lower = String(addonNameOrId || "").toLowerCase();
+  if (lower.includes("shedding") || lower.includes("deshedding")) return 30;
+  if (lower.includes("flea") || lower.includes("tick")) return 30;
+  if (lower.includes("deep conditioning") || lower.includes("conditioning")) return 20;
+  if (lower.includes("paw") || lower.includes("balm") || lower.includes("nose")) return 12;
+  if (lower.includes("teeth") || lower.includes("breath")) return 15;
+  if (lower.includes("nail") || lower.includes("grinding")) return 15;
+  if (lower.includes("sensitive") || lower.includes("skin")) return 15;
+  return 15;
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -92,18 +104,6 @@ export default async function handler(req: any, res: any) {
 
     const waRescheduleUrl = `https://wa.me/14153755823?text=${waRescheduleMsg}`;
     const waCancelUrl = `https://wa.me/14153755823?text=${waCancelMsg}`;
-
-    // Security check: Block appointments for the week of October 19 to 25, 2026
-    const isBlockedWeek =
-      (booking.scheduledDateIso && booking.scheduledDateIso >= "2026-10-19" && booking.scheduledDateIso <= "2026-10-25") ||
-      (typeof scheduledDate === "string" && /Oct(ober)?\s*(19|20|21|22|23|24|25)\b/i.test(scheduledDate));
-
-    if (isBlockedWeek) {
-      return res.status(400).json({
-        success: false,
-        error: "Appointments for the week of October 19 to 25 are blocked for fleet operations. Please select an available date starting October 26.",
-      });
-    }
 
     // 1. Generate the luxury branded PDF invoice with SOUVA brand colors and logo
     const pdfBase64 = await generateBrandInvoicePdf({
@@ -462,7 +462,7 @@ Concierge / WhatsApp: +1 (415) 375-5823 · info@souvagrooming.com`;
           ${addons && addons.length > 0 ? `
             <div style="border-top: 1px solid rgba(250, 240, 226, 0.08); padding-top: 10px;">
               <span style="color: #AA8B63; font-size: 11px; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 6px;">Selected Spa Upgrades:</span>
-              ${addons.map((add: string) => `<p style="margin: 2px 0; font-size: 12px; color: #FAF0E2;">✨ ${add} (+$15.00)</p>`).join("")}
+              ${addons.map((add: string) => `<p style="margin: 2px 0; font-size: 12px; color: #FAF0E2;">✨ ${add} (+$${getAddonPriceNumber(add)}.00)</p>`).join("")}
             </div>
           ` : ""}
         </div>
@@ -486,7 +486,7 @@ Concierge / WhatsApp: +1 (415) 375-5823 · info@souvagrooming.com`;
           </h3>
           <table style="width: 100%; font-size: 13px; line-height: 1.8;">
             <tr><td style="color: #FAF0E2;">${packageName} (${sizeLabel})</td><td style="color: #FAF0E2; text-align: right; font-weight: 700;">$${basePrice}.00</td></tr>
-            ${addons && addons.length > 0 ? addons.map((add: string) => `<tr><td style="color: #A4AA93; padding-left: 10px;">+ ${add}</td><td style="color: #AA8B63; text-align: right;">$15.00</td></tr>`).join("") : ""}
+            ${addons && addons.length > 0 ? addons.map((add: string) => `<tr><td style="color: #A4AA93; padding-left: 10px;">+ ${add}</td><td style="color: #AA8B63; text-align: right;">$${getAddonPriceNumber(add)}.00</td></tr>`).join("") : ""}
             <tr><td style="color: #A4AA93; font-size: 12px;">Doorstep Solar Travel Fee</td><td style="color: #AA8B63; text-align: right; font-size: 12px;">FREE ($0.00)</td></tr>
             <tr style="border-top: 1px solid rgba(250, 240, 226, 0.12);"><td style="color: #AA8B63; font-weight: 700; font-size: 15px; padding-top: 10px;">TOTAL ESTIMATED DUE:</td><td style="color: #AA8B63; text-align: right; font-weight: 800; font-size: 18px; padding-top: 10px;">$${estimatedTotal}.00 USD</td></tr>
           </table>
@@ -1459,7 +1459,7 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
     color: cCream,
   });
 
-  const basePriceNum = Number(b.basePrice) || Math.max(65, (Number(b.estimatedTotal) || 125) - (Array.isArray(b.addons) ? b.addons.length * 15 : 0));
+  const basePriceNum = Number(b.basePrice) || Math.max(75, (Number(b.estimatedTotal) || 120) - (Array.isArray(b.addons) ? b.addons.reduce((sum: number, a: string) => sum + getAddonPriceNumber(a), 0) : 0));
   page.drawText(`$${basePriceNum}.00`, {
     x: width - margin - 70,
     y: curY - 13,
@@ -1500,7 +1500,8 @@ async function generateBrandInvoicePdf(b: any): Promise<string> {
         color: cGoldLight,
       });
 
-      page.drawText("$15.00", {
+      const addonFee = getAddonPriceNumber(addon);
+      page.drawText(`$${addonFee}.00`, {
         x: width - margin - 70,
         y: curY - 12,
         size: 7.5,

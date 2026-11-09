@@ -118,7 +118,7 @@ export const VAN_FLEET_PHOTOS: VanPhoto[] = [
     title: "Signature Golden Fleet Exterior",
     subtitle: "California Licensed & Insured SOUVA Van",
     category: "Exterior",
-    specs: ["California Licensed & Insured SOUVA Fleet", "Discreet Neighborhood Footprint", "Doorstep Service Across 38 Bay Area ZIPs"],
+    specs: ["California Licensed & Insured SOUVA Fleet", "Discreet Neighborhood Footprint", "Doorstep Service Across 40-Mile Radius (Daly City Hub)"],
   },
 ];
 

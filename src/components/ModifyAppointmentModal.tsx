@@ -192,7 +192,7 @@ function ModifyAppointmentModalContent({
 
   // Dynamic Price Calculations
   const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === packageId) || SOUVA_PACKAGES[0];
-  const newBasePrice = selectedPkg.prices[petSize] || 110;
+  const newBasePrice = selectedPkg.prices[petSize] || 120;
 
   const newAddonsCost = selectedAddons.reduce((sum, addTitle) => {
     const item = SPA_UPGRADES.find((u) => u.name === addTitle || u.id === addTitle);
@@ -215,11 +215,6 @@ function ModifyAppointmentModalContent({
   const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
-
-    if (isDateBlocked(selectedDate.isoDate)) {
-      setErrorMessage("The week of October 19–25 is blocked for fleet operations. Please choose another date.");
-      return;
-    }
 
     if (!address.trim()) {
       setErrorMessage("Please provide a valid doorstep street address.");
@@ -484,7 +479,7 @@ function ModifyAppointmentModalContent({
               <div className="grid sm:grid-cols-2 gap-2.5">
                 {SOUVA_PACKAGES.map((pkg) => {
                   const isSelected = packageId === pkg.id;
-                  const price = pkg.prices[petSize] || 110;
+                  const price = pkg.prices[petSize] || 120;
 
                   return (
                     <div

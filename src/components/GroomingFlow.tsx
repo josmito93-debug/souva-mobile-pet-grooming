@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import {
   Sparkles,
   MapPin,
+  Compass,
   Phone,
   User,
   Mail,
@@ -137,12 +138,11 @@ export interface AvailableDate {
   isBlocked?: boolean;
 }
 
-export const BLOCKED_WEEK_START = "2026-10-19";
-export const BLOCKED_WEEK_END = "2026-10-25";
+export const BLOCKED_WEEK_START = "";
+export const BLOCKED_WEEK_END = "";
 
-export function isDateBlocked(isoDate: string): boolean {
-  if (!isoDate) return false;
-  return isoDate >= BLOCKED_WEEK_START && isoDate <= BLOCKED_WEEK_END;
+export function isDateBlocked(_isoDate?: string): boolean {
+  return false;
 }
 
 export function getAvailableDates(): AvailableDate[] {
@@ -513,7 +513,7 @@ export function GroomingFlow({
   const canNext = Boolean(
     (step === 0 && Boolean(data.size)) ||
     (step === 1 && Boolean(data.packageId)) ||
-    (step === 2 && data.address.trim().length >= 4 && isCoveredZip) ||
+    (step === 2 && data.address.trim().length >= 4) ||
     (step === 3 &&
       (data.firstName.trim().length >= 1 || data.ownerName.trim().length >= 2) &&
       data.email.includes("@") &&
@@ -521,9 +521,8 @@ export function GroomingFlow({
     (step === 4 &&
       data.petName.trim().length >= 1 &&
       data.breed.trim().length >= 2 &&
-      Boolean(data.gender) &&
       Boolean(data.petAge)) ||
-    (step === 5 && Boolean(data.vaccinated) && Boolean(data.temperament)) ||
+    (step === 5 && Boolean(data.vaccinated)) ||
     (step === 6 &&
       Boolean(data.scheduledDate) &&
       Boolean(data.scheduledTime) &&
@@ -1217,14 +1216,10 @@ export function GroomingFlow({
                     : step === 2
                     ? !data.address.trim() || data.address.trim().length < 4
                       ? "Enter your doorstep address above"
-                      : !data.zipCode || data.zipCode.length < 5
-                      ? "Enter your 5-digit ZIP code to confirm coverage"
-                      : !isCoveredZip
-                      ? "Enter a covered ZIP code (SF or Peninsula)"
-                      : "Complete address and ZIP code to continue"
+                      : "Complete address to continue"
                     : step === 3
                     ? !data.firstName.trim() && data.ownerName.trim().length < 2
-                      ? "Enter your First Name above"
+                      ? "Enter your Name above"
                       : data.phone.trim().length < 7
                       ? "Enter a valid Phone Number"
                       : !data.email.includes("@")
@@ -1291,7 +1286,7 @@ function StepServicePackage({
   const isOver50Lbs = data.size === "xlarge";
   const fullGroomOriginalPrice =
     SOUVA_PACKAGES.find((p) => p.id === "essential-full-groom")?.prices[data.size as PetSize] ||
-    (isOver50Lbs ? 170 : 110);
+    (isOver50Lbs ? 180 : 120);
   const fullGroomPromoPrice = isOver50Lbs ? 99 + 30 : 99; // $99 for small, medium & large (up to 50 lb); $129 for xlarge (over 50 lb)
 
   const services2x2 = [
@@ -1299,14 +1294,14 @@ function StepServicePackage({
       id: "bath-refresh",
       title: "Bath & Brush",
       subtitle: "Bath, dry, nails, ears",
-      rawPrice: SOUVA_PACKAGES.find((p) => p.id === "bath-refresh")?.prices[data.size as PetSize] || 65,
+      rawPrice: SOUVA_PACKAGES.find((p) => p.id === "bath-refresh")?.prices[data.size as PetSize] || 75,
       isPromo: false,
     },
     {
       id: "bath-tidy",
       title: "Bath & Tidy",
       subtitle: "+ sanitary, paw & face trim",
-      rawPrice: SOUVA_PACKAGES.find((p) => p.id === "bath-tidy")?.prices[data.size as PetSize] || 80,
+      rawPrice: SOUVA_PACKAGES.find((p) => p.id === "bath-tidy")?.prices[data.size as PetSize] || 90,
       isPromo: false,
     },
     {
@@ -1321,7 +1316,7 @@ function StepServicePackage({
       id: "signature-grooming",
       title: "Signature Grooming",
       subtitle: 'Longer style ½"+ · Scissor finish',
-      rawPrice: SOUVA_PACKAGES.find((p) => p.id === "signature-grooming")?.prices[data.size as PetSize] || 125,
+      rawPrice: SOUVA_PACKAGES.find((p) => p.id === "signature-grooming")?.prices[data.size as PetSize] || 150,
       isPromo: false,
     },
   ];
@@ -1346,7 +1341,7 @@ function StepServicePackage({
                 NEW CUSTOMERS ONLY
               </span>
               <span className="px-2 py-0.5 rounded-full bg-[#AA8B63]/25 border border-[#AA8B63]/50 text-[#FAF0E2] text-[8.5px] font-mono font-bold uppercase">
-                FIRST 50 BOOKINGS
+                FIRST 50 BOOKINGS · 25/50 CLAIMED (25 LEFT)
               </span>
             </div>
             <p className="text-[12px] text-[#FAF0E2] font-semibold mt-1 leading-snug">
@@ -1384,7 +1379,7 @@ function StepServicePackage({
                   {item.isPromo && (
                     <div className="mb-1">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[8px] sm:text-[8.5px] font-mono font-black uppercase tracking-wider shadow-sm truncate max-w-full">
-                        ⚡ 1ST 50 BOOKINGS · $99
+                        ⚡ 1ST 50 BOOKINGS · $99 (25/50 CLAIMED)
                       </span>
                       <span className={cn(
                         "block text-[8px] sm:text-[8.5px] font-mono font-bold mt-0.5 truncate",
@@ -1541,10 +1536,6 @@ function StepLocationCoverage({
   const [locateProgress, setLocateProgress] = useState(0);
   const [locateError, setLocateError] = useState("");
   const [showAddressDropdown, setShowAddressDropdown] = useState(false);
-  const [showCoverageModal, setShowCoverageModal] = useState(false);
-  const [waitlistEmail, setWaitlistEmail] = useState("");
-  const [waitlistJoined, setWaitlistJoined] = useState(false);
-  const [showZonesList, setShowZonesList] = useState(false);
   const addressInputRef = useRef<HTMLInputElement>(null);
   const addressContainerRef = useRef<HTMLDivElement>(null);
 
@@ -1561,18 +1552,6 @@ function StepLocationCoverage({
       document.removeEventListener("touchstart", handlePointerDown);
     };
   }, []);
-
-  const coverage = checkCoverage(data.zipCode);
-
-  useEffect(() => {
-    if (data.zipCode.length === 5) {
-      if (!coverage.covered) {
-        setShowCoverageModal(true);
-      } else {
-        setShowCoverageModal(false);
-      }
-    }
-  }, [data.zipCode, coverage.covered]);
 
   // Google Places Autocomplete integration
   useEffect(() => {
@@ -1776,8 +1755,8 @@ function StepLocationCoverage({
     <div>
       <StepHeader
         eyebrow="Step 3 · Service Location"
-        title="Doorstep Address & Coverage"
-        subtitle="We service San Francisco (select zones) and the Peninsula. Confirm our solar van covers your address."
+        title="Doorstep Address"
+        subtitle="Our mobile salon departs from Daly City, CA covering a 40-mile radius across the Bay Area."
       />
 
       <div className="mt-4 space-y-3.5">
@@ -1839,91 +1818,31 @@ function StepLocationCoverage({
           )}
         </div>
 
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider">
-              ZIP Code (5 digits)
-            </label>
-            <span className="text-[10px] font-mono text-[#AA8B63]">
-              {coverage.covered ? "✓ Area Covered" : "Instant Verification"}
+        {/* ── DALY CITY HUB & 40-MILE RADIUS COVERAGE NOTICE ── */}
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-[#1C2016] via-[#24291B] to-[#1C2016] border border-[#AA8B63]/40 shadow-md space-y-2">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-xl bg-[#AA8B63]/20 border border-[#AA8B63]/40 flex items-center justify-center text-[#AA8B63] shrink-0">
+              <Compass className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#FAF0E2] block truncate">
+                Dispatched from Daly City, CA · 40-Mile Radius
+              </span>
+              <span className="text-[10.5px] font-mono text-[#A4AA93] block truncate">
+                Covering San Francisco, Peninsula & surrounding Bay Area
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-[#E2D7C5] leading-relaxed">
+            Our autonomous solar mobile spa travels directly to your doorstep from our Daly City fleet hub, serving pet parents throughout the Greater Bay Area.
+          </p>
+          <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/40 text-[11px] leading-relaxed text-amber-200/90 flex items-start gap-2 shadow-sm">
+            <span className="text-amber-400 font-bold shrink-0 mt-0.5">⚠️</span>
+            <span>
+              <strong className="text-amber-300 font-bold">Distance Fee Notice:</strong> In certain extended service areas outside our primary corridor, a nominal travel/distance fee may apply depending on route mileage.
             </span>
           </div>
-
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            autoComplete="postal-code"
-            enterKeyHint="next"
-            maxLength={5}
-            value={data.zipCode}
-            onChange={(e) => {
-              const zipCode = e.target.value.replace(/[^0-9]/g, "").slice(0, 5);
-              setData({ ...data, zipCode });
-            }}
-            placeholder="e.g. 94122, 94010, 94401..."
-            className={cn(
-              "w-full px-3 h-11 bg-[#1B1E15] border rounded-xl text-base sm:text-xs font-mono font-bold tracking-wider placeholder:text-[#FAF0E2]/30 focus:outline-none transition-all shadow-inner",
-              data.zipCode.length === 5 && coverage.covered
-                ? "border-emerald-500 bg-emerald-950/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
-                : data.zipCode.length === 5 && !coverage.covered
-                ? "border-red-500 bg-red-950/25 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-pulse"
-                : "border-[#FAF0E2]/15 text-[#FAF0E2] focus:border-[#AA8B63]"
-            )}
-          />
         </div>
-
-        {/* GREEN CONFIRMATION BADGE IF COVERED */}
-        {data.zipCode.length === 5 && coverage.covered && (
-          <div className="p-3.5 rounded-2xl bg-emerald-950/50 border border-emerald-500/80 flex items-start gap-3 shadow-[0_0_20px_rgba(16,185,129,0.2)] animate-in fade-in duration-200">
-            <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
-              <span className="text-xs font-bold text-emerald-300 block">
-                ✓ Great news! We cover your area in {coverage.cityArea} ({coverage.zone})
-              </span>
-              <p className="text-[11.5px] text-emerald-200/90 leading-snug">
-                Our autonomous solar mobile spa van arrives directly at your doorstep in ZIP {coverage.zipCode}.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* ── RED ALERT MESSAGE IF ZIP CODE IS OUT OF COVERAGE ────────── */}
-        {data.zipCode.length === 5 && !coverage.covered && (
-          <div className="p-4 rounded-2xl bg-red-950/60 border-2 border-red-500 text-red-100 flex items-start gap-3.5 shadow-[0_0_30px_rgba(239,68,68,0.35)] animate-in fade-in slide-in-from-top-2 duration-200">
-            <AlertCircle className="h-6 w-6 text-red-400 shrink-0 mt-0.5 animate-bounce" />
-            <div className="space-y-1.5 flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-bold text-red-200 uppercase font-mono tracking-wider">
-                  ⚠️ Out of Service Area (ZIP {data.zipCode})
-                </span>
-                <span className="text-[9px] font-mono bg-red-900/60 text-red-300 px-2 py-0.5 rounded-full border border-red-500/40 shrink-0 font-bold">
-                  Not Available Yet
-                </span>
-              </div>
-              <p className="text-[11.5px] text-red-200/90 leading-relaxed">
-                We're sorry, our mobile spa currently services select <strong>San Francisco neighborhoods</strong> and across the <strong>Peninsula</strong> (Daly City through Mountain View & Half Moon Bay). We do not cover ZIP code <strong>{data.zipCode}</strong> yet.
-              </p>
-              <div className="pt-1.5 flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCoverageModal(true)}
-                  className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[11px] font-mono font-bold tracking-wider uppercase transition-colors cursor-pointer shadow-md flex items-center gap-1"
-                >
-                  <span>Join Route Waitlist</span>
-                  <ArrowRight className="h-3 w-3" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setData({ ...data, zipCode: "" })}
-                  className="px-3 py-1.5 rounded-xl bg-[#25281D] hover:bg-[#333827] text-red-300 hover:text-white text-[11px] font-mono font-bold transition-colors cursor-pointer border border-red-500/30"
-                >
-                  Enter Another ZIP Code
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div>
           <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1.5">
@@ -1959,86 +1878,6 @@ function StepLocationCoverage({
           />
         </div>
       </div>
-
-      {showCoverageModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-[#161811] border-2 border-red-500/80 rounded-3xl shadow-[0_0_50px_rgba(239,68,68,0.3)] p-6 space-y-4 relative animate-in zoom-in-95 duration-200">
-            <button
-              type="button"
-              onClick={() => setShowCoverageModal(false)}
-              className="absolute top-4 right-4 h-8 w-8 rounded-full bg-red-950/40 border border-red-500/30 flex items-center justify-center text-red-300 hover:text-white cursor-pointer"
-              aria-label="Close modal"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-2xl bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 shrink-0">
-                <AlertCircle className="h-6 w-6" />
-              </div>
-              <div>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-red-400 block">
-                  Coverage Notice · Out of Area
-                </span>
-                <h4 className="font-display font-bold text-lg text-white">
-                  We do not service ZIP {data.zipCode} yet
-                </h4>
-              </div>
-            </div>
-
-            <p className="text-xs text-[#FAF0E2]/90 leading-relaxed">
-              We currently operate in <strong className="text-[#AA8B63]">San Francisco (select zones)</strong> and across the <strong className="text-[#AA8B63]">Peninsula</strong>.
-            </p>
-
-            <div className="p-3.5 rounded-2xl bg-[#1D2116] border border-[#FAF0E2]/15 space-y-2">
-              <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-[#AA8B63] block">
-                Join Route Waitlist
-              </span>
-              {!waitlistJoined ? (
-                <div className="flex gap-2">
-                  <input
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    enterKeyHint="done"
-                    value={waitlistEmail}
-                    onChange={(e) => setWaitlistEmail(e.target.value)}
-                    placeholder="youremail@example.com"
-                    className="flex-1 px-3 h-9 bg-[#14160F] border border-[#FAF0E2]/20 rounded-xl text-base sm:text-xs text-[#FAF0E2]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (waitlistEmail.includes("@")) setWaitlistJoined(true);
-                    }}
-                    className="px-3 h-9 rounded-xl bg-red-500 text-white text-[11px] font-mono font-bold uppercase tracking-wider hover:bg-red-400 cursor-pointer"
-                  >
-                    Notify Me
-                  </button>
-                </div>
-              ) : (
-                <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center gap-1.5">
-                  <Check className="h-4 w-4" />
-                  <span>Saved! We will notify you when we expand to {data.zipCode}.</span>
-                </div>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setShowCoverageModal(false);
-                setData((prev) => ({ ...prev, zipCode: "" }));
-              }}
-              className="w-full py-3 rounded-xl bg-[#25281D] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] text-xs font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
-            >
-              Try Another Address or ZIP Code
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -2060,51 +1899,28 @@ function StepClientInfo({
       />
 
       <div className="mt-3.5 space-y-2.5 sm:space-y-3.5">
-        <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-          <div>
-            <label className="text-[10.5px] sm:text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 truncate">
-              First Name
-            </label>
-            <div className="relative">
-              <User className="pointer-events-none absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
-              <input
-                type="text"
-                autoComplete="given-name"
-                enterKeyHint="next"
-                value={data.firstName}
-                onChange={(e) => {
-                  const firstName = e.target.value;
-                  setData({
-                    ...data,
-                    firstName,
-                    ownerName: `${firstName} ${data.lastName}`.trim(),
-                  });
-                }}
-                placeholder="e.g. Jessica"
-                className="w-full pl-8 sm:pl-9 pr-2 sm:pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[10.5px] sm:text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 truncate">
-              Last Name
-            </label>
+        <div>
+          <label className="text-[10.5px] sm:text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+            Your Name
+          </label>
+          <div className="relative">
+            <User className="pointer-events-none absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
             <input
               type="text"
-              autoComplete="family-name"
+              autoComplete="name"
               enterKeyHint="next"
-              value={data.lastName}
+              value={data.firstName}
               onChange={(e) => {
-                const lastName = e.target.value;
+                const name = e.target.value;
                 setData({
                   ...data,
-                  lastName,
-                  ownerName: `${data.firstName} ${lastName}`.trim(),
+                  firstName: name,
+                  lastName: "",
+                  ownerName: name,
                 });
               }}
-              placeholder="e.g. Miller"
-              className="w-full px-2.5 sm:px-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
+              placeholder="e.g. Jessica Miller"
+              className="w-full pl-8 sm:pl-9 pr-2 sm:pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
             />
           </div>
         </div>
@@ -2252,60 +2068,26 @@ function StepDogInfo({
           )}
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Gender
-            </label>
-            <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
+            Age Bracket
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {ageOptions.map((age) => (
               <button
+                key={age}
                 type="button"
-                onClick={() => setData({ ...data, gender: "male" })}
+                onClick={() => setData({ ...data, petAge: age })}
                 className={cn(
-                  "py-2 px-3 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5",
-                  data.gender === "male"
-                    ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] shadow-md"
+                  "py-2.5 px-3 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
+                  data.petAge === age
+                    ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-md"
                     : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
                 )}
               >
-                <span>♂ Male</span>
+                {age}
               </button>
-              <button
-                type="button"
-                onClick={() => setData({ ...data, gender: "female" })}
-                className={cn(
-                  "py-2 px-3 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5",
-                  data.gender === "female"
-                    ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] shadow-md"
-                    : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-                )}
-              >
-                <span>♀ Female</span>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Age Bracket
-            </label>
-            <div className="grid grid-cols-3 gap-1">
-              {ageOptions.map((age) => (
-                <button
-                  key={age}
-                  type="button"
-                  onClick={() => setData({ ...data, petAge: age })}
-                  className={cn(
-                    "py-2 rounded-xl border text-center text-[10.5px] font-medium transition-all cursor-pointer",
-                    data.petAge === age
-                      ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-sm"
-                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-                  )}
-                >
-                  {age.split(" ")[0]}
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -2353,9 +2135,9 @@ function StepDogCareCondition({
   return (
     <div>
       <StepHeader
-        eyebrow={`Step 6 · Dog Coat & Temperament ${petNumber > 1 ? `(#${petNumber})` : ""}`}
-        title="Pet Health, Temperament & Photos"
-        subtitle="Help our master groomer prepare specialized handling and calming botanicals."
+        eyebrow={`Step 6 · Dog Health & Care ${petNumber > 1 ? `(#${petNumber})` : ""}`}
+        title="Pet Health & Special Notes"
+        subtitle="Help our master groomer prepare specialized handling and care."
       />
 
       <div className="mt-4 space-y-3.5">
@@ -2389,29 +2171,6 @@ function StepDogCareCondition({
             >
               Pending / In Progress
             </button>
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Pet Temperament
-          </label>
-          <div className="grid grid-cols-2 gap-1.5">
-            {temperamentOptions.map((opt) => (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => setData({ ...data, temperament: opt })}
-                className={cn(
-                  "p-2 rounded-xl border text-left text-[11px] font-medium transition-all cursor-pointer truncate",
-                  data.temperament === opt
-                    ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-sm"
-                    : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-                )}
-              >
-                {opt}
-              </button>
-            ))}
           </div>
         </div>
 
@@ -2664,14 +2423,6 @@ function StepBookingCalendar({
       />
 
       <div className="mt-4 space-y-4">
-        {/* Blocked Week Fleet Alert Banner */}
-        <div className="p-3 rounded-2xl bg-amber-950/60 border border-amber-500/50 flex items-center gap-2.5 text-xs text-amber-200 shadow-md">
-          <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
-          <div className="text-[11px] leading-snug">
-            <strong className="text-amber-300 font-bold uppercase tracking-wider">Fleet Notice:</strong> Appointments for the week of <strong>October 19–25</strong> are blocked for fleet operations. Earliest available slots begin <strong>Monday, October 26</strong>.
-          </div>
-        </div>
-
         {/* 24-Hour Advance Booking Policy Notice */}
         <div className="p-3 rounded-2xl bg-[#1C2116] border border-[#AA8B63]/40 flex items-center gap-2.5 text-xs shadow-inner">
           <Clock className="h-4 w-4 text-[#AA8B63] shrink-0" />
@@ -2983,17 +2734,12 @@ function StepBookingCalendar({
             })}
           </div>
 
-          {isDateBlocked(selectedDateObj.isoDate) ? (
-            <div className="mt-3 text-center text-xs font-mono font-bold text-amber-300 bg-amber-950/70 border border-amber-500/50 p-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg">
-              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
-              <span>The week of October 19–25 is blocked for fleet maintenance & operations. Please choose a date starting Monday, October 26.</span>
-            </div>
-          ) : isAllSlotsReserved ? (
+          {isAllSlotsReserved && (
             <div className="mt-3 text-center text-xs font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-500/40 p-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md">
               <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
               <span>All arrival windows on {selectedDateObj.dayLabel}, {selectedDateObj.month} {selectedDateObj.dayNum} are fully reserved. Please choose another date above.</span>
             </div>
-          ) : null}
+          )}
         </div>
       </div>
     </div>
@@ -3310,7 +3056,11 @@ function BookingSummaryView({
   onReset: () => void;
 }) {
   const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId);
-  const currentBasePrice = selectedPkg?.prices[data.size as PetSize] || 0;
+  const isOver50Lbs = data.size === "xlarge";
+  const currentBasePrice =
+    data.packageId === "essential-full-groom"
+      ? (isOver50Lbs ? 99 + 30 : 99)
+      : (selectedPkg?.prices[data.size as PetSize] || 0);
   const currentAddonsCost = data.addons.reduce((sum, addId) => {
     const item = SPA_UPGRADES.find((u) => u.id === addId);
     if (!item) return sum;

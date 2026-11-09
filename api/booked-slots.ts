@@ -15,16 +15,7 @@ export default async function handler(req: any, res: any) {
   const airtableBaseId = (process.env.AIRTABLE_BASE_ID || "apptb52dkVCyq2rPA").trim();
   const airtableTable = (process.env.AIRTABLE_TABLE_NAME || "Bookings").trim();
 
-  // Blocked week: October 19 to 25, 2026 (Fleet Operations / Maintenance)
-  const BLOCKED_DATES = [
-    "2026-10-19",
-    "2026-10-20",
-    "2026-10-21",
-    "2026-10-22",
-    "2026-10-23",
-    "2026-10-24",
-    "2026-10-25",
-  ];
+  const BLOCKED_DATES: string[] = [];
   const STANDARD_TIMES = [
     "8:30 AM",
     "9:30 AM",

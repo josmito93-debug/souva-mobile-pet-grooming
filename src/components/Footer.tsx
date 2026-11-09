@@ -212,7 +212,7 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
                   onClick={(e) => handleLinkClick("/coverage", "coverage", e)}
                   className="hover:text-[#FAF0E2] transition-colors block"
                 >
-                  38 Covered ZIP Codes
+                  40-Mile Service Coverage
                 </a>
               </li>
               <li>

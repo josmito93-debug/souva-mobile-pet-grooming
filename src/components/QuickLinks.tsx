@@ -268,7 +268,7 @@ function QuickLinksContent({
         </div>
 
         <span className="px-2.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 font-mono font-bold text-[10px] uppercase tracking-wider shrink-0">
-          38 ZIP Codes
+          40-Mile Radius
         </span>
       </div>
 
@@ -431,12 +431,12 @@ function QuickLinksContent({
             </span>
           </div>
           <span className="text-[10.5px] font-mono text-[#AA8B63]">
-            SF & Peninsula (38 ZIPs)
+            Daly City Hub · 40-Mile Radius
           </span>
         </div>
 
         <p className="text-xs text-[#A4AA93] mb-3 leading-relaxed">
-          Type your 5-digit ZIP code to verify if our autonomous solar van covers your address:
+          Dispatched from Daly City, CA. Enter your 5-digit ZIP code to verify your route:
         </p>
 
         <form onSubmit={handleCheckZip} className="flex gap-2 mb-2.5">
@@ -449,7 +449,7 @@ function QuickLinksContent({
               setZipInput(e.target.value);
               setZipResult(null);
             }}
-            placeholder="e.g. 94116, 94010, 94025..."
+            placeholder="e.g. 94116, 94015, 94010..."
             className="flex-1 px-3.5 py-2.5 bg-[#14160F] border border-[#FAF0E2]/20 rounded-xl text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/35 focus:outline-none focus:border-[#AA8B63] font-mono"
           />
           <button
@@ -468,19 +468,19 @@ function QuickLinksContent({
               "p-3 rounded-xl border text-xs font-mono transition-all flex items-start gap-2.5 mb-2.5",
               zipResult.covered
                 ? "bg-emerald-950/70 border-emerald-500/50 text-emerald-300"
-                : "bg-amber-950/70 border-amber-500/50 text-amber-300"
+                : "bg-[#1E2317] border-[#AA8B63]/40 text-[#FAF0E2]"
             )}
           >
             {zipResult.covered ? (
               <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
             ) : (
-              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+              <Check className="h-4 w-4 text-[#AA8B63] shrink-0 mt-0.5" />
             )}
             <div>
               <div className="font-bold text-sm">
                 {zipResult.covered
-                  ? `✓ Covered! SOUVA delivers to ${zipResult.cityArea || "your area"}`
-                  : `ZIP ${zipInput} is currently outside our regular primary route`}
+                  ? `✓ Core Route: SOUVA delivers to ${zipResult.cityArea || "your area"}`
+                  : `✓ Extended Service Area (Within 40 Miles of Daly City)`}
               </div>
               <div className="text-[11px] opacity-90 mt-0.5">
                 {zipResult.covered ? (
@@ -489,7 +489,7 @@ function QuickLinksContent({
                   </span>
                 ) : (
                   <span>
-                    Call +1 (415) 375-5823 to request a special custom route or neighborhood expansion!
+                    Our solar van services your location! A nominal distance/travel fee may apply for extended routes outside our primary corridor.
                   </span>
                 )}
               </div>

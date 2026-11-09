@@ -104,11 +104,14 @@ export function CoverageSection({ onBookClick, activeGeo, onSelectCity }: Covera
             {"// SERVICE COVERAGE // SOUVA MOBILE"}
           </span>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-[#FAF0E2]">
-            San Francisco & Peninsula
+            Daly City Hub · 40-Mile Service Radius
           </h2>
           <p className="mt-3 text-[#E2D7C5] text-sm md:text-base leading-relaxed">
-            Our autonomous solar mobile spa travels directly to your doorstep across the following selected coverage zones.
+            Our autonomous solar mobile spa travels directly to your doorstep from Daly City, CA across a 40-mile radius (San Francisco, Peninsula, Silicon Valley & surrounding Bay Area).
           </p>
+          <div className="mt-3 inline-block p-2.5 px-4 rounded-xl bg-amber-950/40 border border-amber-500/40 text-xs font-mono text-amber-200">
+            ⚠️ <strong>Distance Fee Notice:</strong> In certain extended areas outside our primary corridor, a nominal travel/distance fee may apply.
+          </div>
         </div>
 
         {/* Active Local GEO Route Banner (When visiting e.g. /san-francisco, /san-mateo, etc.) */}
@@ -215,42 +218,23 @@ export function CoverageSection({ onBookClick, activeGeo, onSelectCity }: Covera
                   </div>
                 </div>
               ) : (
-                <div className="p-3.5 rounded-2xl bg-red-950/40 border border-red-500/50 flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+                <div className="p-3.5 rounded-2xl bg-[#1C2016] border border-[#AA8B63]/50 flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-[#AA8B63] shrink-0 mt-0.5" />
                   <div className="space-y-1.5 flex-1">
-                    <span className="text-xs font-bold text-red-300 block">
-                      We do not service ZIP code {checkResult.zipCode} yet
+                    <span className="text-xs font-bold text-[#FAF0E2] block">
+                      ✓ Extended Service Area (Within 40 Miles of Daly City Hub)
                     </span>
-                    <p className="text-[11px] text-red-200/80 leading-relaxed">
-                      We currently operate in select San Francisco neighborhoods and Peninsula cities (Daly City through Mountain View & Half Moon Bay).
+                    <p className="text-[11px] text-[#E2D7C5]/90 leading-relaxed">
+                      We dispatch directly to your doorstep in ZIP code <strong>{checkResult.zipCode}</strong>! In certain extended areas outside our core Peninsula route, a nominal distance/travel fee may apply.
                     </p>
-
-                    {/* Waitlist inline */}
-                    {!waitlistJoined ? (
-                      <div className="pt-2 flex flex-col sm:flex-row gap-1.5">
-                        <input
-                          type="email"
-                          value={waitlistEmail}
-                          onChange={(e) => setWaitlistEmail(e.target.value)}
-                          placeholder="Your email to notify you when we expand"
-                          className="flex-1 px-2.5 h-8 bg-[#14160F] border border-red-500/30 rounded-lg text-[11px] text-[#FAF0E2] placeholder:text-red-200/40"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (waitlistEmail.includes("@")) setWaitlistJoined(true);
-                          }}
-                          className="h-8 px-3 rounded-lg bg-red-500/80 text-white text-[10px] font-mono font-bold uppercase tracking-wider hover:bg-red-500 transition-colors shrink-0 cursor-pointer"
-                        >
-                          Notify Me
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="text-[10px] font-mono text-emerald-300 pt-1 flex items-center gap-1">
-                        <Check className="h-3 w-3" />
-                        <span>Saved! We'll notify you with priority when our route expands to your area.</span>
-                      </div>
-                    )}
+                    <button
+                      type="button"
+                      onClick={onBookClick}
+                      className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-[11px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                    >
+                      <span>Book Doorstep Appointment</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </button>
                   </div>
                 </div>
               )}

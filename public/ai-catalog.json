@@ -50,25 +50,25 @@
     {
       "id": "bath-and-brush",
       "name": "Bath & Brush Refresh",
-      "priceRange": { "currency": "USD", "min": 85, "max": 135 },
+      "priceRange": { "currency": "USD", "min": 75, "max": 130 },
       "url": "https://www.souvagrooming.com/services"
     },
     {
       "id": "bath-and-tidy",
       "name": "Bath & Tidy",
-      "priceRange": { "currency": "USD", "min": 105, "max": 155 },
+      "priceRange": { "currency": "USD", "min": 90, "max": 150 },
       "url": "https://www.souvagrooming.com/services"
     },
     {
       "id": "essential-full-groom",
       "name": "Essential Full Groom",
-      "priceRange": { "currency": "USD", "min": 125, "max": 195 },
+      "priceRange": { "currency": "USD", "min": 120, "max": 180 },
       "url": "https://www.souvagrooming.com/services"
     },
     {
       "id": "signature-souva-grooming",
       "name": "Signature SOUVA Grooming",
-      "priceRange": { "currency": "USD", "min": 145, "max": 225 },
+      "priceRange": { "currency": "USD", "min": 150, "max": 210 },
       "url": "https://www.souvagrooming.com/services"
     }
   ],
