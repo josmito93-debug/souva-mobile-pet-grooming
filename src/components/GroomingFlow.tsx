@@ -167,12 +167,12 @@ export const SCHEDULE_BY_DAY: Record<number, TimeSlot[]> = {
 const STEPS_TOTAL = 3;
 const STORAGE_KEY = "souva_pricing_calculator_draft";
 
-/* -------------------- Status LED Grid Tracker (3 Steps) -------------------- */
+/* -------------------- Status LED Grid Tracker (3 Steps in English) -------------------- */
 function StatusLedGrid({ activeIndex, onSelectStep }: { activeIndex: number; onSelectStep: (idx: number) => void }) {
   const steps = [
-    { icon: Sparkles, stepNum: "1", title: "Tamaño", subtitle: "Dog Size" },
-    { icon: Scissors, stepNum: "2", title: "Servicios", subtitle: "Services" },
-    { icon: Calendar, stepNum: "3", title: "Reserva Square", subtitle: "Square Booking" },
+    { icon: Sparkles, stepNum: "1", title: "1. Dog Size", subtitle: "Weight & Blueprint" },
+    { icon: Scissors, stepNum: "2", title: "2. Services", subtitle: "Packages & Upgrades" },
+    { icon: Calendar, stepNum: "3", title: "3. Square Booking", subtitle: "Confirm & Reserve" },
   ];
 
   return (
@@ -201,7 +201,7 @@ function StatusLedGrid({ activeIndex, onSelectStep }: { activeIndex: number; onS
             >
               <div className="flex items-center gap-1.5">
                 <IconComp className={cn("h-3.5 w-3.5", isActive ? "text-[#AA8B63]" : isDone ? "text-emerald-400" : "text-[#A4AA93]/60")} />
-                <span className={cn("text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-wider", isActive ? "text-[#FAF0E2]" : isDone ? "text-emerald-300" : "text-[#A4AA93]/70")}>
+                <span className={cn("text-[9.5px] sm:text-[10px] font-mono font-bold uppercase tracking-wider", isActive ? "text-[#FAF0E2]" : isDone ? "text-emerald-300" : "text-[#A4AA93]/70")}>
                   {st.title}
                 </span>
               </div>
@@ -244,7 +244,7 @@ function StepHeader({
   );
 }
 
-/* -------------------- MAIN GROOMING FLOW (CONOCE TU PRECIO) -------------------- */
+/* -------------------- MAIN GROOMING FLOW (KNOW YOUR PRICE) -------------------- */
 export function GroomingFlow({
   onStatus,
 }: {
@@ -384,11 +384,11 @@ export function GroomingFlow({
       .join(", ");
 
     const text = `SOUVA Mobile Pet Grooming Quote:
-- Pet Size: ${sizeObj?.label} (${sizeObj?.weight})
-- Package: ${selectedPackage.name}
+- Dog Size: ${sizeObj?.label} (${sizeObj?.weight})
+- Selected Package: ${selectedPackage.name}
 - Add-ons: ${addonsNames || "None"}
 - Estimated Total: $${grandEstimatedTotal}
-Book link: ${SQUARE_BOOKING_URL}`;
+Official Square Reservation Link: ${SQUARE_BOOKING_URL}`;
 
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -396,8 +396,8 @@ Book link: ${SQUARE_BOOKING_URL}`;
   };
 
   return (
-    <div ref={flowTopRef} id="conoce-tu-precio" className="w-full max-w-full min-w-0">
-      {/* ── TOP BADGE: CONOCE TU PRECIO ────────────────────────────── */}
+    <div ref={flowTopRef} id="price-calculator" className="w-full max-w-full min-w-0">
+      {/* ── TOP BADGE: KNOW YOUR PRICE ────────────────────────────── */}
       <div className="mb-3 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-[#22271A] via-[#2A2419] to-[#22271A] border border-[#AA8B63]/60 shadow-[0_2px_14px_rgba(170,139,99,0.2)] flex items-center justify-between select-none max-w-full min-w-0">
         <div className="flex items-center gap-2 min-w-0 shrink-0">
           <span className="relative flex h-2.5 w-2.5 shrink-0">
@@ -405,12 +405,12 @@ Book link: ${SQUARE_BOOKING_URL}`;
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#AA8B63]" />
           </span>
           <span className="text-xs sm:text-sm font-mono font-black tracking-wider sm:tracking-widest text-[#FAF0E2] uppercase whitespace-nowrap">
-            CONOCE TU PRECIO
+            KNOW YOUR PRICE
           </span>
         </div>
         <div className="flex items-center gap-1.5 text-[9.5px] sm:text-[10.5px] font-mono text-[#AA8B63] font-bold uppercase tracking-wider min-w-0 truncate">
           <Sparkles className="h-3 w-3 text-[#AA8B63] shrink-0" />
-          <span className="truncate">Paso {step + 1} de 3 · Square</span>
+          <span className="truncate">Step {step + 1} of 3 · Square</span>
         </div>
       </div>
 
@@ -431,10 +431,10 @@ Book link: ${SQUARE_BOOKING_URL}`;
 
         <div className="text-center">
           <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#AA8B63]">
-            PASO {step + 1} DE {STEPS_TOTAL}
+            STEP {step + 1} OF {STEPS_TOTAL}
           </div>
           <div className="text-[9.5px] font-mono text-[#FAF0E2]/60">
-            {step === 0 ? "Tamaño de Perro" : step === 1 ? "Servicios & Extras" : "Reserva en Square"}
+            {step === 0 ? "Dog Size & Weight" : step === 1 ? "Services & Upgrades" : "Square Reservation"}
           </div>
         </div>
 
@@ -442,10 +442,10 @@ Book link: ${SQUARE_BOOKING_URL}`;
           type="button"
           onClick={handleReset}
           className="px-2.5 py-1 rounded-full bg-[#1F2318] border border-[#FAF0E2]/15 text-[9.5px] font-mono font-bold text-[#AA8B63] hover:text-[#FAF0E2] hover:border-[#AA8B63] transition-all cursor-pointer flex items-center gap-1 shadow-sm"
-          title="Reiniciar cotizador"
+          title="Reset pricing calculator"
         >
           <RotateCcw className="h-2.5 w-2.5" />
-          <span>Reiniciar</span>
+          <span>Reset</span>
         </button>
       </div>
 
@@ -495,14 +495,14 @@ Book link: ${SQUARE_BOOKING_URL}`;
                     </span>
                   </div>
                   <div className="text-[10px] text-[#A4AA93] truncate">
-                    {data.addons.length > 0 ? `+${data.addons.length} upgrade(s)` : "Doorstep Spa Rate"}
+                    {data.addons.length > 0 ? `+${data.addons.length} upgrade(s)` : "Doorstep Spa Starting Rate"}
                   </div>
                 </div>
               </div>
 
               <div className="text-right shrink-0">
                 <span className="text-[9px] font-mono uppercase text-[#A4AA93] block">
-                  Estimado:
+                  Estimated Total:
                 </span>
                 <span className="font-mono font-black text-base sm:text-lg text-amber-300">
                   ${grandEstimatedTotal}
@@ -521,12 +521,12 @@ Book link: ${SQUARE_BOOKING_URL}`;
           >
             {step === 0 ? (
               <>
-                <span>Continuar a Servicios →</span>
+                <span>Continue to Services →</span>
                 <ArrowRight className="h-4 w-4" />
               </>
             ) : (
               <>
-                <span>Continuar a Reserva en Square (${grandEstimatedTotal}) →</span>
+                <span>Continue to Square Reservation (${grandEstimatedTotal}) →</span>
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
@@ -537,7 +537,7 @@ Book link: ${SQUARE_BOOKING_URL}`;
   );
 }
 
-/* -------------------- STEP 1: PET SIZE ("TAMAÑOS DE PERRO") -------------------- */
+/* -------------------- STEP 1: PET SIZE ("DOG SIZES") -------------------- */
 function StepPetSize({
   data,
   setData,
@@ -548,9 +548,9 @@ function StepPetSize({
   return (
     <div className="animate-in fade-in duration-200">
       <StepHeader
-        eyebrow="Paso 1 · Tamaños de Perro"
-        title="Elige el Tamaño de tu Perro"
-        subtitle="Visualiza cada tamaño para asegurar la preparación del espacio y suite solar en nuestra van móvil."
+        eyebrow="Step 1 · Dog Size Selection"
+        title="Choose Your Pet's Size"
+        subtitle="Preview our 3D size guide to verify custom suite preparation inside our solar van."
       />
 
       <div className="mt-3.5">
@@ -564,7 +564,7 @@ function StepPetSize({
         <div className="flex items-center gap-2">
           <span className="text-base">💡</span>
           <span className="text-[11px] leading-snug">
-            ¿No estás seguro del peso exacto? Nuestro groomer verificará la talla al llegar a tu puerta.
+            Not sure of your dog's exact weight? Our groomer will confirm size upon doorstep arrival.
           </span>
         </div>
       </div>
@@ -572,7 +572,7 @@ function StepPetSize({
   );
 }
 
-/* -------------------- STEP 2: SERVICES ("LUEGO SERVICIOS") -------------------- */
+/* -------------------- STEP 2: SERVICES ("THEN SERVICES") -------------------- */
 function StepServicePackage({
   data,
   setData,
@@ -601,21 +601,21 @@ function StepServicePackage({
     {
       id: "bath-refresh",
       title: "Bath & Brush",
-      subtitle: "Baño, secado, uñas, oídos",
+      subtitle: "Bath, blow-dry, nails, ear flush",
       rawPrice: SOUVA_PACKAGES.find((p) => p.id === "bath-refresh")?.prices[data.size as PetSize] || 75,
       isPromo: false,
     },
     {
       id: "bath-tidy",
       title: "Bath & Tidy",
-      subtitle: "+ corte higiénico, patitas y cara",
+      subtitle: "+ sanitary, paw pad & face trim",
       rawPrice: SOUVA_PACKAGES.find((p) => p.id === "bath-tidy")?.prices[data.size as PetSize] || 90,
       isPromo: false,
     },
     {
       id: "essential-full-groom",
       title: "Full Groom",
-      subtitle: isOver50Lbs ? "Corte completo · >50 lb: +$30" : "Corte completo bajo mantenimiento",
+      subtitle: isOver50Lbs ? "Short haircut / shave · Over 50 lb: +$30" : "Low-maintenance full haircut",
       rawPrice: fullGroomPromoPrice,
       originalPrice: fullGroomOriginalPrice,
       isPromo: true,
@@ -623,7 +623,7 @@ function StepServicePackage({
     {
       id: "signature-grooming",
       title: "Signature Grooming",
-      subtitle: 'Estilo tijera ½"+ · Acabado de lujo',
+      subtitle: 'Longer style ½"+ · Scissor finish',
       rawPrice: SOUVA_PACKAGES.find((p) => p.id === "signature-grooming")?.prices[data.size as PetSize] || 150,
       isPromo: false,
     },
@@ -632,9 +632,9 @@ function StepServicePackage({
   return (
     <div className="animate-in fade-in duration-200">
       <StepHeader
-        eyebrow="Paso 2 · Servicios & Precios"
-        title="Selecciona el Servicio de Grooming"
-        subtitle="Tarifas transparentes calibradas al tamaño de tu perro. Incluye nuestra promo activa."
+        eyebrow="Step 2 · Services & Rates"
+        title="Select Your Grooming Service"
+        subtitle="Upfront pricing calibrated to your dog's size. Includes our active promo."
       />
 
       {/* Intro Promo Banner */}
@@ -646,22 +646,22 @@ function StepServicePackage({
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-[9.5px] font-mono font-black uppercase tracking-wider text-amber-300">
-                PROMO NUEVOS CLIENTES
+                NEW CUSTOMERS ONLY
               </span>
               <span className="px-2 py-0.5 rounded-full bg-[#AA8B63]/25 border border-[#AA8B63]/50 text-[#FAF0E2] text-[8.5px] font-mono font-bold uppercase">
-                25/50 CUPOS DISPONIBLES
+                FIRST 50 BOOKINGS · 25/50 CLAIMED (25 LEFT)
               </span>
             </div>
             <p className="text-[11.5px] text-[#FAF0E2] font-semibold mt-0.5 leading-snug">
               Full Grooming Promo <strong className="text-amber-300 font-extrabold text-sm">$99</strong>{" "}
               <span className="text-amber-200 font-mono text-[10.5px]">
-                {isOver50Lbs ? "(+$30 perro >50 lb · $129 Activo)" : "(+$30 si >50 lb)"}
+                {isOver50Lbs ? "(+$30 for dogs over 50 lb · $129 Active)" : "(+$30 over 50 lb)"}
               </span>
             </p>
           </div>
         </div>
         <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-mono text-[9px] font-bold uppercase shrink-0 self-start sm:self-center">
-          {isOver50Lbs ? "$129 Activo" : "$99 Activo"}
+          {isOver50Lbs ? "$129 Active" : "$99 Active"}
         </span>
       </div>
 
@@ -677,13 +677,13 @@ function StepServicePackage({
                   {item.isPromo && (
                     <div className="mb-1">
                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[8px] font-mono font-black uppercase tracking-wider truncate max-w-full">
-                        ⚡ $99 PROMO (25 RESTANTES)
+                        ⚡ $99 PROMO (25 LEFT)
                       </span>
                       <span className={cn(
                         "block text-[8px] font-mono font-bold mt-0.5 truncate",
                         isSelected ? "text-[#161811]" : "text-amber-300"
                       )}>
-                        {isOver50Lbs ? "Incluye +$30 (>50 lb)" : "+$30 si >50 lb"}
+                        {isOver50Lbs ? "Includes +$30 (>50 lb)" : "+$30 over 50 lb"}
                       </span>
                     </div>
                   )}
@@ -712,7 +712,7 @@ function StepServicePackage({
                       isSelected ? "text-[#161811]/70" : "text-[#A4AA93]"
                     )}
                   >
-                    {item.isPromo ? "PROMO" : "Desde"}
+                    {item.isPromo ? "PROMO" : "Starting"}
                   </span>
                   <div className="flex items-center gap-1.5">
                     {item.isPromo && (
@@ -784,9 +784,9 @@ function StepServicePackage({
       <div className="mt-3.5 pt-2.5 border-t border-[#FAF0E2]/10">
         <div className="flex items-center justify-between mb-2">
           <label className="text-[10.5px] text-[#A4AA93] font-semibold uppercase tracking-wider">
-            Upgrades Opcionales de Spa
+            Optional Spa Upgrades & Add-ons
           </label>
-          <span className="text-[9.5px] font-mono text-[#AA8B63]">Opcional</span>
+          <span className="text-[9.5px] font-mono text-[#AA8B63]">Optional</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2">
@@ -819,7 +819,7 @@ function StepServicePackage({
   );
 }
 
-/* -------------------- STEP 3: RESERVA SQUARE ("TERCER PASO LINK SQUARE") -------------------- */
+/* -------------------- STEP 3: SQUARE RESERVATION ("SEND TO SQUARE") -------------------- */
 function StepSquareReservation({
   data,
   selectedPackage,
@@ -857,15 +857,15 @@ function StepSquareReservation({
   };
 
   const whatsappMessage = encodeURIComponent(
-    `Hola SOUVA Mobile Grooming, coticé en la web para mi perro tamaño ${sizeObj?.label} (${sizeObj?.weight}) el servicio "${selectedPackage.name}" por $${grandTotal}. Me gustaría reservar.`
+    `Hello SOUVA Mobile Grooming, I got an estimate for my ${sizeObj?.label} (${sizeObj?.weight}) dog for the "${selectedPackage.name}" package at $${grandTotal}. I would like to book an appointment.`
   );
 
   return (
     <div className="animate-in fade-in duration-300 space-y-4">
       <StepHeader
-        eyebrow="Paso 3 de 3 · Reserva en Square"
-        title="¡Tu Precio Estimado Está Listo!"
-        subtitle="Haz clic en el botón de abajo para elegir fecha, horario y completar tu cita en nuestro sistema oficial de Square."
+        eyebrow="Step 3 · Official Square Reservation"
+        title="Your Instant Estimate is Ready!"
+        subtitle="Click the button below to select your preferred date, arrival window & finalize your reservation on Square."
       />
 
       {/* Main High-End Estimate Card */}
@@ -876,21 +876,21 @@ function StepSquareReservation({
         <div className="flex items-center justify-between pb-3 border-b border-[#FAF0E2]/15 relative z-10">
           <div>
             <span className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-[#AA8B63] block">
-              PRECIO TOTAL ESTIMADO
+              TOTAL ESTIMATED RATE
             </span>
             <div className="flex items-baseline gap-2 mt-0.5">
               <span className="font-display font-black text-3xl sm:text-4xl text-amber-300 drop-shadow-sm">
                 ${grandTotal}
               </span>
               <span className="text-[11px] font-mono text-[#A4AA93]">
-                · Servicio a tu puerta
+                · All-inclusive doorstep service
               </span>
             </div>
           </div>
 
           <div className="text-right">
             <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-mono text-[9px] font-bold uppercase tracking-wide">
-              Tarifa Calculada
+              Calculated Rate
             </span>
             <div className="text-[10px] font-mono text-[#FAF0E2]/60 mt-1">
               ⏱ {selectedPackage.duration}
@@ -903,13 +903,13 @@ function StepSquareReservation({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-[#AA8B63]">🐶</span>
-              <span className="text-[#FAF0E2] font-semibold">Tamaño seleccionado:</span>
+              <span className="text-[#FAF0E2] font-semibold">Selected Size:</span>
             </div>
             <button
               type="button"
               onClick={onBackToSize}
               className="font-mono text-[#AA8B63] hover:underline font-bold text-[11px] cursor-pointer"
-              title="Cambiar tamaño"
+              title="Edit size"
             >
               {sizeObj?.label} ({sizeObj?.weight}) ✏️
             </button>
@@ -918,13 +918,13 @@ function StepSquareReservation({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-[#AA8B63]">✂️</span>
-              <span className="text-[#FAF0E2] font-semibold">Servicio base:</span>
+              <span className="text-[#FAF0E2] font-semibold">Base Service:</span>
             </div>
             <button
               type="button"
               onClick={onBackToServices}
               className="font-mono text-[#FAF0E2] hover:text-[#AA8B63] font-bold text-[11px] cursor-pointer"
-              title="Cambiar paquete"
+              title="Edit package"
             >
               {selectedPackage.name} (${basePrice}) ✏️
             </button>
@@ -934,7 +934,7 @@ function StepSquareReservation({
             <div className="flex items-start justify-between pt-1">
               <div className="flex items-center gap-2">
                 <span className="text-[#AA8B63]">✨</span>
-                <span className="text-[#FAF0E2] font-semibold">Upgrades incluidos:</span>
+                <span className="text-[#FAF0E2] font-semibold">Included Upgrades:</span>
               </div>
               <div className="text-right">
                 {selectedAddons.map((ad) => (
@@ -951,24 +951,24 @@ function StepSquareReservation({
         <div className="pt-3 border-t border-[#FAF0E2]/10 grid grid-cols-2 gap-2 text-[10.5px] text-[#E2D7C5]/85 relative z-10">
           <div className="flex items-center gap-1.5">
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-            <span>Van solar 100% autónoma</span>
+            <span>100% solar autonomous van</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-            <span>Atención 1-a-1 sin jaulas</span>
+            <span>1-on-1 cage-free calm suite</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-            <span>Cosméticos botánicos Hydra®</span>
+            <span>Botanical Hydra® cosmetics</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-            <span>San Francisco & Península</span>
+            <span>SF Bay Area & Peninsula</span>
           </div>
         </div>
       </div>
 
-      {/* ── BIG PRIMARY BUTTON: MANDAR AL LINK DE RESERVA SQUARE ──────── */}
+      {/* ── BIG PRIMARY BUTTON: REDIRECT TO SQUARE BOOKING LINK ──────── */}
       <div className="space-y-2 pt-1">
         <a
           href={SQUARE_BOOKING_URL}
@@ -977,14 +977,14 @@ function StepSquareReservation({
           onClick={handleSquareClick}
           className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[#AA8B63] via-[#C4A67E] to-[#AA8B63] text-[#161811] font-display font-black text-sm sm:text-base uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_28px_rgba(170,139,99,0.5)] hover:shadow-[0_0_40px_rgba(170,139,99,0.7)] hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer text-center group"
         >
-          <span>RESERVAR EN SQUARE AHORA</span>
+          <span>RESERVE ON SQUARE NOW</span>
           <ExternalLink className="h-4.5 w-4.5 stroke-[2.5] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
         </a>
 
         {/* Direct Link Info & Copy Button */}
         <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-[#151810] border border-[#FAF0E2]/10 text-[10px] font-mono text-[#A4AA93]">
           <span className="truncate">
-            Enlace oficial: <strong className="text-[#FAF0E2]">souva-mobile-pet-grooming.square.site</strong>
+            Official Reservation Link: <strong className="text-[#FAF0E2]">souva-mobile-pet-grooming.square.site</strong>
           </span>
           <button
             type="button"
@@ -994,27 +994,27 @@ function StepSquareReservation({
             {copied ? (
               <>
                 <Check className="h-3 w-3 text-emerald-400" />
-                <span>Copiado</span>
+                <span>Copied</span>
               </>
             ) : (
               <>
                 <Copy className="h-3 w-3" />
-                <span>Copiar</span>
+                <span>Copy Link</span>
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Alternate Options (Phone / WhatsApp Concierge) */}
+      {/* Alternate Concierge Options (Phone / WhatsApp) */}
       <div className="pt-2 grid grid-cols-2 gap-2 text-xs">
         <a
           href="tel:+14153755823"
           className="p-2.5 rounded-xl bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:border-[#AA8B63] transition-colors flex items-center justify-center gap-1.5 font-mono text-[11px] font-bold"
-          title="Llamar para reservar"
+          title="Call SOUVA concierge to book"
         >
           <Phone className="h-3.5 w-3.5 text-[#AA8B63]" />
-          <span>Llamar: (415) 375-5823</span>
+          <span>Call: (415) 375-5823</span>
         </a>
 
         <a
@@ -1022,7 +1022,7 @@ function StepSquareReservation({
           target="_blank"
           rel="noopener noreferrer"
           className="p-2.5 rounded-xl bg-[#152317] border border-[#25D366]/40 text-emerald-300 hover:border-[#25D366] transition-colors flex items-center justify-center gap-1.5 font-mono text-[11px] font-bold"
-          title="Consultar por WhatsApp"
+          title="Chat with SOUVA on WhatsApp"
         >
           <WhatsAppIcon className="h-3.5 w-3.5 text-[#25D366]" />
           <span>WhatsApp Concierge</span>

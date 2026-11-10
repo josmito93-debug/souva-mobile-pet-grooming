@@ -75,8 +75,8 @@ export function Header({
   const navItems = [
     { label: "Book Now (Square)", href: "https://souva-mobile-pet-grooming.square.site", action: onBookClick, icon: Calendar, highlight: true },
     {
-      label: "Conoce tu precio",
-      href: "#conoce-tu-precio",
+      label: "Know Your Price",
+      href: "#price-calculator",
       action: (e?: React.MouseEvent) => {
         if (e) e.preventDefault();
         setMobileMenuOpen(false);
@@ -176,7 +176,7 @@ export function Header({
               className="hover:text-[#AA8B63] transition-colors cursor-pointer flex items-center gap-1 font-semibold text-[#FAF0E2]"
             >
               <Sparkles className="h-3 w-3 text-[#AA8B63]" />
-              <span>Conoce tu precio</span>
+              <span>Know Your Price</span>
             </button>
           )}
           <a

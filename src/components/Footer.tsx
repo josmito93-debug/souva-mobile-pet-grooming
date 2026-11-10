@@ -196,15 +196,18 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
               </li>
               <li>
                 <a
-                  href="#conoce-tu-precio"
+                  href="#price-calculator"
                   onClick={(e) => {
                     e.preventDefault();
-                    const el = document.getElementById("conoce-tu-precio") || document.getElementById("book");
+                    const el =
+                      document.getElementById("price-calculator") ||
+                      document.getElementById("conoce-tu-precio") ||
+                      document.getElementById("book");
                     if (el) el.scrollIntoView({ behavior: "smooth" });
                   }}
                   className="hover:text-[#FAF0E2] transition-colors block"
                 >
-                  Conoce tu precio (Calculadora)
+                  Know Your Price (Calculator)
                 </a>
               </li>
               <li>

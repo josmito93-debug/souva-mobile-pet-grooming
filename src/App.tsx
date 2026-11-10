@@ -384,6 +384,7 @@ function AppContent() {
 
   const scrollToPriceCalculator = () => {
     const el =
+      document.getElementById("price-calculator") ||
       document.getElementById("conoce-tu-precio") ||
       document.getElementById("booking-flow-card") ||
       document.getElementById("book");
@@ -638,11 +639,11 @@ function AppContent() {
                     )}
                   />
 
-                  {/* Conoce Tu Precio Card Header */}
+                  {/* Know Your Price Card Header */}
                   <div className="flex flex-wrap items-center justify-between gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 mb-2.5 rounded-2xl bg-[#1C2016]/90 border border-[#AA8B63]/30 backdrop-blur-md shadow-sm">
                     <span className="text-[10px] sm:text-[11px] font-mono text-[#FAF0E2] flex items-center gap-1.5 font-semibold truncate">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                      <span className="truncate">Conoce Tu Precio · Calculadora Instantánea</span>
+                      <span className="truncate">Know Your Price · Instant Price Calculator</span>
                     </span>
                     <a
                       href={SQUARE_BOOKING_URL}
@@ -650,7 +651,7 @@ function AppContent() {
                       rel="noopener noreferrer"
                       onClick={handleBookNow}
                       className="text-[10px] sm:text-[11px] font-mono text-amber-300 hover:text-white font-bold flex items-center gap-1 cursor-pointer transition-colors shrink-0 ml-auto"
-                      title="Ir directo a reservar en Square"
+                      title="Book directly on Square"
                     >
                       <Calendar className="h-3 w-3 shrink-0" />
                       <span>Book on Square →</span>
