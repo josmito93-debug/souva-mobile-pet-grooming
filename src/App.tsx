@@ -18,6 +18,7 @@ import {
   Zap,
   Leaf,
   User,
+  Calendar,
 } from "lucide-react";
 import { SouvaLogo } from "@/components/SouvaLogo";
 import { Header } from "@/components/Header";
@@ -372,8 +373,20 @@ function AppContent() {
     return () => ctx.revert();
   }, [currentView]);
 
-  const scrollToBookingFlow = () => {
-    const el = document.getElementById("booking-flow-card") || document.getElementById("book");
+  const SQUARE_BOOKING_URL = "https://souva-mobile-pet-grooming.square.site";
+
+  const handleBookNow = () => {
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "Schedule", { content_name: "Book Now CTA Click" });
+    }
+    window.open(SQUARE_BOOKING_URL, "_blank", "noopener,noreferrer");
+  };
+
+  const scrollToPriceCalculator = () => {
+    const el =
+      document.getElementById("conoce-tu-precio") ||
+      document.getElementById("booking-flow-card") ||
+      document.getElementById("book");
     if (el) {
       const headerOffset = 80;
       const y = el.getBoundingClientRect().top + window.scrollY - headerOffset;
@@ -382,6 +395,8 @@ function AppContent() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  const scrollToBookingFlow = scrollToPriceCalculator;
 
   if (currentView === "admin") {
     return (
@@ -491,7 +506,8 @@ function AppContent() {
 
       {/* Header */}
       <Header
-        onBookClick={scrollToBookingFlow}
+        onBookClick={handleBookNow}
+        onPriceCalculatorClick={scrollToPriceCalculator}
         onOpenQuickLinks={() => setShowQuickLinksModal(true)}
         onOpenClientPortal={navigateToPortal}
         onNavigateSlug={navigateToSlug}
@@ -622,21 +638,23 @@ function AppContent() {
                     )}
                   />
 
-                  {/* Booking Card Header */}
+                  {/* Conoce Tu Precio Card Header */}
                   <div className="flex flex-wrap items-center justify-between gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 mb-2.5 rounded-2xl bg-[#1C2016]/90 border border-[#AA8B63]/30 backdrop-blur-md shadow-sm">
                     <span className="text-[10px] sm:text-[11px] font-mono text-[#FAF0E2] flex items-center gap-1.5 font-semibold truncate">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                      <span className="truncate">Doorstep Mobile Spa Reservation</span>
+                      <span className="truncate">Conoce Tu Precio · Calculadora Instantánea</span>
                     </span>
-                    <button
-                      type="button"
-                      onClick={navigateToPortal}
+                    <a
+                      href={SQUARE_BOOKING_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={handleBookNow}
                       className="text-[10px] sm:text-[11px] font-mono text-amber-300 hover:text-white font-bold flex items-center gap-1 cursor-pointer transition-colors shrink-0 ml-auto"
-                      title="View or modify an existing appointment"
+                      title="Ir directo a reservar en Square"
                     >
-                      <User className="h-3 w-3 shrink-0" />
-                      <span>Manage booking →</span>
-                    </button>
+                      <Calendar className="h-3 w-3 shrink-0" />
+                      <span>Book on Square →</span>
+                    </a>
                   </div>
 
                   <InteractiveTile
@@ -735,14 +753,16 @@ function AppContent() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={scrollToBookingFlow}
+              <a
+                href={SQUARE_BOOKING_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleBookNow}
                 className="w-full md:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-[#AA8B63] via-[#C4A67E] to-[#AA8B63] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider hover:brightness-110 active:scale-98 transition-all shrink-0 cursor-pointer shadow-lg flex items-center justify-center gap-1.5"
               >
-                <span>Claim $99 Promo</span>
+                <span>Claim $99 Promo on Square</span>
                 <ChevronRight className="h-4 w-4" />
-              </button>
+              </a>
             </div>
 
             {/* Interactive SIZE GUIDE Switcher */}
@@ -879,14 +899,19 @@ function AppContent() {
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={scrollToBookingFlow}
+                    <a
+                      href={SQUARE_BOOKING_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBookNow();
+                      }}
                       className="mt-6 w-full py-2.5 rounded-xl border border-[#AA8B63]/40 bg-[#AA8B63]/10 text-xs font-bold text-[#FAF0E2] hover:bg-[#AA8B63] hover:text-[#161811] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                     >
-                      <span>Select This Service</span>
+                      <span>Book on Square</span>
                       <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
+                    </a>
                   </div>
                 );
 
@@ -1001,14 +1026,14 @@ function AppContent() {
         </section>
 
         {/* CLIENT FAQS & ASK CONCIERGE BOX (POWERED BY RESEND) */}
-        <FaqSection onBookClick={scrollToBookingFlow} />
+        <FaqSection onBookClick={handleBookNow} />
 
         {/* ABOUT SOUVA SECTION */}
-        <AboutSection onBookClick={scrollToBookingFlow} />
+        <AboutSection onBookClick={handleBookNow} />
 
         {/* COVERAGE AREAS SECTION */}
         <CoverageSection
-          onBookClick={scrollToBookingFlow}
+          onBookClick={handleBookNow}
           activeGeo={activeGeoRoute}
           onSelectCity={navigateToSlug}
         />
@@ -1032,7 +1057,7 @@ function AppContent() {
         </section>
 
         {/* SALON GALLERY & SOLAR FLEET 3D VIRTUAL INSPECTION */}
-        <Van3dCarousel onBookClick={scrollToBookingFlow} />
+        <Van3dCarousel onBookClick={handleBookNow} />
 
         {/* TESTIMONIALS */}
         <section id="reviews" className="py-16 md:py-24 px-4 md:px-8 border-t border-[#FAF0E2]/10 bg-[#161811]">
@@ -1157,17 +1182,17 @@ function AppContent() {
             </div>
             <button
               type="button"
-              onClick={scrollToBookingFlow}
+              onClick={handleBookNow}
               className="px-8 py-3.5 rounded-2xl btn-luxury font-bold text-xs tracking-wider cursor-pointer shadow-xl shrink-0"
             >
-              Book Solar Van to Doorstep
+              Book Solar Van on Square
             </button>
           </div>
         </section>
 
         {/* Local SEO & ZIP Code Geographic Crawlable Directory */}
         <LocalSeoDirectory
-          onBookClick={scrollToBookingFlow}
+          onBookClick={handleBookNow}
           activeSlug={activeGeoRoute?.slug || (typeof window !== "undefined" ? window.location.pathname : "/")}
           onSelectCity={navigateToSlug}
         />
@@ -1191,7 +1216,7 @@ function AppContent() {
       {/* Robust Footer */}
       <Footer
         onOpenAdmin={navigateToAdmin}
-        onBookClick={scrollToBookingFlow}
+        onBookClick={handleBookNow}
         onOpenQuickLinks={() => setShowQuickLinksModal(true)}
         onOpenClientPortal={navigateToPortal}
         onOpenTerms={() => setShowTermsModal(true)}
@@ -1205,7 +1230,7 @@ function AppContent() {
         onClose={() => setShowQuickLinksModal(false)}
         onBookClick={() => {
           setShowQuickLinksModal(false);
-          scrollToBookingFlow();
+          handleBookNow();
         }}
         onNavigateToSection={(sectionId) => {
           setShowQuickLinksModal(false);

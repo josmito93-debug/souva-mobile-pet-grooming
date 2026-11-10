@@ -184,8 +184,27 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
                 </li>
               )}
               <li>
-                <a href="#book" onClick={onBookClick} className="hover:text-[#FAF0E2] transition-colors block">
-                  Book Doorstep Van
+                <a
+                  href="https://souva-mobile-pet-grooming.square.site"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={onBookClick}
+                  className="hover:text-[#FAF0E2] transition-colors block font-semibold text-[#AA8B63]"
+                >
+                  Book on Square →
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#conoce-tu-precio"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const el = document.getElementById("conoce-tu-precio") || document.getElementById("book");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="hover:text-[#FAF0E2] transition-colors block"
+                >
+                  Conoce tu precio (Calculadora)
                 </a>
               </li>
               <li>
@@ -456,14 +475,16 @@ export function Footer({ onOpenAdmin, onBookClick, onOpenQuickLinks, onOpenClien
 
             {/* Quick Action Button */}
             {onBookClick && (
-              <button
-                type="button"
+              <a
+                href="https://souva-mobile-pet-grooming.square.site"
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={onBookClick}
                 className="mt-3 w-full py-2.5 px-4 rounded-xl bg-[#AA8B63] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider hover:bg-[#C4A67E] transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
               >
                 <Calendar className="h-3.5 w-3.5" />
-                <span>Book Appointment</span>
-              </button>
+                <span>Book on Square</span>
+              </a>
             )}
           </div>
         </div>

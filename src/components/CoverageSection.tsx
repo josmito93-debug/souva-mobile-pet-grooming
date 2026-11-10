@@ -296,13 +296,16 @@ export function CoverageSection({ onBookClick, activeGeo, onSelectCity }: Covera
               Book for two dogs during the same appointment visit and enjoy an automatic <strong className="text-[#FAF0E2]">20% discount on the second dog</strong>.
             </p>
           </div>
-          <button
-            type="button"
+          <a
+            href="https://souva-mobile-pet-grooming.square.site"
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={onBookClick}
-            className="px-5 py-2.5 rounded-full bg-[#AA8B63] text-[#161811] text-xs font-mono font-bold uppercase tracking-wider hover:bg-[#C4A67E] transition-colors cursor-pointer shrink-0 shadow-md"
+            className="px-5 py-2.5 rounded-full bg-[#AA8B63] text-[#161811] text-xs font-mono font-bold uppercase tracking-wider hover:bg-[#C4A67E] transition-colors cursor-pointer shrink-0 shadow-md flex items-center gap-1.5"
           >
-            Book Now
-          </button>
+            <span>Book on Square</span>
+            <ArrowRight className="h-3 w-3" />
+          </a>
         </div>
       </div>
     </section>

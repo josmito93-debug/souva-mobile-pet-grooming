@@ -24,12 +24,19 @@ import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   onBookClick: () => void;
+  onPriceCalculatorClick?: () => void;
   onOpenQuickLinks?: () => void;
   onOpenClientPortal?: () => void;
   onNavigateSlug?: (slug: string) => void;
 }
 
-export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal, onNavigateSlug }: HeaderProps) {
+export function Header({
+  onBookClick,
+  onPriceCalculatorClick,
+  onOpenQuickLinks,
+  onOpenClientPortal,
+  onNavigateSlug,
+}: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNavClick = (slug: string, sectionId: string, e?: React.MouseEvent) => {
@@ -66,7 +73,17 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal, onNa
   }, [mobileMenuOpen]);
 
   const navItems = [
-    { label: "Book Now", href: "#book", action: onBookClick, icon: Calendar, highlight: true },
+    { label: "Book Now (Square)", href: "https://souva-mobile-pet-grooming.square.site", action: onBookClick, icon: Calendar, highlight: true },
+    {
+      label: "Conoce tu precio",
+      href: "#conoce-tu-precio",
+      action: (e?: React.MouseEvent) => {
+        if (e) e.preventDefault();
+        setMobileMenuOpen(false);
+        if (onPriceCalculatorClick) onPriceCalculatorClick();
+      },
+      icon: Sparkles,
+    },
     { label: "Client Portal (My Bookings)", href: "/portal", action: onOpenClientPortal, icon: User },
     { label: "Services & Pricing", href: "/services", action: (e?: React.MouseEvent) => handleNavClick("/services", "services", e), icon: Scissors },
     { label: "Coverage Areas", href: "/coverage", action: (e?: React.MouseEvent) => handleNavClick("/coverage", "coverage", e), icon: MapPin },
@@ -103,14 +120,16 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal, onNa
 
           {/* Action CTAs */}
           <div className="flex items-center gap-2 sm:gap-2.5 text-xs shrink-0 ml-auto">
-            <button
-              type="button"
+            <a
+              href="https://souva-mobile-pet-grooming.square.site"
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={onBookClick}
               className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white text-emerald-950 hover:bg-yellow-300 hover:text-stone-950 font-rounded font-black text-[11px] uppercase tracking-wide transition-all shadow-md cursor-pointer"
             >
-              <span>🐶 Claim 20% OFF</span>
+              <span>🐶 Claim 20% OFF (Square)</span>
               <ArrowRight className="h-3 w-3" />
-            </button>
+            </a>
 
             <a
               href="tel:+14153755823"
@@ -141,13 +160,25 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal, onNa
 
         {/* Desktop Navigation Links */}
         <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-xs font-medium text-[#FAF0E2]/80">
-          <button
-            type="button"
+          <a
+            href="https://souva-mobile-pet-grooming.square.site"
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={onBookClick}
             className="hover:text-[#AA8B63] transition-colors cursor-pointer flex items-center gap-1 font-semibold text-[#FAF0E2]"
           >
             <span>Book Now</span>
-          </button>
+          </a>
+          {onPriceCalculatorClick && (
+            <button
+              type="button"
+              onClick={onPriceCalculatorClick}
+              className="hover:text-[#AA8B63] transition-colors cursor-pointer flex items-center gap-1 font-semibold text-[#FAF0E2]"
+            >
+              <Sparkles className="h-3 w-3 text-[#AA8B63]" />
+              <span>Conoce tu precio</span>
+            </button>
+          )}
           <a
             href="/services"
             onClick={(e) => handleNavClick("/services", "services", e)}
@@ -219,14 +250,16 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal, onNa
           )}
 
           {/* Book Now Primary Button */}
-          <button
-            type="button"
+          <a
+            href="https://souva-mobile-pet-grooming.square.site"
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={onBookClick}
             className="px-4 py-2 text-xs font-bold font-mono tracking-wider uppercase rounded-full bg-[#AA8B63] text-[#161811] hover:bg-[#C4A67E] transition-all cursor-pointer shadow-md flex items-center gap-1.5"
           >
             <Calendar className="h-3.5 w-3.5" />
             <span>BOOK NOW</span>
-          </button>
+          </a>
 
           {/* Hamburger Menu Toggle Button (Mobile & Tablet) */}
           <button
@@ -305,17 +338,19 @@ export function Header({ onBookClick, onOpenQuickLinks, onOpenClientPortal, onNa
                 <p className="text-xs font-rounded text-emerald-100 leading-snug">
                   Have two canine companions? Automatically receive <strong className="text-yellow-200">20% off</strong> your second dog's service when booked together.
                 </p>
-                <button
-                  type="button"
+                <a
+                  href="https://souva-mobile-pet-grooming.square.site"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={() => {
                     setMobileMenuOpen(false);
                     onBookClick();
                   }}
                   className="mt-1 w-full py-2.5 rounded-xl bg-white text-emerald-950 font-rounded font-black text-xs uppercase tracking-wide hover:bg-yellow-300 transition-colors flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                 >
-                  <span>🐶 Claim 20% OFF Now</span>
+                  <span>🐶 Claim 20% OFF on Square</span>
                   <ArrowRight className="h-3.5 w-3.5" />
-                </button>
+                </a>
               </div>
 
               {/* Location Badge */}

@@ -43,14 +43,16 @@ export function LocalSeoDirectory({ onBookClick, onSelectCity, activeSlug }: Loc
             </p>
           </div>
 
-          <button
-            type="button"
+          <a
+            href="https://souva-mobile-pet-grooming.square.site"
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={onBookClick}
             className="self-start md:self-auto px-5 py-2.5 rounded-full bg-[#AA8B63] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider hover:bg-[#C4A67E] transition-all cursor-pointer shadow-md flex items-center gap-1.5 shrink-0"
           >
             <Calendar className="h-3.5 w-3.5" />
-            <span>Check My ZIP Code</span>
-          </button>
+            <span>Book on Square</span>
+          </a>
         </div>
 
         {/* Quick Local Hub Navigation Pills */}

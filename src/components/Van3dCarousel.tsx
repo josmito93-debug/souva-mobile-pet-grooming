@@ -555,14 +555,16 @@ export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
             </div>
 
             {onBookClick && (
-              <button
-                type="button"
+              <a
+                href="https://souva-mobile-pet-grooming.square.site"
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={onBookClick}
                 className="w-full sm:w-auto px-6 py-3 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-md shrink-0 flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
               >
                 <Calendar className="h-3.5 w-3.5" />
-                <span>Book This Van</span>
-              </button>
+                <span>Book on Square</span>
+              </a>
             )}
           </div>
         </div>
@@ -648,8 +650,10 @@ export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
               </div>
 
               {onBookClick && (
-                <button
-                  type="button"
+                <a
+                  href="https://souva-mobile-pet-grooming.square.site"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={() => {
                     setLightboxIndex(null);
                     onBookClick();
@@ -657,8 +661,8 @@ export function Van3dCarousel({ onBookClick }: Van3dCarouselProps) {
                   className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-md shrink-0 flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px]"
                 >
                   <Calendar className="h-3.5 w-3.5" />
-                  <span>Reserve This Van</span>
-                </button>
+                  <span>Reserve on Square</span>
+                </a>
               )}
             </div>
           </div>

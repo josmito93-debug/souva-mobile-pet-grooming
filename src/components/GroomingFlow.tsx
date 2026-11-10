@@ -1,57 +1,23 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import {
   Sparkles,
-  MapPin,
-  Compass,
-  Phone,
-  User,
-  Mail,
-  ChevronLeft,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  ArrowRight,
-  Heart,
   Scissors,
   Check,
   Calendar,
-  Camera,
-  Upload,
-  Trash2,
-  ShieldCheck,
-  Activity,
-  Info,
-  Car,
-  FileCheck,
-  CheckCircle2,
-  FileDown,
-  AlertCircle,
-  X,
-  Search,
-  Users,
-  PlusCircle,
-  RotateCcw,
-  FileText,
   ExternalLink,
-  Lock,
-  RefreshCw,
+  ChevronLeft,
+  ArrowRight,
+  RotateCcw,
+  Phone,
+  CheckCircle2,
+  Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PetBlueprint } from "@/components/PetBlueprint";
-import { TermsModal } from "@/components/TermsModal";
 import { WhatsAppIcon } from "@/components/BrandIcons";
-import breedsList from "@/data/breeds.json";
 import { SOUVA_PACKAGES, SPA_UPGRADES, SIZE_GUIDE, type PetSize } from "@/data/services";
-import { checkCoverage, SOUVA_COVERAGE_ZONES, SUGGESTED_AREAS } from "@/data/coverage";
-import { addDispatchRequest, getStoredRequests } from "@/lib/dispatchStore";
-import { saveClientSession } from "@/lib/clientPortalStore";
-import {
-  createAirtableBooking,
-  fetchBookedSlots,
-  formatToIsoDate,
-  isTimeMatching,
-  type BookedSlot,
-} from "@/lib/airtable";
+
+export const SQUARE_BOOKING_URL = "https://souva-mobile-pet-grooming.square.site";
 
 export interface CompletedPet {
   id: string;
@@ -76,56 +42,38 @@ export interface CompletedPet {
 }
 
 export interface GroomingFlowState {
-  // Step 1: Dog Size
   size: PetSize;
-
-  // Step 2: Service & Upgrades ("Know your price")
   packageId: string;
   addons: string[];
-
-  // Step 3: Location & Coverage & Parking
   address: string;
   zipCode: string;
   parkingNotes: string;
   latitude: number | null;
   longitude: number | null;
-
-  // Step 4: Client Information
   firstName: string;
   lastName: string;
   ownerName: string;
   email: string;
   phone: string;
-
-  // Step 5: Dog Information
   dogCount: number;
   petName: string;
   breed: string;
   petAge: string;
   gender: "male" | "female";
-
-  // Step 6: Dog Condition & Coat
   petCondition: string;
   temperament: string;
   vaccinated: "yes" | "no";
   medicalConditions: string;
   groomerNotes: string;
   petPhoto: string | null;
-
-  // Step 7: Availability Calendar & Arrival Window
   scheduledDate: string;
   scheduledDateIso?: string;
   scheduledTime: string;
-
-  // Step 8: Disclaimer (Direct confirmation button + optional signature)
   signature: string | null;
   agreedToTerms: boolean;
 }
 
-const STEPS_TOTAL = 8;
-const STORAGE_KEY = "souva_booking_draft_v3";
-
-// Full Year Calendar Availability (365 Days)
+// Full Year Calendar Availability (Preserved for compatibility with Manage/Modify Appointment Modals)
 export interface AvailableDate {
   dayLabel: string;
   month: string;
@@ -148,12 +96,8 @@ export function isDateBlocked(_isoDate?: string): boolean {
 export function getAvailableDates(): AvailableDate[] {
   const dates: AvailableDate[] = [];
   const now = new Date();
-  
-  // Bookings require at least 24 hours advance notice
-  // If current time is >= 17:00 (5 PM), start from day after tomorrow to guarantee 24h
   const startOffset = now.getHours() >= 17 ? 2 : 1;
 
-  // Open calendar for the entire year (365 days forward)
   for (let i = startOffset; i < startOffset + 365; i++) {
     const d = new Date(now);
     d.setDate(now.getDate() + i);
@@ -220,55 +164,51 @@ export const SCHEDULE_BY_DAY: Record<number, TimeSlot[]> = {
   ],
 };
 
-/* -------------------- Status LED Grid Tracker (8 Steps) -------------------- */
-function StatusLedGrid({ activeIndex, hot }: { activeIndex: number; hot: boolean }) {
+const STEPS_TOTAL = 3;
+const STORAGE_KEY = "souva_pricing_calculator_draft";
+
+/* -------------------- Status LED Grid Tracker (3 Steps) -------------------- */
+function StatusLedGrid({ activeIndex, onSelectStep }: { activeIndex: number; onSelectStep: (idx: number) => void }) {
   const steps = [
-    { icon: Sparkles, label: "Size" },
-    { icon: Scissors, label: "Service" },
-    { icon: MapPin, label: "Location" },
-    { icon: User, label: "Client" },
-    { icon: Heart, label: "Dog" },
-    { icon: ShieldCheck, label: "Care" },
-    { icon: Calendar, label: "Schedule" },
-    { icon: FileCheck, label: "Agreement" },
+    { icon: Sparkles, stepNum: "1", title: "Tamaño", subtitle: "Dog Size" },
+    { icon: Scissors, stepNum: "2", title: "Servicios", subtitle: "Services" },
+    { icon: Calendar, stepNum: "3", title: "Reserva Square", subtitle: "Square Booking" },
   ];
 
   return (
     <div
-      className="ledgrid__track mb-6 select-none"
-      style={{ "--cols": 8 } as React.CSSProperties}
+      className="ledgrid__track mb-4 select-none"
+      style={{ "--cols": 3 } as React.CSSProperties}
     >
-      <div className="lg-row">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
         {steps.map((st, i) => {
-          const isOn = i === activeIndex;
+          const isActive = i === activeIndex;
+          const isDone = i < activeIndex;
           const IconComp = st.icon;
           return (
-            <div
+            <button
               key={i}
-              className={cn("lg-cell-wrap", isOn && "is-on", isOn && hot && "is-hot")}
-              title={st.label}
+              type="button"
+              onClick={() => onSelectStep(i)}
+              className={cn(
+                "relative p-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1 select-none",
+                isActive
+                  ? "bg-[#252A1C] border-[#AA8B63] text-[#FAF0E2] shadow-[0_0_15px_rgba(170,139,99,0.3)]"
+                  : isDone
+                  ? "bg-[#181B13] border-emerald-500/30 text-emerald-300 hover:border-[#AA8B63]/40"
+                  : "bg-[#151710] border-[#FAF0E2]/10 text-[#A4AA93]/60 hover:text-[#FAF0E2]/80"
+              )}
             >
-              <div
-                className={cn(
-                  "lg-cell relative flex flex-col justify-center gap-1 cursor-help h-full py-1",
-                  isOn && "is-on",
-                  isOn && hot && "is-hot"
-                )}
-              >
-                {isOn && (
-                  <>
-                    <span className="lg-corner lg-corner--tl" />
-                    <span className="lg-corner lg-corner--tr" />
-                    <span className="lg-corner lg-corner--bl" />
-                    <span className="lg-corner lg-corner--br" />
-                  </>
-                )}
-                <IconComp className="h-3.5 w-3.5 relative z-10" />
-                <span className="hidden sm:inline text-[7px] uppercase tracking-wider font-mono font-extrabold relative z-10 truncate max-w-full px-0.5">
-                  {st.label}
+              <div className="flex items-center gap-1.5">
+                <IconComp className={cn("h-3.5 w-3.5", isActive ? "text-[#AA8B63]" : isDone ? "text-emerald-400" : "text-[#A4AA93]/60")} />
+                <span className={cn("text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-wider", isActive ? "text-[#FAF0E2]" : isDone ? "text-emerald-300" : "text-[#A4AA93]/70")}>
+                  {st.title}
                 </span>
               </div>
-            </div>
+              <span className="hidden sm:inline text-[8px] font-mono opacity-60 uppercase">
+                {st.subtitle}
+              </span>
+            </button>
           );
         })}
       </div>
@@ -304,23 +244,17 @@ function StepHeader({
   );
 }
 
-/* -------------------- MAIN GROOMING FLOW COMPONENT -------------------- */
+/* -------------------- MAIN GROOMING FLOW (CONOCE TU PRECIO) -------------------- */
 export function GroomingFlow({
   onStatus,
 }: {
   onStatus?: (s: { armed: boolean; dispatched: boolean; currentStep?: number }) => void;
 }) {
-  const availableDates = useMemo(() => getAvailableDates(), []);
-  const initialDate = availableDates.find((d) => !isDateBlocked(d.isoDate)) || availableDates[0];
-  const initialSlots = SCHEDULE_BY_DAY[initialDate?.dayOfWeek ?? 1] || [];
-
   const flowTopRef = useRef<HTMLDivElement>(null);
-  const isFirstMount = useRef(true);
 
-  // 1. REHYDRATE FROM LOCALSTORAGE IF EXISTS
   const initialDataState: GroomingFlowState = {
     size: "small",
-    packageId: "",
+    packageId: "essential-full-groom", // Default to the popular $99 promo for immediate calculation
     addons: [],
     address: "",
     zipCode: "",
@@ -333,7 +267,7 @@ export function GroomingFlow({
     email: "",
     phone: "",
     dogCount: 1,
-    petName: "",
+    petName: "My Dog",
     breed: "",
     petAge: "Adult (1–7 yrs)",
     gender: "male",
@@ -343,9 +277,9 @@ export function GroomingFlow({
     medicalConditions: "None / Healthy",
     groomerNotes: "",
     petPhoto: null,
-    scheduledDate: initialDate?.fullDate || "Monday, Oct 26",
-    scheduledDateIso: initialDate?.isoDate || "2026-10-26",
-    scheduledTime: initialSlots[0]?.time || "9:30 AM",
+    scheduledDate: "",
+    scheduledDateIso: "",
+    scheduledTime: "",
     signature: null,
     agreedToTerms: true,
   };
@@ -356,922 +290,297 @@ export function GroomingFlow({
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed?.data) {
-          const draftIso = parsed.data.scheduledDateIso || formatToIsoDate(parsed.data.scheduledDate || "");
-          if (isDateBlocked(draftIso)) {
-            parsed.data.scheduledDate = initialDate?.fullDate || "Monday, Oct 26";
-            parsed.data.scheduledDateIso = initialDate?.isoDate || "2026-10-26";
-            parsed.data.scheduledTime = initialSlots[0]?.time || "9:30 AM";
-          }
           return { ...initialDataState, ...parsed.data };
         }
       }
     } catch (e) {
-      console.warn("Draft restore error", e);
+      console.warn("Storage restore error", e);
     }
     return initialDataState;
   });
 
-  const [step, setStep] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (typeof parsed?.step === "number" && parsed.step >= 0 && parsed.step < STEPS_TOTAL) {
-          return parsed.step;
-        }
-      }
-    } catch (e) {}
-    return 0;
-  });
+  const [step, setStep] = useState<number>(0);
+  const [copied, setCopied] = useState(false);
 
-  const [savedPets, setSavedPets] = useState<CompletedPet[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed?.savedPets)) return parsed.savedPets;
-      }
-    } catch (e) {}
-    return [];
-  });
-
-  const [dir, setDir] = useState<"fwd" | "back">("fwd");
-  const [completed, setCompleted] = useState(false);
-  const [justArmed, setJustArmed] = useState(false);
-  const [isDescExpanded, setIsDescExpanded] = useState(false);
-  const [invoicePdf, setInvoicePdf] = useState<{ base64: string; fileName: string } | null>(null);
-  const [emailNotice, setEmailNotice] = useState<{ type: "success" | "warning"; message: string } | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Airtable Live Availability State
-  const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
-  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
-
-  const loadBookedSlots = useCallback(async () => {
-    setIsLoadingSlots(true);
-    try {
-      const slots = await fetchBookedSlots();
-      setBookedSlots(slots);
-    } catch (e) {
-      console.warn("Slot sync failed:", e);
-    } finally {
-      setIsLoadingSlots(false);
-    }
-  }, []);
-
+  // Save to localStorage
   useEffect(() => {
-    loadBookedSlots();
-    // Poll every 15 seconds to keep slots up to date in real time
-    const interval = setInterval(loadBookedSlots, 15000);
-    const handleDispatchUpdate = () => loadBookedSlots();
-    window.addEventListener("souva_dispatch_updated", handleDispatchUpdate);
-    window.addEventListener("storage", handleDispatchUpdate);
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("souva_dispatch_updated", handleDispatchUpdate);
-      window.removeEventListener("storage", handleDispatchUpdate);
-    };
-  }, [loadBookedSlots]);
-
-  const isSlotBooked = useCallback(
-    (isoDate: string, time: string) => {
-      if (!isoDate || !time) return false;
-      if (isDateBlocked(isoDate)) return true;
-
-      const normIso = formatToIsoDate(isoDate);
-
-      // Airtable is the centralized real-time database of all active booked slots
-      return bookedSlots.some(
-        (b) => formatToIsoDate(b.date) === normIso && isTimeMatching(time, b.time)
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          data: {
+            size: data.size,
+            packageId: data.packageId,
+            addons: data.addons,
+          },
+        })
       );
-    },
-    [bookedSlots]
-  );
+    } catch (e) {}
+  }, [data.size, data.packageId, data.addons]);
 
-  // 2. PERSIST DRAFT TO LOCALSTORAGE ON EVERY CHANGE
+  // Broadcast step status
   useEffect(() => {
-    if (!completed) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, step, savedPets }));
-      } catch (e) {
-        console.warn("Failed to persist booking session draft", e);
-      }
-    }
-  }, [data, step, savedPets, completed]);
-
-  // 3. AUTO-SCROLL TO COCKPIT TOP ON STEP CHANGE (NOT on initial page load!)
-  const scrollToTop = useCallback(() => {
-    if (flowTopRef.current) {
-      const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
-      const stickyHeaderOffset = isMobile ? 64 : 80;
-      const rect = flowTopRef.current.getBoundingClientRect();
-      const targetY = Math.max(0, rect.top + window.scrollY - stickyHeaderOffset);
-      const isLargeJump = Math.abs(window.scrollY - targetY) > 280;
-
-      window.scrollTo({
-        top: targetY,
-        behavior: isMobile && isLargeJump ? "auto" : "smooth",
+    if (onStatus) {
+      onStatus({
+        armed: step >= 1,
+        dispatched: step === 2,
+        currentStep: step + 1,
       });
     }
-  }, []);
+  }, [step, onStatus]);
 
-  useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      return; // Do NOT auto-scroll on initial mount! Page stays at top (top: 0)!
-    }
-    // Give browser two frames to paint the new step view before computing scroll
-    const timer = setTimeout(() => {
-      scrollToTop();
-    }, 60);
-    return () => clearTimeout(timer);
-  }, [step, completed, scrollToTop]);
-
-  const reset = () => {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (e) {}
-    setStep(0);
-    setDir("back");
-    setCompleted(false);
-    setIsDescExpanded(false);
-    setInvoicePdf(null);
-    setEmailNotice(null);
-    setSavedPets([]);
-    setData(initialDataState);
-  };
-
-  // Step Completion Validation Rules
-  const isCoveredZip = checkCoverage(data.zipCode).covered;
-  const currentIsoDate = data.scheduledDateIso || formatToIsoDate(data.scheduledDate);
-  const isCurrentSlotBooked = Boolean(
-    data.scheduledDate &&
-    data.scheduledTime &&
-    isSlotBooked(currentIsoDate, data.scheduledTime)
-  );
-
-  const canNext = Boolean(
-    (step === 0 && Boolean(data.size)) ||
-    (step === 1 && Boolean(data.packageId)) ||
-    (step === 2 && data.address.trim().length >= 4) ||
-    (step === 3 &&
-      (data.firstName.trim().length >= 1 || data.ownerName.trim().length >= 2) &&
-      data.email.includes("@") &&
-      data.phone.trim().length >= 7) ||
-    (step === 4 &&
-      data.petName.trim().length >= 1 &&
-      data.breed.trim().length >= 2 &&
-      Boolean(data.petAge)) ||
-    (step === 5 && Boolean(data.vaccinated)) ||
-    (step === 6 &&
-      Boolean(data.scheduledDate) &&
-      Boolean(data.scheduledTime) &&
-      !isCurrentSlotBooked) ||
-    (step === 7 && data.agreedToTerms && !isCurrentSlotBooked)
-  );
-
-  useEffect(() => {
-    onStatus?.({ armed: canNext && !completed, dispatched: completed, currentStep: step });
-  }, [canNext, completed, onStatus, step]);
-
-  const prevCanNext = useRef(false);
-  useEffect(() => {
-    if (canNext && !prevCanNext.current) {
-      setJustArmed(true);
-      const id = setTimeout(() => setJustArmed(false), 750);
-      return () => clearTimeout(id);
-    }
-    prevCanNext.current = canNext;
-  }, [canNext]);
-
-  const activeIndex = completed ? 7 : step;
-
-  // Pricing calculations for current dog (Includes First 50 Bookings New Customer Promo: Full Grooming $99 for Small, Medium & Large; X-Large over 50 lb +$30)
-  const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId);
+  // Price Calculation Logic
   const isOver50Lbs = data.size === "xlarge";
-  const currentBasePrice =
-    data.packageId === "essential-full-groom"
-      ? (isOver50Lbs ? 99 + 30 : 99)
-      : (selectedPkg?.prices[data.size as PetSize] || 0);
-  const currentAddonsCost = data.addons.reduce((sum, addId) => {
-    const item = SPA_UPGRADES.find((u) => u.id === addId);
-    if (!item) return sum;
-    const num = parseInt(item.price.replace(/[^0-9]/g, ""), 10) || 0;
-    return sum + num;
-  }, 0);
+  const selectedPackage = SOUVA_PACKAGES.find((p) => p.id === data.packageId) || SOUVA_PACKAGES[2]; // Default Essential Full Groom
 
-  // Determine if this current dog gets 20% discount (if it is Dog #2)
-  const isSecondDog = savedPets.length === 1;
-  const currentDogDiscount = isSecondDog ? Math.round(currentBasePrice * 0.2) : 0;
-  const currentDogTotal = currentBasePrice - currentDogDiscount + currentAddonsCost;
-
-  // Aggregate with previously saved dogs
-  const savedPetsCost = savedPets.reduce((sum, p) => sum + p.totalPrice, 0);
-  const grandEstimatedTotal = savedPetsCost + (data.packageId ? currentDogTotal : 0);
-
-  const totalDogsCount = savedPets.length + (data.petName.trim() ? 1 : 0);
-
-  // 4. ACTION: ADD ANOTHER DOG LOOP
-  const handleAddAnotherDog = () => {
-    if (!data.packageId || !data.petName.trim()) {
-      alert("Please complete the information and service selection for this pet before adding another.");
-      return;
+  const basePrice = useMemo(() => {
+    if (data.packageId === "essential-full-groom") {
+      // First 50 Bookings Promo: $99 for Small, Medium & Large; $129 for X-Large (over 50 lb)
+      return isOver50Lbs ? 99 + 30 : 99;
     }
+    return selectedPackage.prices[data.size as PetSize] || 99;
+  }, [data.packageId, data.size, isOver50Lbs, selectedPackage]);
 
-    const newSavedPet: CompletedPet = {
-      id: `pet-${Date.now()}`,
-      petName: data.petName,
-      size: data.size,
-      breed: data.breed || "Mix",
-      petAge: data.petAge,
-      gender: data.gender,
-      packageId: data.packageId,
-      packageName: selectedPkg?.name || "Signature Grooming",
-      addons: [...data.addons],
-      petCondition: data.petCondition,
-      temperament: data.temperament,
-      vaccinated: data.vaccinated,
-      medicalConditions: data.medicalConditions,
-      groomerNotes: data.groomerNotes,
-      petPhoto: data.petPhoto,
-      basePrice: currentBasePrice,
-      addonsCost: currentAddonsCost,
-      discount: currentDogDiscount,
-      totalPrice: currentDogTotal,
-    };
+  const originalPrice = useMemo(() => {
+    return selectedPackage.prices[data.size as PetSize] || 120;
+  }, [selectedPackage, data.size]);
 
-    const updatedPets = [...savedPets, newSavedPet];
-    setSavedPets(updatedPets);
+  const addonsTotal = useMemo(() => {
+    return data.addons.reduce((sum, addonId) => {
+      const up = SPA_UPGRADES.find((u) => u.id === addonId);
+      if (!up) return sum;
+      const num = parseInt(up.price.replace(/[^0-9]/g, ""), 10) || 0;
+      return sum + num;
+    }, 0);
+  }, [data.addons]);
 
-    // Reset pet-specific fields only, KEEP client info, address and date!
-    setData((prev) => ({
-      ...prev,
-      dogCount: updatedPets.length + 1,
-      size: "small",
-      packageId: "",
-      addons: [],
-      petName: "",
-      breed: "",
-      petAge: "Adult (1–7 yrs)",
-      gender: "male",
-      petCondition: "Healthy & Well-Maintained",
-      temperament: "Friendly & Calm",
-      vaccinated: "yes",
-      medicalConditions: "None / Healthy",
-      groomerNotes: "",
-      petPhoto: null,
-    }));
-
-    // Return to Step 0 (Size of the next dog!)
-    setStep(0);
-    setDir("back");
-    scrollToTop();
-  };
-
-  // 5. ACTION: FINALIZE ALL DOGS BOOKING
-  const handleFinalizeBooking = async () => {
-    setIsSubmitting(true);
-
-    // Build the complete list of pets (saved pets + current active pet if completed)
-    let allPets: CompletedPet[] = [...savedPets];
-    if (data.packageId && data.petName.trim()) {
-      allPets.push({
-        id: `pet-${Date.now()}`,
-        petName: data.petName,
-        size: data.size,
-        breed: data.breed || "Mix",
-        petAge: data.petAge,
-        gender: data.gender,
-        packageId: data.packageId,
-        packageName: selectedPkg?.name || "Signature Grooming",
-        addons: [...data.addons],
-        petCondition: data.petCondition,
-        temperament: data.temperament,
-        vaccinated: data.vaccinated,
-        medicalConditions: data.medicalConditions,
-        groomerNotes: data.groomerNotes,
-        petPhoto: data.petPhoto,
-        basePrice: currentBasePrice,
-        addonsCost: currentAddonsCost,
-        discount: currentDogDiscount,
-        totalPrice: currentDogTotal,
-      });
-    }
-
-    const resolvedOwnerName = data.ownerName || `${data.firstName} ${data.lastName}`.trim();
-    const finalDogNames = allPets.map((p) => p.petName).join(" & ") || data.petName;
-    const finalBreeds = allPets.map((p) => p.breed).join(" · ") || data.breed;
-    const finalSizes = allPets.map((p) => p.size);
-    const finalAges = allPets.map((p) => p.petAge).join(" · ");
-    const finalGenders = allPets.map((p) => (p.gender === "male" ? "Male" : "Female")).join(" · ");
-    const finalPackages = allPets.map((p) => p.packageName).join(" + ");
-    const finalAddons = allPets.flatMap((p) => p.addons);
-    const totalMultiDiscount = allPets.reduce((sum, p) => sum + p.discount, 0);
-    const finalTotal = allPets.reduce((sum, p) => sum + p.totalPrice, 0);
-
-    const bookingId = `SOU-${Math.floor(1000 + Math.random() * 9000)}`;
-    const resolvedIsoDate = data.scheduledDateIso || formatToIsoDate(data.scheduledDate);
-
-    // Guard: ensure arrival slot is still open in Airtable before proceeding
-    if (isSlotBooked(resolvedIsoDate, data.scheduledTime)) {
-      alert(
-        `The arrival window on ${data.scheduledDate} at ${data.scheduledTime} was just booked. Please choose another available arrival window.`
-      );
-      setStep(6);
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Save to Dispatch Admin Store
-    addDispatchRequest({
-      customerName: resolvedOwnerName,
-      email: data.email,
-      phone: data.phone,
-      address: data.address,
-      zipCode: data.zipCode,
-      dogCount: allPets.length,
-      lat: data.latitude || 37.7749 + (Math.random() - 0.5) * 0.08,
-      lng: data.longitude || -122.4194 + (Math.random() - 0.5) * 0.08,
-      petName: finalDogNames,
-      breed: finalBreeds,
-      size: data.size,
-      gender: data.gender,
-      petAge: data.petAge,
-      vaccinated: data.vaccinated,
-      medicalConditions: data.medicalConditions,
-      temperament: allPets.map((p) => `${p.petName}: ${p.temperament}`).join(" | "),
-      groomerNotes: data.groomerNotes,
-      parkingNotes: data.parkingNotes,
-      petPhoto: data.petPhoto,
-      packageId: data.packageId || "signature-grooming",
-      packageName: finalPackages,
-      addons: finalAddons,
-      estimatedTotal: finalTotal,
-      preferredTime: `${data.scheduledDate} at ${data.scheduledTime}`,
-      scheduledDate: resolvedIsoDate,
-      scheduledTime: data.scheduledTime,
-      etaMinutes: 20,
-      vanId: "VAN-01",
-      vanName: "Van 01 (SF & Peninsula Mobile Fleet)",
-      status: "pending",
-      signature: data.signature,
-      notes: `Booked for ${data.scheduledDate} (${resolvedIsoDate}) @ ${data.scheduledTime}. Dogs (${allPets.length}): ${finalDogNames}. Parking: ${data.parkingNotes}.`,
-      pets: allPets.map((p) => ({
-        id: p.id,
-        petName: p.petName,
-        breed: p.breed,
-        size: p.size,
-        gender: p.gender,
-        petAge: p.petAge,
-        packageId: p.packageId,
-        packageName: p.packageName,
-        addons: p.addons,
-        petCondition: p.petCondition,
-        temperament: p.temperament,
-        vaccinated: p.vaccinated,
-        medicalConditions: p.medicalConditions,
-        groomerNotes: p.groomerNotes,
-        petPhoto: p.petPhoto,
-        basePrice: p.basePrice,
-        addonsCost: p.addonsCost,
-        discount: p.discount,
-        totalPrice: p.totalPrice,
-      })),
-    });
-
-    // 6. SAVE RECORD DIRECTLY TO AIRTABLE
-    const coverage = checkCoverage(data.zipCode);
-    let createdAirtableId: string | undefined;
-    try {
-      const airRes = await createAirtableBooking({
-        bookingId,
-        customerName: resolvedOwnerName,
-        phone: data.phone,
-        email: data.email,
-        address: data.address,
-        zipCode: data.zipCode,
-        serviceZone: coverage.zone,
-        parkingNotes: data.parkingNotes,
-        scheduledDate: data.scheduledDate,
-        scheduledDateIso: resolvedIsoDate,
-        scheduledTime: data.scheduledTime,
-        dogCount: allPets.length,
-        dogNames: finalDogNames,
-        breeds: finalBreeds,
-        dogSizes: finalSizes,
-        dogAges: finalAges,
-        genders: finalGenders,
-        vaccinated: data.vaccinated,
-        temperament: allPets.map((p) => p.temperament),
-        medicalConditions: allPets.map((p) => `${p.petName}: ${p.medicalConditions}`).join(" | "),
-        groomerNotes: allPets.map((p) => `${p.petName}: ${p.groomerNotes}`).filter(Boolean).join(" | "),
-        servicePackage: allPets[0]?.packageName || "Signature Grooming",
-        spaUpgrades: finalAddons,
-        basePrice: allPets.reduce((s, p) => s + p.basePrice, 0),
-        addonsTotal: allPets.reduce((s, p) => s + p.addonsCost, 0),
-        multiDogDiscount: totalMultiDiscount,
-        estimatedTotal: finalTotal,
-        paymentStatus: "Pending Doorstep Payment",
-        agreementAccepted: true,
-        signatureUrl: data.signature,
-      });
-      if (airRes.success && airRes.id) {
-        createdAirtableId = airRes.id;
-      }
-    } catch (err) {
-      console.warn("Airtable sync note:", err);
-    }
-
-    // Immediately update local slot tracking
-    setBookedSlots((prev) => [
-      ...prev,
-      { date: resolvedIsoDate, time: data.scheduledTime, status: "Pending" },
-    ]);
-
-    // 7. SEND EMAIL & PDF INVOICE VIA VERCEL SERVERLESS
-    fetch("/api/send-booking", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        bookingId,
-        airtableRecordId: createdAirtableId,
-        ownerName: resolvedOwnerName,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        zipCode: data.zipCode,
-        serviceZone: coverage.zone,
-        dogCount: allPets.length,
-        parkingNotes: data.parkingNotes,
-        petName: finalDogNames,
-        dogNames: finalDogNames,
-        breed: finalBreeds,
-        breeds: finalBreeds,
-        size: data.size,
-        dogSizes: finalSizes,
-        gender: data.gender,
-        genders: finalGenders,
-        petAge: data.petAge,
-        dogAges: finalAges,
-        petCondition: allPets.map((p) => `${p.petName}: ${p.temperament}`).join(" | "),
-        temperament: allPets.map((p) => p.temperament),
-        vaccinated: data.vaccinated,
-        medicalConditions: data.medicalConditions,
-        groomerNotes: data.groomerNotes,
-        packageName: finalPackages,
-        packageDescription: selectedPkg?.tagline || "",
-        packageDuration: selectedPkg?.duration || "",
-        packageIncludes: selectedPkg?.includes || [],
-        basePrice: allPets.reduce((s, p) => s + p.basePrice, 0),
-        multiDogDiscount: totalMultiDiscount,
-        addonsCost: allPets.reduce((s, p) => s + p.addonsCost, 0),
-        addons: finalAddons,
-        spaUpgrades: finalAddons,
-        sizeLabel: SIZE_GUIDE.find((s) => s.id === data.size)?.label || data.size,
-        sizeWeight: SIZE_GUIDE.find((s) => s.id === data.size)?.weight || "",
-        estimatedTotal: finalTotal,
-        scheduledDate: data.scheduledDate,
-        scheduledDateIso: resolvedIsoDate,
-        scheduledTime: data.scheduledTime,
-        signature: data.signature,
-        allPets,
-      }),
-    })
-      .then((res) => res.json())
-      .then((resData) => {
-        if (resData?.pdfBase64) {
-          setInvoicePdf({
-            base64: resData.pdfBase64,
-            fileName: resData.fileName || `SOUVA-Invoice-${finalDogNames}.pdf`,
-          });
-        }
-        if (resData?.emailSent) {
-          setEmailNotice({
-            type: "success",
-            message: `Official invoice & confirmation sent to ${data.email}!`,
-          });
-        }
-      })
-      .catch((err) => {
-        console.warn("Notification fallback:", err);
-      });
-
-    // Clear local storage draft after successful booking
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (e) {}
-
-    // Track Meta Pixel Conversion Events (Schedule & Lead)
-    try {
-      if (typeof window !== "undefined" && (window as any).fbq) {
-        (window as any).fbq("track", "Schedule", {
-          content_name: finalPackages || "Mobile Dog Grooming",
-          value: finalTotal,
-          currency: "USD",
-        });
-        (window as any).fbq("track", "Lead", {
-          content_name: "Doorstep Booking Confirmed",
-          value: finalTotal,
-          currency: "USD",
-        });
-      }
-    } catch (pixelErr) {
-      console.warn("Meta Pixel track error:", pixelErr);
-    }
-
-    // Track Google Analytics 4 Conversion Events (Purchase & Schedule)
-    try {
-      if (typeof window !== "undefined" && (window as any).gtag) {
-        (window as any).gtag("event", "purchase", {
-          transaction_id: createdAirtableId || `SOU-${Date.now()}`,
-          value: finalTotal,
-          currency: "USD",
-          items: [
-            {
-              item_id: data.packageId || "signature-grooming",
-              item_name: finalPackages || "Mobile Dog Grooming",
-              item_category: "Mobile Grooming",
-              price: finalTotal,
-              quantity: data.dogCount || 1,
-            },
-          ],
-        });
-        (window as any).gtag("event", "schedule_appointment", {
-          value: finalTotal,
-          currency: "USD",
-        });
-      }
-    } catch (gaErr) {
-      console.warn("GA4 event track error:", gaErr);
-    }
-
-    setIsSubmitting(false);
-    setDir("fwd");
-    setCompleted(true);
-  };
+  const grandEstimatedTotal = basePrice + addonsTotal;
 
   const handleNext = () => {
     if (step < STEPS_TOTAL - 1) {
-      setDir("fwd");
       setStep((prev) => prev + 1);
-    } else {
-      handleFinalizeBooking();
+      if (flowTopRef.current) {
+        flowTopRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     }
   };
 
   const handleBack = () => {
-    if (step > 0 && !completed) {
-      setDir("back");
+    if (step > 0) {
       setStep((prev) => prev - 1);
     }
   };
 
+  const handleReset = () => {
+    setData(initialDataState);
+    setStep(0);
+  };
+
+  const copyQuoteToClipboard = () => {
+    const sizeObj = SIZE_GUIDE.find((s) => s.id === data.size);
+    const addonsNames = data.addons
+      .map((id) => SPA_UPGRADES.find((u) => u.id === id)?.name)
+      .filter(Boolean)
+      .join(", ");
+
+    const text = `SOUVA Mobile Pet Grooming Quote:
+- Pet Size: ${sizeObj?.label} (${sizeObj?.weight})
+- Package: ${selectedPackage.name}
+- Add-ons: ${addonsNames || "None"}
+- Estimated Total: $${grandEstimatedTotal}
+Book link: ${SQUARE_BOOKING_URL}`;
+
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
   return (
-    <div ref={flowTopRef} className="w-full max-w-full min-w-0">
-      {/* Official Header: BOOK HERE */}
-      <div className="mb-3.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-gradient-to-r from-[#22271A] via-[#2A2419] to-[#22271A] border border-[#AA8B63]/60 shadow-[0_2px_14px_rgba(170,139,99,0.2)] flex items-center justify-between select-none max-w-full min-w-0">
+    <div ref={flowTopRef} id="conoce-tu-precio" className="w-full max-w-full min-w-0">
+      {/* ── TOP BADGE: CONOCE TU PRECIO ────────────────────────────── */}
+      <div className="mb-3 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-[#22271A] via-[#2A2419] to-[#22271A] border border-[#AA8B63]/60 shadow-[0_2px_14px_rgba(170,139,99,0.2)] flex items-center justify-between select-none max-w-full min-w-0">
         <div className="flex items-center gap-2 min-w-0 shrink-0">
-          <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5 shrink-0">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#AA8B63] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-[#AA8B63]" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#AA8B63]" />
           </span>
-          <span className="text-[11px] sm:text-xs font-mono font-black tracking-wider sm:tracking-widest text-[#FAF0E2] uppercase whitespace-nowrap">
-            BOOK HERE
+          <span className="text-xs sm:text-sm font-mono font-black tracking-wider sm:tracking-widest text-[#FAF0E2] uppercase whitespace-nowrap">
+            CONOCE TU PRECIO
           </span>
         </div>
-        <div className="flex items-center gap-1 text-[9px] sm:text-[10px] font-mono text-[#AA8B63] font-bold uppercase tracking-wider min-w-0 truncate">
-          <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#AA8B63] shrink-0" />
-          <span className="truncate">Doorstep Spa</span>
+        <div className="flex items-center gap-1.5 text-[9.5px] sm:text-[10.5px] font-mono text-[#AA8B63] font-bold uppercase tracking-wider min-w-0 truncate">
+          <Sparkles className="h-3 w-3 text-[#AA8B63] shrink-0" />
+          <span className="truncate">Paso {step + 1} de 3 · Square</span>
         </div>
       </div>
 
-      <div className="hidden sm:block">
-        <StatusLedGrid activeIndex={activeIndex} hot={completed} />
-      </div>
+      {/* ── 3-STEP STATUS LED GRID ───────────────────────────────────── */}
+      <StatusLedGrid activeIndex={step} onSelectStep={(idx) => setStep(idx)} />
 
-      {/* Header controls with multi-dog notification */}
+      {/* ── CONTROLS STRIP (BACK / STEP / RESET) ────────────────────── */}
       <div className="flex items-center justify-between pb-3">
         <button
           type="button"
           onClick={handleBack}
-          disabled={step === 0 || completed}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#FAF0E2]/15 bg-[#1B1E15] text-[#A4AA93] hover:text-[#FAF0E2] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+          disabled={step === 0}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#FAF0E2]/15 bg-[#1B1E15] text-[#A4AA93] hover:text-[#FAF0E2] disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer transition-colors"
           aria-label="Back"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
 
         <div className="text-center">
-          <div className="text-xs font-semibold text-[#AA8B63] font-mono tracking-wider">
-            {completed ? "BOOKING SUMMARY" : `STEP ${step + 1} OF ${STEPS_TOTAL}`}
+          <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#AA8B63]">
+            PASO {step + 1} DE {STEPS_TOTAL}
           </div>
-          {savedPets.length > 0 && !completed && (
-            <div className="text-[10px] font-mono text-emerald-300 font-bold">
-              Configuring Dog #{savedPets.length + 1} · ({savedPets.length} saved)
-            </div>
-          )}
+          <div className="text-[9.5px] font-mono text-[#FAF0E2]/60">
+            {step === 0 ? "Tamaño de Perro" : step === 1 ? "Servicios & Extras" : "Reserva en Square"}
+          </div>
         </div>
 
-        {/* Start Over Button */}
-        {!completed ? (
-          <button
-            type="button"
-            onClick={() => {
-              if (step > 0 || savedPets.length > 0) {
-                if (window.confirm("Are you sure you want to start over? This will reset your booking.")) {
-                  reset();
-                }
-              } else {
-                reset();
-              }
-            }}
-            className="px-2.5 py-1 rounded-full bg-[#1F2318] border border-[#FAF0E2]/15 text-[10px] font-mono font-bold text-[#AA8B63] hover:text-[#FAF0E2] hover:border-[#AA8B63] hover:bg-[#AA8B63]/20 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
-            title="Reset and start over from step 1"
-          >
-            <RotateCcw className="h-3 w-3" />
-            <span>Start Over</span>
-          </button>
-        ) : (
-          <div className="w-9" />
-        )}
+        <button
+          type="button"
+          onClick={handleReset}
+          className="px-2.5 py-1 rounded-full bg-[#1F2318] border border-[#FAF0E2]/15 text-[9.5px] font-mono font-bold text-[#AA8B63] hover:text-[#FAF0E2] hover:border-[#AA8B63] transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+          title="Reiniciar cotizador"
+        >
+          <RotateCcw className="h-2.5 w-2.5" />
+          <span>Reiniciar</span>
+        </button>
       </div>
 
-      {/* Progress Bar (8 Steps) */}
-      {!completed && (
-        <div className="mt-1 mb-4 energy-bar-wrap">
-          <div className="energy-bar-track">
-            <div
-              className="energy-bar-fill"
-              style={{ width: `${((step + 1) / STEPS_TOTAL) * 100}%` }}
-            >
-              <span className="energy-dot energy-dot--1" />
-              <span className="energy-dot energy-dot--2" />
-              <span className="energy-dot energy-dot--3" />
-            </div>
-          </div>
-          <div className="flex justify-between mt-1 px-0.5">
-            {Array.from({ length: STEPS_TOTAL }).map((_, i) => (
-              <span
-                key={i}
-                className={cn(
-                  "text-[8px] font-mono font-bold transition-colors",
-                  i <= step ? "text-[#FAF0E2]/80" : "text-[#FAF0E2]/20"
-                )}
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* ── DYNAMIC STEPS ───────────────────────────────────────────── */}
+      <div className="pb-2 pt-1">
+        {step === 0 && (
+          <StepPetSize data={data} setData={setData} />
+        )}
 
-      {/* Multi-dog banner if dogs have been saved */}
-      {savedPets.length > 0 && !completed && (
-        <div className="mb-3 p-2.5 rounded-2xl bg-[#1C2216] border border-[#AA8B63]/40 flex items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
-            <span className="text-[10px] font-mono uppercase text-[#AA8B63] font-bold shrink-0">
-              Dogs in this session:
-            </span>
-            {savedPets.map((p, idx) => (
-              <span
-                key={p.id}
-                className="px-2 py-0.5 rounded-md bg-[#252C1D] border border-[#AA8B63]/30 text-[#FAF0E2] text-[10.5px] font-medium shrink-0 flex items-center gap-1"
-              >
-                <span>🐶 #{idx + 1} {p.petName}</span>
-                <span className="text-[#AA8B63] font-mono font-bold">${p.totalPrice}</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+        {step === 1 && (
+          <StepServicePackage
+            data={data}
+            setData={setData}
+            isOver50Lbs={isOver50Lbs}
+          />
+        )}
 
-      {/* Main Dynamic Step View */}
-      <div className="pb-3 pt-1">
-        <div
-          key={completed ? "completed" : `step-${step}-${savedPets.length}`}
-          className="flow-view relative z-20"
-          data-dir={dir}
-        >
-          {completed ? (
-            <BookingSummaryView
-              data={data}
-              savedPets={savedPets}
-              invoicePdf={invoicePdf}
-              emailNotice={emailNotice}
-              onReset={reset}
-            />
-          ) : step === 0 ? (
-            <StepPetSize data={data} setData={setData} petNumber={savedPets.length + 1} />
-          ) : step === 1 ? (
-            <StepServicePackage data={data} setData={setData} isSecondDog={isSecondDog} />
-          ) : step === 2 ? (
-            <StepLocationCoverage data={data} setData={setData} />
-          ) : step === 3 ? (
-            <StepClientInfo data={data} setData={setData} />
-          ) : step === 4 ? (
-            <StepDogInfo data={data} setData={setData} petNumber={savedPets.length + 1} />
-          ) : step === 5 ? (
-            <StepDogCareCondition data={data} setData={setData} petNumber={savedPets.length + 1} />
-          ) : step === 6 ? (
-            <StepBookingCalendar
-              data={data}
-              setData={setData}
-              savedPets={savedPets}
-              currentDogTotal={currentDogTotal}
-              grandTotal={grandEstimatedTotal}
-              dates={availableDates}
-              isSlotBooked={isSlotBooked}
-              isLoadingSlots={isLoadingSlots}
-              onRefreshSlots={loadBookedSlots}
-            />
-          ) : (
-            <StepDisclaimerConfirm
-              data={data}
-              setData={setData}
-              savedPets={savedPets}
-              currentDogTotal={currentDogTotal}
-              grandTotal={grandEstimatedTotal}
-              onAddAnotherDog={handleAddAnotherDog}
-              onFinalize={handleFinalizeBooking}
-              isSubmitting={isSubmitting}
-            />
-          )}
-        </div>
+        {step === 2 && (
+          <StepSquareReservation
+            data={data}
+            selectedPackage={selectedPackage}
+            basePrice={basePrice}
+            addonsTotal={addonsTotal}
+            grandTotal={grandEstimatedTotal}
+            onBackToServices={() => setStep(1)}
+            onBackToSize={() => setStep(0)}
+            copied={copied}
+            onCopy={copyQuoteToClipboard}
+          />
+        )}
 
-        {/* PERSISTENT LIVE SUMMARY BAR & KNOW YOUR PRICE */}
-        {!completed && (
-          <div className="mt-3 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-md overflow-hidden transition-all">
+        {/* ── PERSISTENT LIVE ESTIMATE BAR (STEPS 0 & 1) ──────────────── */}
+        {step < 2 && (
+          <div className="mt-4 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-md overflow-hidden transition-all">
             <div className="p-2.5 sm:p-3 flex items-center justify-between gap-3 text-xs select-none">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="h-7 w-7 rounded-lg bg-[#25281D] border border-[#AA8B63]/40 flex items-center justify-center shrink-0">
-                  <span className="text-xs">🐾</span>
+                <div className="h-8 w-8 rounded-xl bg-[#25281D] border border-[#AA8B63]/40 flex items-center justify-center shrink-0">
+                  <span className="text-sm">🐾</span>
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 truncate">
                     <span className="font-bold text-[#FAF0E2] truncate">
-                      {data.petName.trim() ? data.petName : `Dog #${savedPets.length + 1}`}
+                      {selectedPackage.name}
                     </span>
                     <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-[#25281D] text-[#AA8B63] font-bold uppercase shrink-0">
                       {SIZE_GUIDE.find((s) => s.id === data.size)?.label || data.size}
                     </span>
-                    {isSecondDog && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-bold shrink-0">
-                        20% OFF 2nd Dog
-                      </span>
-                    )}
                   </div>
-                  <div className="text-[10.5px] text-[#A4AA93] truncate">
-                    {selectedPkg ? selectedPkg.name : "Select a service"}
-                    {savedPets.length > 0 ? ` · (+${savedPets.length} prior dog${savedPets.length > 1 ? "s" : ""})` : ""}
+                  <div className="text-[10px] text-[#A4AA93] truncate">
+                    {data.addons.length > 0 ? `+${data.addons.length} upgrade(s)` : "Doorstep Spa Rate"}
                   </div>
                 </div>
               </div>
 
               <div className="text-right shrink-0">
-                <span className="text-[9px] font-mono text-[#A4AA93] uppercase block">
-                  {savedPets.length > 0 ? `Total (${savedPets.length + 1} Dogs)` : "Know Your Price"}
+                <span className="text-[9px] font-mono uppercase text-[#A4AA93] block">
+                  Estimado:
                 </span>
-                <span className="font-display font-extrabold text-base text-[#AA8B63]">
+                <span className="font-mono font-black text-base sm:text-lg text-amber-300">
                   ${grandEstimatedTotal}
                 </span>
               </div>
             </div>
-
-            {/* Expandable inclusions */}
-            {selectedPkg && (
-              <div className="border-t border-[#FAF0E2]/10 bg-[#181B12]/80 px-3 py-1.5">
-                <button
-                  type="button"
-                  onClick={() => setIsDescExpanded(!isDescExpanded)}
-                  className="w-full flex items-center justify-between text-[10.5px] font-medium text-[#AA8B63] hover:text-[#FAF0E2] transition-colors cursor-pointer"
-                >
-                  <span className="flex items-center gap-1.5 truncate">
-                    <Info className="h-3 w-3 shrink-0" />
-                    <span className="truncate">
-                      {isDescExpanded ? "Hide" : "View"} {selectedPkg.name} description & inclusions
-                    </span>
-                  </span>
-                  {isDescExpanded ? (
-                    <ChevronUp className="h-3.5 w-3.5 shrink-0" />
-                  ) : (
-                    <ChevronDown className="h-3.5 w-3.5 shrink-0" />
-                  )}
-                </button>
-
-                {isDescExpanded && (
-                  <div className="mt-2 pt-2 border-t border-[#FAF0E2]/10 space-y-1.5 text-xs">
-                    <p className="text-[#FAF0E2]/90 leading-relaxed text-[11px]">
-                      {selectedPkg.tagline}
-                    </p>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {selectedPkg.includes.map((inc) => (
-                        <div key={inc} className="flex items-center gap-1.5 text-[10.5px] text-[#FAF0E2]/85">
-                          <Check className="h-3 w-3 text-[#AA8B63] shrink-0" />
-                          <span className="truncate">{inc}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         )}
 
-        {/* Primary Action Button (Steps 0 - 6) */}
-        {!completed && step < STEPS_TOTAL - 1 && (
-          <>
-            <button
-              type="button"
-              disabled={!canNext}
-              onClick={handleNext}
-              className={cn(
-                "mt-3 w-full py-3.5 text-xs sm:text-sm font-bold btn-luxury relative z-10 flex items-center justify-center gap-2",
-                justArmed && "just-armed"
-              )}
-            >
-              {step === 1 ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Book Now · Check Coverage</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-2">
-                  <span>Continue</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </span>
-              )}
-            </button>
-
-            {/* Contextual guidance if validation not met */}
-            {!canNext && (
-              <div className="mt-2 text-center text-[11px] font-mono font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-500/30 p-2 rounded-xl flex items-center justify-center gap-1.5">
-                <AlertCircle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                <span>
-                  {step === 0
-                    ? "Please select your dog's size above"
-                    : step === 1
-                    ? "Please choose a grooming service above"
-                    : step === 2
-                    ? !data.address.trim() || data.address.trim().length < 4
-                      ? "Enter your doorstep address above"
-                      : "Complete address to continue"
-                    : step === 3
-                    ? !data.firstName.trim() && data.ownerName.trim().length < 2
-                      ? "Enter your Name above"
-                      : data.phone.trim().length < 7
-                      ? "Enter a valid Phone Number"
-                      : !data.email.includes("@")
-                      ? "Enter a valid Email Address"
-                      : "Complete all contact fields to continue"
-                    : "Please complete required fields above to proceed"}
-                </span>
-              </div>
+        {/* ── STEP ACTION BUTTONS (STEPS 0 & 1) ────────────────────────── */}
+        {step < 2 && (
+          <button
+            type="button"
+            onClick={handleNext}
+            className="mt-3.5 w-full py-3.5 text-xs sm:text-sm font-display font-extrabold btn-luxury relative z-10 flex items-center justify-center gap-2 uppercase tracking-wider cursor-pointer shadow-xl active:scale-[0.99] transition-all"
+          >
+            {step === 0 ? (
+              <>
+                <span>Continuar a Servicios →</span>
+                <ArrowRight className="h-4 w-4" />
+              </>
+            ) : (
+              <>
+                <span>Continuar a Reserva en Square (${grandEstimatedTotal}) →</span>
+                <ArrowRight className="h-4 w-4" />
+              </>
             )}
-          </>
+          </button>
         )}
       </div>
     </div>
   );
 }
 
-/* -------------------- STEP 1: PET SIZE -------------------- */
+/* -------------------- STEP 1: PET SIZE ("TAMAÑOS DE PERRO") -------------------- */
 function StepPetSize({
   data,
   setData,
-  petNumber,
 }: {
   data: GroomingFlowState;
   setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
-  petNumber: number;
 }) {
   return (
-    <div>
+    <div className="animate-in fade-in duration-200">
       <StepHeader
-        eyebrow={`Step 1 · Pet Size ${petNumber > 1 ? `(#${petNumber})` : ""}`}
-        title="Choose Your Pet's Size"
-        subtitle="View the 3D model of each size to ensure custom space and suite preparation inside our solar van."
+        eyebrow="Paso 1 · Tamaños de Perro"
+        title="Elige el Tamaño de tu Perro"
+        subtitle="Visualiza cada tamaño para asegurar la preparación del espacio y suite solar en nuestra van móvil."
       />
-      <div className="mt-4">
+
+      <div className="mt-3.5">
         <PetBlueprint
           selectedSize={data.size}
-          onSelectSize={(size) => setData({ ...data, size })}
+          onSelectSize={(size) => setData((prev) => ({ ...prev, size }))}
         />
+      </div>
+
+      <div className="mt-3 p-3 rounded-2xl bg-[#181B13] border border-[#FAF0E2]/10 text-xs text-[#FAF0E2]/80 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-base">💡</span>
+          <span className="text-[11px] leading-snug">
+            ¿No estás seguro del peso exacto? Nuestro groomer verificará la talla al llegar a tu puerta.
+          </span>
+        </div>
       </div>
     </div>
   );
 }
 
-/* -------------------- STEP 2: SERVICE & PACKAGES -------------------- */
+/* -------------------- STEP 2: SERVICES ("LUEGO SERVICIOS") -------------------- */
 function StepServicePackage({
   data,
   setData,
-  isSecondDog,
+  isOver50Lbs,
 }: {
   data: GroomingFlowState;
   setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
-  isSecondDog: boolean;
+  isOver50Lbs: boolean;
 }) {
   const toggleAddon = (addonId: string) => {
     let next = [...data.addons];
@@ -1280,34 +589,33 @@ function StepServicePackage({
     } else {
       next.push(addonId);
     }
-    setData({ ...data, addons: next });
+    setData((prev) => ({ ...prev, addons: next }));
   };
 
-  const isOver50Lbs = data.size === "xlarge";
   const fullGroomOriginalPrice =
     SOUVA_PACKAGES.find((p) => p.id === "essential-full-groom")?.prices[data.size as PetSize] ||
     (isOver50Lbs ? 180 : 120);
-  const fullGroomPromoPrice = isOver50Lbs ? 99 + 30 : 99; // $99 for small, medium & large (up to 50 lb); $129 for xlarge (over 50 lb)
+  const fullGroomPromoPrice = isOver50Lbs ? 99 + 30 : 99;
 
   const services2x2 = [
     {
       id: "bath-refresh",
       title: "Bath & Brush",
-      subtitle: "Bath, dry, nails, ears",
+      subtitle: "Baño, secado, uñas, oídos",
       rawPrice: SOUVA_PACKAGES.find((p) => p.id === "bath-refresh")?.prices[data.size as PetSize] || 75,
       isPromo: false,
     },
     {
       id: "bath-tidy",
       title: "Bath & Tidy",
-      subtitle: "+ sanitary, paw & face trim",
+      subtitle: "+ corte higiénico, patitas y cara",
       rawPrice: SOUVA_PACKAGES.find((p) => p.id === "bath-tidy")?.prices[data.size as PetSize] || 90,
       isPromo: false,
     },
     {
       id: "essential-full-groom",
       title: "Full Groom",
-      subtitle: isOver50Lbs ? "Short haircut / shave · Over 50 lb: +$30" : "Short haircut / shave-down",
+      subtitle: isOver50Lbs ? "Corte completo · >50 lb: +$30" : "Corte completo bajo mantenimiento",
       rawPrice: fullGroomPromoPrice,
       originalPrice: fullGroomOriginalPrice,
       isPromo: true,
@@ -1315,83 +623,73 @@ function StepServicePackage({
     {
       id: "signature-grooming",
       title: "Signature Grooming",
-      subtitle: 'Longer style ½"+ · Scissor finish',
+      subtitle: 'Estilo tijera ½"+ · Acabado de lujo',
       rawPrice: SOUVA_PACKAGES.find((p) => p.id === "signature-grooming")?.prices[data.size as PetSize] || 150,
       isPromo: false,
     },
   ];
 
   return (
-    <div>
+    <div className="animate-in fade-in duration-200">
       <StepHeader
-        eyebrow="Step 2 · Service Selection & Know Your Price"
-        title="Select Your Grooming Service"
-        subtitle="Upfront pricing calibrated for your dog's size. Select any luxury spa upgrades."
+        eyebrow="Paso 2 · Servicios & Precios"
+        title="Selecciona el Servicio de Grooming"
+        subtitle="Tarifas transparentes calibradas al tamaño de tu perro. Incluye nuestra promo activa."
       />
 
-      {/* Intro Promo Banner matching the flyer */}
-      <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-r from-[#292215] via-[#202517] to-[#181C12] border-2 border-[#AA8B63] shadow-[0_0_20px_rgba(170,139,99,0.35)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      {/* Intro Promo Banner */}
+      <div className="mt-3 p-3 rounded-2xl bg-gradient-to-r from-[#292215] via-[#202517] to-[#181C12] border-2 border-[#AA8B63] shadow-[0_0_20px_rgba(170,139,99,0.35)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div className="flex items-start sm:items-center gap-2.5 min-w-0">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#AA8B63] to-[#826643] text-[#161811] flex items-center justify-center font-black text-sm shrink-0 shadow-sm mt-0.5 sm:mt-0">
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-[#AA8B63] to-[#826643] text-[#161811] flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
             🐾
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-[9.5px] font-mono font-black uppercase tracking-wider text-amber-300">
-                NEW CUSTOMERS ONLY
+                PROMO NUEVOS CLIENTES
               </span>
               <span className="px-2 py-0.5 rounded-full bg-[#AA8B63]/25 border border-[#AA8B63]/50 text-[#FAF0E2] text-[8.5px] font-mono font-bold uppercase">
-                FIRST 50 BOOKINGS · 25/50 CLAIMED (25 LEFT)
+                25/50 CUPOS DISPONIBLES
               </span>
             </div>
-            <p className="text-[12px] text-[#FAF0E2] font-semibold mt-1 leading-snug">
-              Full Grooming Promo <strong className="text-amber-300 font-extrabold text-sm sm:text-base">$99</strong>{" "}
-              <span className="text-amber-200 font-mono font-bold text-[11px] block sm:inline">
-                {isOver50Lbs
-                  ? "(+$30 over 50 lb · $129 Active)"
-                  : "(+$30 over 50 lb · Over 50 lb: $129)"}
+            <p className="text-[11.5px] text-[#FAF0E2] font-semibold mt-0.5 leading-snug">
+              Full Grooming Promo <strong className="text-amber-300 font-extrabold text-sm">$99</strong>{" "}
+              <span className="text-amber-200 font-mono text-[10.5px]">
+                {isOver50Lbs ? "(+$30 perro >50 lb · $129 Activo)" : "(+$30 si >50 lb)"}
               </span>
             </p>
           </div>
         </div>
-        <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-mono text-[9.5px] font-bold uppercase shrink-0 self-start sm:self-center">
-          {isOver50Lbs ? "$129 Active" : "$99 Active"}
+        <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-mono text-[9px] font-bold uppercase shrink-0 self-start sm:self-center">
+          {isOver50Lbs ? "$129 Activo" : "$99 Activo"}
         </span>
       </div>
 
-      {isSecondDog && (
-        <div className="mt-3 p-2.5 rounded-2xl bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 text-xs flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-emerald-400 shrink-0" />
-          <span>Multi-dog booking detected! Automatically applying <strong>20% OFF</strong> to this dog's base grooming package.</span>
-        </div>
-      )}
-
-      {/* 2x2 Segmented Grid */}
-      <div className="mt-4 p-2 rounded-3xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-inner">
-        <div className="grid grid-cols-2 gap-2.5 items-stretch">
+      {/* 2x2 Segmented Services Grid */}
+      <div className="mt-3.5 p-1.5 sm:p-2 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/15 shadow-inner">
+        <div className="grid grid-cols-2 gap-2 sm:gap-2.5 items-stretch">
           {services2x2.map((item) => {
             const isSelected = data.packageId === item.id;
-            const finalPrice = isSecondDog ? Math.round(item.rawPrice * 0.8) : item.rawPrice;
 
             const buttonContent = (
               <>
                 <div>
                   {item.isPromo && (
                     <div className="mb-1">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[8px] sm:text-[8.5px] font-mono font-black uppercase tracking-wider shadow-sm truncate max-w-full">
-                        ⚡ 1ST 50 BOOKINGS · $99 (25/50 CLAIMED)
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#AA8B63] text-[#161811] text-[8px] font-mono font-black uppercase tracking-wider truncate max-w-full">
+                        ⚡ $99 PROMO (25 RESTANTES)
                       </span>
                       <span className={cn(
-                        "block text-[8px] sm:text-[8.5px] font-mono font-bold mt-0.5 truncate",
+                        "block text-[8px] font-mono font-bold mt-0.5 truncate",
                         isSelected ? "text-[#161811]" : "text-amber-300"
                       )}>
-                        {isOver50Lbs ? "Includes +$30 (>50 lb)" : "+$30 over 50 lb ($129)"}
+                        {isOver50Lbs ? "Incluye +$30 (>50 lb)" : "+$30 si >50 lb"}
                       </span>
                     </div>
                   )}
                   <div
                     className={cn(
-                      "text-sm sm:text-base font-display font-bold leading-tight",
+                      "text-xs sm:text-sm font-display font-bold leading-tight",
                       isSelected ? "text-[#161811]" : "text-[#FAF0E2]"
                     )}
                   >
@@ -1399,7 +697,7 @@ function StepServicePackage({
                   </div>
                   <div
                     className={cn(
-                      "text-[10.5px] font-mono mt-1 leading-snug",
+                      "text-[9.5px] sm:text-[10px] font-mono mt-1 leading-snug line-clamp-2",
                       isSelected ? "text-[#59593E] font-medium" : "text-[#A4AA93]"
                     )}
                   >
@@ -1407,36 +705,33 @@ function StepServicePackage({
                   </div>
                 </div>
 
-                <div className="mt-2.5 pt-2 border-t border-current/10 flex items-center justify-between">
+                <div className="mt-2 pt-1.5 border-t border-current/10 flex items-center justify-between">
                   <span
                     className={cn(
-                      "text-[9px] font-mono uppercase tracking-wider",
+                      "text-[8.5px] font-mono uppercase tracking-wider",
                       isSelected ? "text-[#161811]/70" : "text-[#A4AA93]"
                     )}
                   >
-                    {isSecondDog ? "-20% OFF" : item.isPromo ? "PROMO" : "From"}
+                    {item.isPromo ? "PROMO" : "Desde"}
                   </span>
                   <div className="flex items-center gap-1.5">
                     {item.isPromo && (
                       <span
                         className={cn(
-                          "line-through text-[10.5px] font-mono",
+                          "line-through text-[10px] font-mono",
                           isSelected ? "text-[#161811]/50" : "text-[#A4AA93]/60"
                         )}
                       >
                         ${item.originalPrice}
                       </span>
                     )}
-                    {isSecondDog && (
-                      <span className="line-through opacity-50 text-[10px] font-mono">${item.rawPrice}</span>
-                    )}
                     <span
                       className={cn(
-                        "font-mono font-black text-sm sm:text-base",
+                        "font-mono font-black text-xs sm:text-sm",
                         isSelected ? "text-[#161811]" : item.isPromo ? "text-amber-300" : "text-[#AA8B63]"
                       )}
                     >
-                      ${finalPrice}
+                      ${item.rawPrice}
                     </span>
                   </div>
                 </div>
@@ -1447,14 +742,14 @@ function StepServicePackage({
               return (
                 <div
                   key={item.id}
-                  className={cn("promo-gold-border-wrapper", isSelected && "scale-[1.02]")}
+                  className={cn("promo-gold-border-wrapper rounded-xl", isSelected && "scale-[1.02]")}
                 >
                   <div className="promo-gold-border-beam" />
                   <button
                     type="button"
-                    onClick={() => setData({ ...data, packageId: item.id })}
+                    onClick={() => setData((prev) => ({ ...prev, packageId: item.id }))}
                     className={cn(
-                      "relative z-10 w-full h-full p-3.5 sm:p-4 rounded-[14px] text-left transition-all duration-300 cursor-pointer select-none flex flex-col justify-between min-h-[110px]",
+                      "relative z-10 w-full h-full p-2.5 sm:p-3 rounded-xl text-left transition-all duration-300 cursor-pointer select-none flex flex-col justify-between min-h-[96px]",
                       isSelected
                         ? "bg-[#FAF0E2] text-[#161811] shadow-[0_8px_20px_rgba(0,0,0,0.4)]"
                         : "bg-[#181B13] text-[#FAF0E2]/95 hover:bg-[#1F2318]"
@@ -1470,12 +765,12 @@ function StepServicePackage({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setData({ ...data, packageId: item.id })}
+                onClick={() => setData((prev) => ({ ...prev, packageId: item.id }))}
                 className={cn(
-                  "p-3.5 sm:p-4 rounded-2xl text-left transition-all duration-300 cursor-pointer select-none flex flex-col justify-between min-h-[110px] relative",
+                  "p-2.5 sm:p-3 rounded-xl text-left transition-all duration-300 cursor-pointer select-none flex flex-col justify-between min-h-[96px] relative",
                   isSelected
                     ? "bg-[#FAF0E2] text-[#161811] shadow-[0_8px_20px_rgba(0,0,0,0.4)] scale-[1.02]"
-                    : "bg-[#1C1F15]/60 text-[#FAF0E2]/90 hover:bg-[#25281D] hover:text-[#FAF0E2]"
+                    : "bg-[#1C1F15]/70 text-[#FAF0E2]/90 hover:bg-[#25281D] hover:text-[#FAF0E2]"
                 )}
               >
                 {buttonContent}
@@ -1485,16 +780,16 @@ function StepServicePackage({
         </div>
       </div>
 
-      {/* Spa Upgrades */}
-      <div className="mt-4 pt-3 border-t border-[#FAF0E2]/10">
+      {/* Spa Upgrades & Add-ons */}
+      <div className="mt-3.5 pt-2.5 border-t border-[#FAF0E2]/10">
         <div className="flex items-center justify-between mb-2">
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider">
-            Spa Upgrades & Add-ons
+          <label className="text-[10.5px] text-[#A4AA93] font-semibold uppercase tracking-wider">
+            Upgrades Opcionales de Spa
           </label>
-          <span className="text-[10px] font-mono text-[#AA8B63]">Optional</span>
+          <span className="text-[9.5px] font-mono text-[#AA8B63]">Opcional</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2">
           {SPA_UPGRADES.map((add) => {
             const isSelected = data.addons.includes(add.id);
             return (
@@ -1503,7 +798,7 @@ function StepServicePackage({
                 type="button"
                 onClick={() => toggleAddon(add.id)}
                 className={cn(
-                  "p-2.5 rounded-xl border text-left text-xs font-medium transition-all duration-300 cursor-pointer select-none flex flex-col justify-between",
+                  "p-2 rounded-xl border text-left text-xs font-medium transition-all duration-300 cursor-pointer select-none flex flex-col justify-between",
                   isSelected
                     ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
                     : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/40"
@@ -1511,10 +806,10 @@ function StepServicePackage({
                 title={add.desc}
               >
                 <div className="flex items-start justify-between gap-1">
-                  <span className="text-[11px] font-bold text-[#FAF0E2] line-clamp-1">{add.name}</span>
+                  <span className="text-[10px] sm:text-[10.5px] font-bold text-[#FAF0E2] line-clamp-1">{add.name}</span>
                   {isSelected && <Check className="h-3 w-3 text-[#AA8B63] shrink-0 mt-0.5" />}
                 </div>
-                <span className="text-[10px] font-mono text-[#AA8B63] mt-1 font-bold">{add.price}</span>
+                <span className="text-[9.5px] font-mono text-[#AA8B63] mt-1 font-bold">{add.price}</span>
               </button>
             );
           })}
@@ -1524,1813 +819,214 @@ function StepServicePackage({
   );
 }
 
-/* -------------------- STEP 3: LOCATION & COVERAGE -------------------- */
-function StepLocationCoverage({
+/* -------------------- STEP 3: RESERVA SQUARE ("TERCER PASO LINK SQUARE") -------------------- */
+function StepSquareReservation({
   data,
-  setData,
-}: {
-  data: GroomingFlowState;
-  setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
-}) {
-  const [isLocating, setIsLocating] = useState(false);
-  const [locateProgress, setLocateProgress] = useState(0);
-  const [locateError, setLocateError] = useState("");
-  const [showAddressDropdown, setShowAddressDropdown] = useState(false);
-  const addressInputRef = useRef<HTMLInputElement>(null);
-  const addressContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
-      if (addressContainerRef.current && !addressContainerRef.current.contains(e.target as Node)) {
-        setShowAddressDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("touchstart", handlePointerDown);
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("touchstart", handlePointerDown);
-    };
-  }, []);
-
-  // Google Places Autocomplete integration
-  useEffect(() => {
-    let autocomplete: any = null;
-    const initPlaces = () => {
-      const g = (window as any).google;
-      if (g?.maps?.places?.Autocomplete && addressInputRef.current && !autocomplete) {
-        try {
-          autocomplete = new g.maps.places.Autocomplete(addressInputRef.current, {
-            componentRestrictions: { country: "us" },
-            fields: ["address_components", "formatted_address", "geometry"],
-            types: ["address"],
-          });
-
-          autocomplete.addListener("place_changed", () => {
-            const place = autocomplete.getPlace();
-            if (!place || !place.geometry) return;
-
-            const formattedAddress = place.formatted_address || "";
-            let extractedZip = "";
-            if (Array.isArray(place.address_components)) {
-              for (const comp of place.address_components) {
-                if (comp.types.includes("postal_code")) {
-                  extractedZip = comp.short_name || comp.long_name || "";
-                  break;
-                }
-              }
-            }
-
-            // Fallback: extract 5-digit zip from formatted_address
-            if (!extractedZip && formattedAddress) {
-              const zipMatch = formattedAddress.match(/\b(9\d{4})\b/);
-              if (zipMatch && zipMatch[1]) {
-                extractedZip = zipMatch[1];
-              }
-            }
-
-            const lat = place.geometry.location?.lat ? place.geometry.location.lat() : null;
-            const lng = place.geometry.location?.lng ? place.geometry.location.lng() : null;
-
-            setData((prev) => ({
-              ...prev,
-              address: formattedAddress,
-              zipCode: extractedZip || prev.zipCode,
-              latitude: lat,
-              longitude: lng,
-            }));
-            setShowAddressDropdown(false);
-          });
-        } catch (e) {
-          console.warn("Google Places Autocomplete init warning:", e);
-        }
-      }
-    };
-
-    initPlaces();
-    const timer = setInterval(() => {
-      const g = (window as any).google;
-      if (g?.maps?.places?.Autocomplete && addressInputRef.current && !autocomplete) {
-        initPlaces();
-        clearInterval(timer);
-      }
-    }, 350);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleAddressChange = (address: string) => {
-    const zipMatch = address.match(/\b(9\d{4})\b/);
-    if (zipMatch && zipMatch[1]) {
-      setData((prev) => ({ ...prev, address, zipCode: zipMatch[1] }));
-    } else {
-      setData((prev) => ({ ...prev, address }));
-    }
-    setShowAddressDropdown(true);
-  };
-
-  const filteredSuggestions = useMemo(() => {
-    if (!data.address.trim()) return SUGGESTED_AREAS.slice(0, 5);
-    const q = data.address.toLowerCase();
-    return SUGGESTED_AREAS.filter(
-      (s) => s.city.toLowerCase().includes(q) || s.area.toLowerCase().includes(q) || s.zip.includes(q)
-    ).slice(0, 5);
-  }, [data.address]);
-
-  const handleUseMyLocation = () => {
-    setIsLocating(true);
-    setLocateProgress(10);
-    setLocateError("");
-
-    const interval = setInterval(() => {
-      setLocateProgress((prev) => (prev >= 90 ? 90 : prev + 15));
-    }, 250);
-
-    if (!navigator.geolocation) {
-      clearInterval(interval);
-      setLocateError("Geolocation not supported by your browser");
-      setIsLocating(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-
-        // Try Google Geocoder first if available
-        const g = (window as any).google;
-        if (g?.maps?.Geocoder) {
-          try {
-            const geocoder = new g.maps.Geocoder();
-            geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results: any, status: any) => {
-              if (status === "OK" && results && results[0]) {
-                const first = results[0];
-                const cleanAddr = first.formatted_address;
-                let zip = "";
-                for (const c of first.address_components || []) {
-                  if (c.types.includes("postal_code")) {
-                    zip = c.short_name;
-                    break;
-                  }
-                }
-                clearInterval(interval);
-                setLocateProgress(100);
-                setData((prev) => ({
-                  ...prev,
-                  latitude,
-                  longitude,
-                  address: cleanAddr,
-                  zipCode: zip || prev.zipCode,
-                }));
-                setIsLocating(false);
-                return;
-              }
-            });
-            return;
-          } catch (e) {
-            console.warn("Google Geocoder fallback:", e);
-          }
-        }
-
-        try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
-          const result = await response.json();
-          const addrObj = result.address || {};
-          const street = addrObj.road || addrObj.suburb || "";
-          const houseNumber = addrObj.house_number || "";
-          const city = addrObj.city || addrObj.town || addrObj.village || "San Francisco";
-          const state = addrObj.state || "CA";
-          const postcode = (addrObj.postcode || "").slice(0, 5);
-
-          const cleanAddr =
-            [houseNumber && street ? `${houseNumber} ${street}` : street, city, state, postcode]
-              .filter(Boolean)
-              .join(", ") || result.display_name;
-
-          clearInterval(interval);
-          setLocateProgress(100);
-          setTimeout(() => {
-            setData((prev) => ({
-              ...prev,
-              latitude,
-              longitude,
-              address: cleanAddr,
-              zipCode: postcode,
-            }));
-            setIsLocating(false);
-          }, 400);
-        } catch {
-          clearInterval(interval);
-          setLocateProgress(100);
-          setTimeout(() => {
-            setData((prev) => ({
-              ...prev,
-              latitude,
-              longitude,
-              address: `GPS Pin (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
-            }));
-            setIsLocating(false);
-          }, 400);
-        }
-      },
-      (error) => {
-        clearInterval(interval);
-        setLocateError(error.message || "Failed to locate");
-        setIsLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
-  };
-
-  const parkingOptions = [
-    "🏡 Private Driveway",
-    "🚗 Curbside Street Parking",
-    "🅿️ Dedicated Assigned Space",
-    "🔒 Gated Community (Code Provided)",
-  ];
-
-  return (
-    <div>
-      <StepHeader
-        eyebrow="Step 3 · Service Location"
-        title="Doorstep Address"
-        subtitle="Our mobile salon departs from Daly City, CA covering a 40-mile radius across the Bay Area."
-      />
-
-      <div className="mt-4 space-y-3.5">
-        <div className="relative" ref={addressContainerRef}>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Doorstep Address
-          </label>
-          <div className="relative">
-            <MapPin className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AA8B63]" />
-            <input
-              ref={addressInputRef}
-              type="text"
-              autoComplete="street-address"
-              enterKeyHint="next"
-              value={data.address}
-              onChange={(e) => handleAddressChange(e.target.value)}
-              onFocus={() => setShowAddressDropdown(true)}
-              placeholder="e.g. 1420 19th Ave, San Francisco, CA"
-              className="w-full pl-9 pr-28 h-11 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-            />
-            <button
-              type="button"
-              disabled={isLocating}
-              onClick={handleUseMyLocation}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[9px] font-bold font-mono tracking-wide text-[#AA8B63] border border-[#AA8B63]/30 hover:border-[#AA8B63] hover:bg-[#AA8B63]/10 rounded-lg transition-all cursor-pointer select-none disabled:opacity-50"
-            >
-              {isLocating ? "SYNCING..." : "GPS LOCATE"}
-            </button>
-          </div>
-          <div className="mt-1.5 flex flex-wrap items-center justify-between gap-1 text-[9.5px] sm:text-[10px] font-mono text-[#A4AA93]">
-            <span className="truncate">Google Maps & GPS Active</span>
-            <span className="text-emerald-400 shrink-0 font-semibold">● Live Satellite</span>
-          </div>
-
-          {showAddressDropdown && filteredSuggestions.length > 0 && (
-            <div className="absolute z-50 left-0 right-0 mt-1 rounded-xl border border-[#FAF0E2]/15 bg-[#1C1F16]/95 backdrop-blur-md p-1.5 shadow-2xl space-y-1">
-              <span className="text-[9.5px] font-mono text-[#AA8B63] px-2 block uppercase font-bold">
-                Covered Peninsula & SF Presets:
-              </span>
-              {filteredSuggestions.map((item) => (
-                <button
-                  key={item.zip + item.area}
-                  type="button"
-                  onClick={() => {
-                    setData((prev) => ({
-                      ...prev,
-                      address: `${item.area}, ${item.city}, CA ${item.zip}`,
-                      zipCode: item.zip,
-                    }));
-                    setShowAddressDropdown(false);
-                  }}
-                  className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs text-[#FAF0E2] hover:bg-[#AA8B63]/20 flex items-center justify-between transition-colors cursor-pointer"
-                >
-                  <span className="truncate">{item.city} ({item.area})</span>
-                  <span className="font-mono text-[10px] text-[#AA8B63] font-bold">{item.zip}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ── DALY CITY HUB & 40-MILE RADIUS COVERAGE NOTICE ── */}
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-[#1C2016] via-[#24291B] to-[#1C2016] border border-[#AA8B63]/40 shadow-md space-y-2">
-          <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-xl bg-[#AA8B63]/20 border border-[#AA8B63]/40 flex items-center justify-center text-[#AA8B63] shrink-0">
-              <Compass className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#FAF0E2] block truncate">
-                Dispatched from Daly City, CA · 40-Mile Radius
-              </span>
-              <span className="text-[10.5px] font-mono text-[#A4AA93] block truncate">
-                Covering San Francisco, Peninsula & surrounding Bay Area
-              </span>
-            </div>
-          </div>
-          <p className="text-xs text-[#E2D7C5] leading-relaxed">
-            Our autonomous solar mobile spa travels directly to your doorstep from our Daly City fleet hub, serving pet parents throughout the Greater Bay Area.
-          </p>
-          <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/40 text-[11px] leading-relaxed text-amber-200/90 flex items-start gap-2 shadow-sm">
-            <span className="text-amber-400 font-bold shrink-0 mt-0.5">⚠️</span>
-            <span>
-              <strong className="text-amber-300 font-bold">Distance Fee Notice:</strong> In certain extended service areas outside our primary corridor, a nominal travel/distance fee may apply depending on route mileage.
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1.5">
-            <Car className="h-3.5 w-3.5 text-[#AA8B63]" />
-            <span>Parking Notes for Solar Van</span>
-          </label>
-
-          <div className="grid grid-cols-2 gap-1.5 mb-2">
-            {parkingOptions.map((opt) => (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => setData({ ...data, parkingNotes: opt.replace(/^[^\w]+/, "").trim() })}
-                className={cn(
-                  "p-2 rounded-xl border text-left text-[11px] font-medium transition-all cursor-pointer truncate",
-                  data.parkingNotes.toLowerCase().includes(opt.split(" ")[1]?.toLowerCase() || "")
-                    ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2]"
-                    : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-                )}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-
-          <input
-            type="text"
-            enterKeyHint="done"
-            value={data.parkingNotes}
-            onChange={(e) => setData({ ...data, parkingNotes: e.target.value })}
-            placeholder="e.g. Park on right driveway, gate code #4821, van needs 2 car lengths..."
-            className="w-full px-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- STEP 4: CLIENT INFO -------------------- */
-function StepClientInfo({
-  data,
-  setData,
-}: {
-  data: GroomingFlowState;
-  setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
-}) {
-  return (
-    <div>
-      <StepHeader
-        eyebrow="Step 4 · Contact Details"
-        title="Pet Parent Information"
-        subtitle="We will coordinate doorstep arrival, send appointment reminders, and deliver your invoice."
-      />
-
-      <div className="mt-3.5 space-y-2.5 sm:space-y-3.5">
-        <div>
-          <label className="text-[10.5px] sm:text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Your Name
-          </label>
-          <div className="relative">
-            <User className="pointer-events-none absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
-            <input
-              type="text"
-              autoComplete="name"
-              enterKeyHint="next"
-              value={data.firstName}
-              onChange={(e) => {
-                const name = e.target.value;
-                setData({
-                  ...data,
-                  firstName: name,
-                  lastName: "",
-                  ownerName: name,
-                });
-              }}
-              placeholder="e.g. Jessica Miller"
-              className="w-full pl-8 sm:pl-9 pr-2 sm:pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-            />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-2.5">
-          <div>
-            <label className="text-[10.5px] sm:text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Phone Number
-            </label>
-            <div className="relative">
-              <Phone className="pointer-events-none absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
-              <input
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                enterKeyHint="next"
-                value={data.phone}
-                onChange={(e) => setData({ ...data, phone: e.target.value })}
-                placeholder="+1 (555) 000-0000"
-                className="w-full pl-8 sm:pl-9 pr-2.5 sm:pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[10.5px] sm:text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-              Email Address (Correo)
-            </label>
-            <div className="relative">
-              <Mail className="pointer-events-none absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
-              <input
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                autoCapitalize="none"
-                autoCorrect="off"
-                enterKeyHint="done"
-                value={data.email}
-                onChange={(e) => setData({ ...data, email: e.target.value })}
-                placeholder="name@domain.com"
-                className="w-full pl-8 sm:pl-9 pr-2.5 sm:pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- STEP 5: DOG INFO -------------------- */
-function StepDogInfo({
-  data,
-  setData,
-  petNumber,
-}: {
-  data: GroomingFlowState;
-  setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
-  petNumber: number;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const clickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", clickOutside);
-    return () => document.removeEventListener("mousedown", clickOutside);
-  }, []);
-
-  const filteredBreeds = data.breed
-    ? breedsList.filter((b) => b.toLowerCase().includes(data.breed.toLowerCase())).slice(0, 6)
-    : breedsList.slice(0, 5);
-
-  const ageOptions = ["Puppy (< 1 yr)", "Adult (1–7 yrs)", "Senior (8+ yrs)"];
-
-  return (
-    <div>
-      <StepHeader
-        eyebrow={`Step 5 · Dog Details ${petNumber > 1 ? `(#${petNumber})` : ""}`}
-        title={`Tell Us About Dog #${petNumber}`}
-        subtitle="Essential details for our master groomer before preparing the luxury van suite."
-      />
-
-      <div className="mt-4 space-y-3.5">
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Dog's Name
-          </label>
-          <div className="relative">
-            <Heart className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
-            <input
-              type="text"
-              autoComplete="off"
-              enterKeyHint="next"
-              value={data.petName}
-              onChange={(e) => setData({ ...data, petName: e.target.value })}
-              placeholder="e.g. Milo, Luna, Bella..."
-              className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-            />
-          </div>
-        </div>
-
-        <div className="relative" ref={dropdownRef}>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Dog's Breed or Mix
-          </label>
-          <div className="relative">
-            <Sparkles className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#AA8B63]" />
-            <input
-              type="text"
-              enterKeyHint="done"
-              value={data.breed}
-              onChange={(e) => {
-                setData({ ...data, breed: e.target.value });
-                setIsOpen(true);
-              }}
-              onFocus={() => setIsOpen(true)}
-              placeholder="e.g. Golden Retriever, Doodle, Frenchie..."
-              className="w-full pl-9 pr-3 h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63]"
-              autoComplete="off"
-            />
-          </div>
-
-          {isOpen && filteredBreeds.length > 0 && (
-            <div className="absolute z-50 left-0 right-0 mt-1 max-h-40 overflow-y-auto rounded-xl border border-[#FAF0E2]/15 bg-[#1F2318]/95 backdrop-blur-md p-1 shadow-2xl">
-              {filteredBreeds.map((breed) => (
-                <button
-                  key={breed}
-                  type="button"
-                  onClick={() => {
-                    setData({ ...data, breed });
-                    setIsOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-xs text-[#FAF0E2] hover:bg-[#AA8B63]/20 rounded-lg transition-colors cursor-pointer font-medium flex items-center justify-between"
-                >
-                  <span>{breed}</span>
-                  <span className="text-[10px] text-[#AA8B63]">Select</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Age Bracket
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {ageOptions.map((age) => (
-              <button
-                key={age}
-                type="button"
-                onClick={() => setData({ ...data, petAge: age })}
-                className={cn(
-                  "py-2.5 px-3 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
-                  data.petAge === age
-                    ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-md"
-                    : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-                )}
-              >
-                {age}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- STEP 6: DOG CONDITION & COAT -------------------- */
-function StepDogCareCondition({
-  data,
-  setData,
-  petNumber,
-}: {
-  data: GroomingFlowState;
-  setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
-  petNumber: number;
-}) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setData((prev) => ({ ...prev, petPhoto: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const temperamentOptions = [
-    "Friendly & Calm",
-    "Anxious / Sensitive",
-    "Active & Playful",
-    "Shy / Extra Patience Needed",
-  ];
-
-  const medicalOptions = [
-    "None / Healthy",
-    "Arthritis / Joint Stiffness",
-    "Allergies / Sensitive Skin",
-    "Senior Special Care",
-    "Ear Sensitivity / Infection Prone",
-  ];
-
-  return (
-    <div>
-      <StepHeader
-        eyebrow={`Step 6 · Dog Health & Care ${petNumber > 1 ? `(#${petNumber})` : ""}`}
-        title="Pet Health & Special Notes"
-        subtitle="Help our master groomer prepare specialized handling and care."
-      />
-
-      <div className="mt-4 space-y-3.5">
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#AA8B63]" />
-            <span>Rabies Vaccine Status</span>
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setData({ ...data, vaccinated: "yes" })}
-              className={cn(
-                "p-2.5 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
-                data.vaccinated === "yes"
-                  ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
-                  : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-              )}
-            >
-              ✓ Up to Date
-            </button>
-            <button
-              type="button"
-              onClick={() => setData({ ...data, vaccinated: "no" })}
-              className={cn(
-                "p-2.5 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
-                data.vaccinated === "no"
-                  ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] shadow-sm"
-                  : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2]"
-              )}
-            >
-              Pending / In Progress
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="dog-medical-conditions" className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1 flex items-center gap-1">
-            <Activity className="h-3 w-3 text-[#AA8B63]" />
-            <span>Medical Conditions or Sensitivities</span>
-          </label>
-          <select
-            id="dog-medical-conditions"
-            aria-label="Medical Conditions or Sensitivities"
-            value={data.medicalConditions}
-            onChange={(e) => setData({ ...data, medicalConditions: e.target.value })}
-            className="w-full h-10 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl px-3 text-base sm:text-xs text-[#FAF0E2] focus:outline-none focus:border-[#AA8B63] cursor-pointer"
-          >
-            {medicalOptions.map((opt) => (
-              <option key={opt} value={opt} className="bg-[#191C13] text-[#FAF0E2]">
-                {opt}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider block mb-1">
-            Notes for the Groomer
-          </label>
-          <textarea
-            value={data.groomerNotes}
-            onChange={(e) => setData({ ...data, groomerNotes: e.target.value })}
-            placeholder="Special handling, sensitive spots, haircut preferences..."
-            rows={2}
-            className="w-full p-2.5 bg-[#1B1E15] border border-[#FAF0E2]/15 rounded-xl text-base sm:text-xs text-[#FAF0E2] placeholder:text-[#FAF0E2]/30 focus:outline-none focus:border-[#AA8B63] resize-none"
-          />
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider flex items-center gap-1.5">
-              <Camera className="h-3.5 w-3.5 text-[#AA8B63]" />
-              <span>Dog Photo (Optional)</span>
-            </label>
-            <span className="text-[9.5px] font-mono text-[#AA8B63]">Optional</span>
-          </div>
-
-          <input
-            type="file"
-            ref={fileInputRef}
-            accept="image/*"
-            capture="environment"
-            onChange={handlePhotoUpload}
-            className="hidden"
-          />
-
-          {data.petPhoto ? (
-            <div className="p-2.5 rounded-xl bg-[#14160F] border border-[#AA8B63]/60 flex items-center justify-between gap-3 shadow-md">
-              <div className="flex items-center gap-2.5">
-                <img
-                  src={data.petPhoto}
-                  alt="Pet preview"
-                  className="h-10 w-10 object-cover rounded-lg border border-[#FAF0E2]/20"
-                />
-                <div>
-                  <span className="text-xs font-bold text-[#FAF0E2] flex items-center gap-1">
-                    <Check className="h-3.5 w-3.5 text-[#AA8B63]" />
-                    <span>Photo attached</span>
-                  </span>
-                  <span className="text-[10px] text-[#A4AA93]">Ready for coat assessment</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-1.5 text-xs text-[#AA8B63] hover:bg-[#25281D] rounded-lg"
-                  title="Change photo"
-                >
-                  <Camera className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setData({ ...data, petPhoto: null })}
-                  className="p-1.5 text-xs text-red-400 hover:bg-red-950/30 rounded-lg"
-                  title="Remove photo"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full p-2.5 rounded-xl border border-dashed border-[#FAF0E2]/20 hover:border-[#AA8B63] bg-[#14160F]/60 hover:bg-[#1C1F15] transition-all flex items-center justify-between gap-3 cursor-pointer group text-left"
-            >
-              <div className="h-7 w-7 rounded-lg bg-[#22261A] group-hover:bg-[#AA8B63] group-hover:text-[#161811] text-[#AA8B63] flex items-center justify-center shrink-0">
-                <Camera className="h-3.5 w-3.5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-bold text-[#FAF0E2] group-hover:text-[#AA8B63] block">
-                  Upload dog photo
-                </span>
-                <span className="text-[10px] text-[#A4AA93] block truncate">
-                  Helps assess coat thickness & styling
-                </span>
-              </div>
-              <Upload className="h-3.5 w-3.5 text-[#A4AA93] group-hover:text-[#AA8B63] shrink-0" />
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- STEP 7: CALENDAR & TIME WINDOW -------------------- */
-function StepBookingCalendar({
-  data,
-  setData,
-  savedPets = [],
-  currentDogTotal = 0,
-  grandTotal = 0,
-  dates,
-  isSlotBooked,
-  isLoadingSlots,
-  onRefreshSlots,
-}: {
-  data: GroomingFlowState;
-  setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
-  savedPets?: CompletedPet[];
-  currentDogTotal?: number;
-  grandTotal?: number;
-  dates: AvailableDate[];
-  isSlotBooked: (isoDate: string, time: string) => boolean;
-  isLoadingSlots: boolean;
-  onRefreshSlots: () => void;
-}) {
-  const selectedDateObj = dates.find((d) => d.fullDate === data.scheduledDate) || dates[0];
-
-  const currentPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId);
-  const allPetsList: CompletedPet[] = [...savedPets];
-  if (data.petName?.trim() || data.packageId) {
-    allPetsList.push({
-      id: "active-calendar-dog",
-      petName: data.petName?.trim() || `Dog #${savedPets.length + 1}`,
-      size: data.size,
-      breed: data.breed?.trim() || "Mix",
-      petAge: data.petAge,
-      gender: data.gender,
-      packageId: data.packageId,
-      packageName: currentPkg?.name || "Signature Grooming",
-      addons: [...data.addons],
-      petCondition: data.petCondition,
-      temperament: data.temperament,
-      vaccinated: data.vaccinated,
-      medicalConditions: data.medicalConditions,
-      groomerNotes: data.groomerNotes,
-      petPhoto: data.petPhoto,
-      basePrice: currentDogTotal,
-      addonsCost: 0,
-      discount: savedPets.length > 0 ? Math.round(currentDogTotal * 0.2) : 0,
-      totalPrice: currentDogTotal,
-    });
-  }
-
-  // Derive unique months across the whole year (365 days)
-  const months = useMemo(() => {
-    const map = new Map<string, { key: string; label: string; year: number; month: string }>();
-    for (const d of dates) {
-      const key = `${d.year}-${d.month}`;
-      if (!map.has(key)) {
-        map.set(key, { key, label: `${d.month} ${d.year}`, year: d.year, month: d.month });
-      }
-    }
-    return Array.from(map.values());
-  }, [dates]);
-
-  const [activeMonthKey, setActiveMonthKey] = useState<string>(
-    () => `${selectedDateObj.year}-${selectedDateObj.month}`
-  );
-
-  // Sync active month tab if selected date changes externally
-  useEffect(() => {
-    if (selectedDateObj) {
-      setActiveMonthKey(`${selectedDateObj.year}-${selectedDateObj.month}`);
-    }
-  }, [selectedDateObj]);
-
-  const visibleDays = useMemo(() => {
-    return dates.filter((d) => `${d.year}-${d.month}` === activeMonthKey);
-  }, [dates, activeMonthKey]);
-
-  const isDateFull = (d: AvailableDate) => {
-    if (isDateBlocked(d.isoDate)) return true;
-    const slots = SCHEDULE_BY_DAY[d.dayOfWeek] || [];
-    if (slots.length === 0) return true;
-    return slots.every((s) => isSlotBooked(d.isoDate, s.time));
-  };
-
-  const handleSelectDate = (d: AvailableDate) => {
-    if (isDateBlocked(d.isoDate) || isDateFull(d)) return;
-    const daySlots = SCHEDULE_BY_DAY[d.dayOfWeek] || [];
-    const currentStillAvailable = daySlots.some(
-      (s) => s.time === data.scheduledTime && !isSlotBooked(d.isoDate, s.time)
-    );
-    const firstAvailable = daySlots.find((s) => !isSlotBooked(d.isoDate, s.time));
-
-    setData((prev) => ({
-      ...prev,
-      scheduledDate: d.fullDate,
-      scheduledDateIso: d.isoDate,
-      scheduledTime: currentStillAvailable ? prev.scheduledTime : firstAvailable?.time || "",
-    }));
-  };
-
-  const handleSelectMonth = (monthKey: string) => {
-    setActiveMonthKey(monthKey);
-    const daysInNewMonth = dates.filter((d) => `${d.year}-${d.month}` === monthKey);
-    // If currently selected date is already within this month and not blocked, keep it
-    if (daysInNewMonth.some((d) => d.fullDate === data.scheduledDate && !isDateBlocked(d.isoDate))) return;
-    // Otherwise select first available day in this month
-    const firstOpenDay = daysInNewMonth.find((d) => !isDateBlocked(d.isoDate) && !isDateFull(d)) || daysInNewMonth[0];
-    if (firstOpenDay) {
-      handleSelectDate(firstOpenDay);
-    }
-  };
-
-  const handleJumpDateInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const isoVal = e.target.value;
-    if (!isoVal) return;
-    const found = dates.find((d) => d.isoDate === isoVal);
-    if (found && !isDateBlocked(found.isoDate)) {
-      setActiveMonthKey(`${found.year}-${found.month}`);
-      handleSelectDate(found);
-    }
-  };
-
-  const activeSlots = SCHEDULE_BY_DAY[selectedDateObj.dayOfWeek] || [];
-  const isAllSlotsReserved = activeSlots.length > 0 && activeSlots.every((s) => isSlotBooked(selectedDateObj.isoDate, s.time));
-
-  const minIso = dates[0]?.isoDate;
-  const maxIso = dates[dates.length - 1]?.isoDate;
-
-  return (
-    <div>
-      <StepHeader
-        eyebrow="Step 7 · Availability & Date Selection"
-        title="Schedule Your Doorstep Window"
-        subtitle="Select your preferred date and 30-minute arrival window for our mobile spa van (Available 365 Days a Year)."
-      />
-
-      <div className="mt-4 space-y-4">
-        {/* 24-Hour Advance Booking Policy Notice */}
-        <div className="p-3 rounded-2xl bg-[#1C2116] border border-[#AA8B63]/40 flex items-center gap-2.5 text-xs shadow-inner">
-          <Clock className="h-4 w-4 text-[#AA8B63] shrink-0" />
-          <div className="text-[11px] text-[#FAF0E2] leading-snug">
-            <strong className="text-[#AA8B63]">24-Hour Advance Booking Policy:</strong> Appointments open for the entire year (365 days). Daily slots prepared with autonomous clean solar suites.
-          </div>
-        </div>
-
-        {/* ── MULTI-DOG INDIVIDUAL BREAKDOWN CARD (2+ DOGS BOOKED) ── */}
-        {allPetsList.length >= 2 ? (
-          <div className="p-3.5 sm:p-4 rounded-3xl bg-gradient-to-br from-[#1E2317] to-[#14160E] border-2 border-[#AA8B63]/60 shadow-xl space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-[#FAF0E2]/10">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🐕🐕</span>
-                <div>
-                  <h4 className="font-display font-bold text-sm sm:text-base text-[#FAF0E2] leading-none">
-                    Multi-Dog Session · {allPetsList.length} Dogs Scheduled
-                  </h4>
-                  <span className="text-[10px] font-mono text-[#A4AA93]">
-                    Back-to-back solar spa visit for both companions at your doorstep
-                  </span>
-                </div>
-              </div>
-              <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 font-mono text-[10px] font-bold shadow-sm">
-                ✓ 20% OFF 2nd Dog Applied
-              </span>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-3">
-              {allPetsList.map((pet, idx) => (
-                <div
-                  key={pet.id || idx}
-                  className="p-3 rounded-2xl bg-[#171A11] border border-[#FAF0E2]/15 space-y-2 relative shadow-md"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono font-bold uppercase text-[#AA8B63] px-2 py-0.5 rounded bg-[#25281D] border border-[#AA8B63]/30">
-                      Dog #{idx + 1} {idx === 1 ? "· 20% OFF" : ""}
-                    </span>
-                    <span className="font-display font-black text-sm text-[#FAF0E2]">
-                      ${pet.totalPrice}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-10 w-10 rounded-xl bg-[#22271A] border border-[#FAF0E2]/15 flex items-center justify-center overflow-hidden shrink-0">
-                      {pet.petPhoto ? (
-                        <img src={pet.petPhoto} alt={pet.petName} className="h-full w-full object-cover" />
-                      ) : (
-                        <span className="text-base">🐾</span>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-display font-bold text-xs sm:text-sm text-[#FAF0E2] truncate">
-                        {pet.petName}
-                      </div>
-                      <div className="text-[10.5px] text-[#A4AA93] truncate font-mono">
-                        {pet.breed || "Mix"} · {SIZE_GUIDE.find((s) => s.id === pet.size)?.label || pet.size}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="text-[10.5px] font-mono space-y-1 pt-1.5 border-t border-[#FAF0E2]/10">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-[#A4AA93]">Service:</span>
-                      <strong className="text-[#FAF0E2] truncate max-w-[170px]">{pet.packageName}</strong>
-                    </div>
-                    {pet.addons && pet.addons.length > 0 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#A4AA93]">Add-ons:</span>
-                        <span className="text-[#AA8B63] font-bold truncate max-w-[170px]">{pet.addons.join(", ")}</span>
-                      </div>
-                    )}
-                    {idx === 1 && pet.discount > 0 && (
-                      <div className="flex justify-between items-center text-emerald-400">
-                        <span>Promo savings:</span>
-                        <span className="font-bold">-${pet.discount} (20% OFF)</span>
-                      </div>
-                    )}
-                    {pet.temperament && (
-                      <div className="flex justify-between items-center text-[10px]">
-                        <span className="text-[#A4AA93]">Care Note:</span>
-                        <span className="text-[#A4AA93] truncate max-w-[170px]">{pet.temperament}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-1 flex items-center justify-between text-xs font-mono text-[#A4AA93] border-t border-[#FAF0E2]/10">
-              <span>Combined Appointment Window:</span>
-              <strong className="text-[#FAF0E2] text-sm">
-                ${grandTotal || allPetsList.reduce((s, p) => s + p.totalPrice, 0)} Estimated Total
-              </strong>
-            </div>
-          </div>
-        ) : allPetsList.length === 1 && (data.petName?.trim() || data.packageId) ? (
-          <div className="p-3 rounded-2xl bg-[#1C2016] border border-[#FAF0E2]/15 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-base">🐕</span>
-              <div className="truncate">
-                <span className="font-bold text-[#FAF0E2]">{data.petName || "Your Dog"}</span>
-                <span className="text-[#A4AA93] text-[11px] ml-1.5">
-                  ({data.breed || "Mix"} · {SIZE_GUIDE.find((s) => s.id === data.size)?.label || data.size})
-                </span>
-                <span className="text-[#AA8B63] text-[11px] ml-1.5 font-mono">
-                  · {currentPkg?.name || "Selected Service"}
-                </span>
-              </div>
-            </div>
-            <span className="text-xs font-mono text-[#FAF0E2] font-black shrink-0 ml-2">
-              ${grandTotal || currentDogTotal}
-            </span>
-          </div>
-        ) : null}
-
-        {/* ── FULL YEAR MONTH NAVIGATOR + JUMP TO ANY DATE ── */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5 text-[#AA8B63]" />
-              <span>Full Year Calendar · Select Month</span>
-            </label>
-            {/* Quick date picker input */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[9.5px] font-mono text-[#AA8B63] uppercase hidden sm:inline font-bold">Pick Date:</span>
-              <input
-                type="date"
-                min={minIso}
-                max={maxIso}
-                value={selectedDateObj.isoDate}
-                onChange={handleJumpDateInput}
-                className="bg-[#1C2016] border border-[#AA8B63]/50 rounded-lg px-2 py-0.5 text-base sm:text-[11px] font-mono text-[#FAF0E2] focus:outline-none focus:border-[#AA8B63] cursor-pointer shadow-sm"
-                title="Pick any date across the entire year"
-              />
-            </div>
-          </div>
-
-          {/* Horizontal Month Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
-            {months.map((m) => {
-              const isSelectedMonth = activeMonthKey === m.key;
-              return (
-                <button
-                  key={m.key}
-                  type="button"
-                  onClick={() => handleSelectMonth(m.key)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all duration-200 shrink-0 cursor-pointer",
-                    isSelectedMonth
-                      ? "bg-[#AA8B63] text-[#161811] shadow-md scale-102"
-                      : "bg-[#1B1E15] text-[#A4AA93] border border-[#FAF0E2]/10 hover:text-[#FAF0E2] hover:border-[#AA8B63]/40"
-                  )}
-                >
-                  {m.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Days of Selected Month */}
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none w-full max-w-full">
-            {visibleDays.map((d) => {
-              const isSelected = data.scheduledDate === d.fullDate;
-              const isBlocked = isDateBlocked(d.isoDate);
-              const full = isBlocked || isDateFull(d);
-              const daySlots = SCHEDULE_BY_DAY[d.dayOfWeek] || [];
-              const availableCount = isBlocked ? 0 : daySlots.filter((s) => !isSlotBooked(d.isoDate, s.time)).length;
-
-              return (
-                <button
-                  key={d.isoDate}
-                  type="button"
-                  disabled={full}
-                  onClick={() => handleSelectDate(d)}
-                  className={cn(
-                    "min-w-[62px] sm:min-w-[72px] p-2 sm:p-2.5 rounded-2xl border text-center transition-all duration-200 shrink-0 flex flex-col items-center justify-center relative",
-                    isBlocked
-                      ? "opacity-50 bg-[#161811]/70 border-amber-500/30 text-amber-300/60 cursor-not-allowed"
-                      : full
-                      ? "opacity-40 bg-[#161811]/60 border-stone-800 text-[#A4AA93]/40 cursor-not-allowed"
-                      : isSelected
-                      ? "bg-[#AA8B63] border-[#AA8B63] text-[#161811] font-bold shadow-lg scale-105 cursor-pointer"
-                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/40 cursor-pointer"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "text-[9px] font-mono uppercase",
-                      isBlocked ? "text-amber-400/80 font-bold" : full ? "text-[#A4AA93]/50" : isSelected ? "text-[#161811]/90 font-bold" : "text-[#AA8B63]"
-                    )}
-                  >
-                    {d.dayLabel}
-                  </span>
-                  <span className="font-display font-extrabold text-base my-0.5">{d.dayNum}</span>
-                  <span className="text-[9px] font-mono opacity-80">{d.month}</span>
-                  {isBlocked ? (
-                    <span className="text-[7.5px] font-mono font-black text-amber-400 mt-0.5 uppercase tracking-wider">
-                      Blocked
-                    </span>
-                  ) : full ? (
-                    <span className="text-[8px] font-mono font-bold text-red-400 mt-0.5 uppercase tracking-wider">
-                      Full
-                    </span>
-                  ) : (
-                    <span
-                      className={cn(
-                        "text-[8px] font-mono mt-0.5 font-bold",
-                        isSelected ? "text-[#161811]/80" : "text-emerald-400/90"
-                      )}
-                    >
-                      {availableCount} open
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── TIME WINDOWS ── */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-[11px] text-[#A4AA93] font-semibold uppercase tracking-wider flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-[#AA8B63]" />
-              <span>Available Arrival Windows ({activeSlots.length} slots)</span>
-            </label>
-            <div className="flex items-center gap-1.5 text-[10px] font-mono">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <span className="text-emerald-400 font-semibold">Live Availability</span>
-              <button
-                type="button"
-                onClick={onRefreshSlots}
-                disabled={isLoadingSlots}
-                title="Refresh arrival window availability"
-                className="ml-1 p-1 hover:text-[#FAF0E2] text-[#AA8B63] transition-colors cursor-pointer disabled:opacity-40"
-              >
-                <RefreshCw className={cn("h-3 w-3", isLoadingSlots && "animate-spin")} />
-              </button>
-            </div>
-          </div>
-
-          <div
-            className={cn(
-              "grid gap-2",
-              activeSlots.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"
-            )}
-          >
-            {activeSlots.map((slot) => {
-              const booked = isSlotBooked(selectedDateObj.isoDate, slot.time);
-              const isSelected = data.scheduledTime === slot.time && !booked;
-
-              return (
-                <button
-                  key={slot.id}
-                  type="button"
-                  disabled={booked}
-                  onClick={() => {
-                    if (!booked) {
-                      setData((prev) => ({
-                        ...prev,
-                        scheduledTime: slot.time,
-                        scheduledDate: selectedDateObj.fullDate,
-                        scheduledDateIso: selectedDateObj.isoDate,
-                      }));
-                    }
-                  }}
-                  className={cn(
-                    "p-2.5 rounded-xl border text-center transition-all duration-200 flex flex-col items-center justify-center relative",
-                    booked
-                      ? "opacity-50 bg-[#14160E] border-red-500/25 text-[#A4AA93]/60 cursor-not-allowed select-none"
-                      : isSelected
-                      ? "bg-[#AA8B63]/25 border-[#AA8B63] text-[#FAF0E2] font-bold shadow-sm scale-102 cursor-pointer"
-                      : "bg-[#1B1E15] border-[#FAF0E2]/10 text-[#A4AA93] hover:text-[#FAF0E2] hover:border-[#AA8B63]/30 cursor-pointer"
-                  )}
-                >
-                  <div className="flex items-center gap-1">
-                    {booked && <Lock className="h-3 w-3 text-red-400 shrink-0" />}
-                    <span
-                      className={cn(
-                        "font-mono text-xs font-bold",
-                        booked ? "line-through text-[#A4AA93]/60" : "text-[#FAF0E2]"
-                      )}
-                    >
-                      {slot.time}
-                    </span>
-                  </div>
-                  <span
-                    className={cn(
-                      "text-[8.5px] font-mono mt-0.5",
-                      isDateBlocked(selectedDateObj.isoDate)
-                        ? "text-amber-400 font-bold"
-                        : booked
-                        ? "text-red-400 font-bold"
-                        : "text-[#AA8B63] opacity-80"
-                    )}
-                  >
-                    {isDateBlocked(selectedDateObj.isoDate)
-                      ? "Unavailable"
-                      : booked
-                      ? "Reserved"
-                      : slot.period}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {isAllSlotsReserved && (
-            <div className="mt-3 text-center text-xs font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-500/40 p-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md">
-              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
-              <span>All arrival windows on {selectedDateObj.dayLabel}, {selectedDateObj.month} {selectedDateObj.dayNum} are fully reserved. Please choose another date above.</span>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- STEP 8: DISCLAIMER & MULTI-DOG DECISION -------------------- */
-function StepDisclaimerConfirm({
-  data,
-  setData,
-  savedPets,
-  currentDogTotal,
+  selectedPackage,
+  basePrice,
+  addonsTotal,
   grandTotal,
-  onAddAnotherDog,
-  onFinalize,
-  isSubmitting,
+  onBackToServices,
+  onBackToSize,
+  copied,
+  onCopy,
 }: {
   data: GroomingFlowState;
-  setData: React.Dispatch<React.SetStateAction<GroomingFlowState>>;
-  savedPets: CompletedPet[];
-  currentDogTotal: number;
+  selectedPackage: { name: string; duration: string; includes: string[] };
+  basePrice: number;
+  addonsTotal: number;
   grandTotal: number;
-  onAddAnotherDog: () => void;
-  onFinalize: () => void;
-  isSubmitting: boolean;
+  onBackToServices: () => void;
+  onBackToSize: () => void;
+  copied: boolean;
+  onCopy: () => void;
 }) {
-  const [showOptionalSignature, setShowOptionalSignature] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false);
+  const sizeObj = SIZE_GUIDE.find((s) => s.id === data.size);
+  const selectedAddons = data.addons
+    .map((id) => SPA_UPGRADES.find((u) => u.id === id))
+    .filter(Boolean);
 
-  const totalDogsInSession = savedPets.length + 1;
+  const handleSquareClick = () => {
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "Lead", {
+        content_name: "Square Booking Step 3",
+        value: grandTotal,
+        currency: "USD",
+      });
+    }
+  };
+
+  const whatsappMessage = encodeURIComponent(
+    `Hola SOUVA Mobile Grooming, coticé en la web para mi perro tamaño ${sizeObj?.label} (${sizeObj?.weight}) el servicio "${selectedPackage.name}" por $${grandTotal}. Me gustaría reservar.`
+  );
 
   return (
-    <div>
+    <div className="animate-in fade-in duration-300 space-y-4">
       <StepHeader
-        eyebrow="Step 8 · Policies, Review & Confirmation"
-        title="Service Agreement & Final Step"
-        subtitle="Review our transparent care policies. Below you can decide to finish your booking or add another dog to this session!"
+        eyebrow="Paso 3 de 3 · Reserva en Square"
+        title="¡Tu Precio Estimado Está Listo!"
+        subtitle="Haz clic en el botón de abajo para elegir fecha, horario y completar tu cita en nuestro sistema oficial de Square."
       />
 
-      <div className="mt-4 space-y-4">
-        {/* Service Agreement Box */}
-        <div className="rounded-2xl border border-[#FAF0E2]/10 bg-[#161811] p-3.5 text-xs text-[#A4AA93] space-y-2 leading-relaxed">
-          <div className="flex items-center justify-between pb-1 border-b border-[#FAF0E2]/10">
-            <h4 className="font-display font-bold text-sm text-[#FAF0E2]">
-              Terms & Conditions of Service
-            </h4>
-            <span className="text-[10px] font-mono text-[#AA8B63] font-bold">SOUVA CORP</span>
-          </div>
-          <p className="font-medium text-[#FAF0E2]/90">
-            Pets are accepted for grooming under our professional corporate care policies:
-          </p>
-          <div className="space-y-1 text-[11px] text-[#E2D7C5]/90">
-            <p>• <strong>Health & Comfort:</strong> Pet safety always takes priority over coat styling. We never crate or rush.</p>
-            <p>• <strong>Rabies & Vaccinations:</strong> Up-to-date rabies vaccination compliance confirmed.</p>
-            <p>• <strong>Photo & Video Consent:</strong> You authorize SOUVA to take photos and videos of your pet for social media showcases and portfolio.</p>
-            <p>• <strong>Parking & Access:</strong> Safe, legal van parking required within reasonable distance.</p>
-            <p>• <strong>Cancellation & Rescheduling:</strong> Free cancellation and rescheduling with 24-hour advance notice, easily accessible directly from your confirmation email or Concierge WhatsApp.</p>
-            <p>• <strong>Payment at Doorstep:</strong> Cash, Check, Card, or Zelle upon completion.</p>
-          </div>
+      {/* Main High-End Estimate Card */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-[#1F2417] via-[#161811] to-[#12140D] border-2 border-[#AA8B63] shadow-[0_12px_40px_rgba(0,0,0,0.6)] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-44 h-44 bg-[#AA8B63]/15 rounded-full blur-3xl pointer-events-none" />
 
-          <button
-            type="button"
-            onClick={() => setShowTermsModal(true)}
-            className="pt-1.5 text-xs font-mono font-bold text-[#AA8B63] hover:text-[#C4A67E] hover:underline flex items-center gap-1.5 cursor-pointer"
-          >
-            <FileText className="h-3.5 w-3.5" />
-            <span>Read Full Terms & Conditions of Service (16 Articles)</span>
-            <ExternalLink className="h-3 w-3" />
-          </button>
-        </div>
-
-        {/* Agreement Checkbox */}
-        <label className="flex items-start gap-2.5 p-3 rounded-xl bg-[#1B1E15] border border-[#FAF0E2]/10 cursor-pointer text-xs select-none">
-          <input
-            type="checkbox"
-            checked={data.agreedToTerms}
-            onChange={(e) => setData({ ...data, agreedToTerms: e.target.checked })}
-            className="mt-0.5 accent-[#AA8B63] h-4 w-4 rounded cursor-pointer shrink-0"
-          />
-          <span className="text-[#FAF0E2]/90 leading-snug">
-            I have read and agree to the{" "}
-            <span
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowTermsModal(true);
-              }}
-              className="text-[#AA8B63] underline font-semibold hover:text-[#C4A67E] cursor-pointer"
-            >
-              Terms & Conditions of Service
+        {/* Top Price Row */}
+        <div className="flex items-center justify-between pb-3 border-b border-[#FAF0E2]/15 relative z-10">
+          <div>
+            <span className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-[#AA8B63] block">
+              PRECIO TOTAL ESTIMADO
             </span>
-            , authorize mobile spa grooming for{" "}
-            <strong className="text-[#AA8B63]">{data.petName || "my pet"}</strong>
-            , and give permission to take photos and videos of my pet for social media use.
-          </span>
-        </label>
-
-        {/* Optional Signature Drawer */}
-        <div>
-          <button
-            type="button"
-            onClick={() => setShowOptionalSignature(!showOptionalSignature)}
-            className="text-[11px] font-mono text-[#AA8B63] hover:underline flex items-center gap-1 cursor-pointer"
-          >
-            <span>{showOptionalSignature ? "Hide" : "Add"} digital handwritten signature (Optional)</span>
-            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showOptionalSignature && "rotate-180")} />
-          </button>
-
-          {showOptionalSignature && (
-            <div className="mt-2.5 p-3 rounded-2xl bg-[#14160F] border border-[#FAF0E2]/10 animate-in fade-in duration-200">
-              <SignaturePad
-                value={data.signature}
-                onChange={(sig) => setData({ ...data, signature: sig })}
-                onClear={() => setData({ ...data, signature: null })}
-              />
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span className="font-display font-black text-3xl sm:text-4xl text-amber-300 drop-shadow-sm">
+                ${grandTotal}
+              </span>
+              <span className="text-[11px] font-mono text-[#A4AA93]">
+                · Servicio a tu puerta
+              </span>
             </div>
-          )}
-        </div>
-
-        {/* ── THE MULTI-DOG DECISION PROMPT CARD (AS REQUESTED) ────── */}
-        <div className="p-3.5 sm:p-4 rounded-3xl bg-gradient-to-br from-[#202517] to-[#14160E] border-2 border-[#AA8B63]/60 shadow-xl space-y-3 min-w-0 max-w-full">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-            <h4 className="font-display font-bold text-sm sm:text-base text-[#FAF0E2] leading-snug">
-              Ready to finish, or would you like to add another dog?
-            </h4>
           </div>
 
-          <p className="text-xs text-[#A4AA93] leading-relaxed">
-            You can add another dog to the same visit of our solar van. If you add a second dog,{" "}
-            <strong className="text-emerald-300">you will receive a 20% discount on the second dog!</strong>
-          </p>
-
-          <div className="grid sm:grid-cols-2 gap-2.5 pt-1">
-            {/* BUTTON 1: AGREGAR OTRO PERRO */}
-            <button
-              type="button"
-              onClick={onAddAnotherDog}
-              className="py-3 px-3 rounded-2xl bg-[#252C1D] border border-[#AA8B63]/70 hover:bg-[#AA8B63]/30 text-[#FAF0E2] text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md group text-center"
-            >
-              <PlusCircle className="h-4 w-4 text-[#AA8B63] group-hover:scale-110 transition-transform shrink-0" />
-              <span>➕ Add Another Dog (+20% OFF)</span>
-            </button>
-
-            {/* BUTTON 2: FINALIZAR RESERVA */}
-            <button
-              type="button"
-              disabled={isSubmitting || !data.agreedToTerms}
-              onClick={onFinalize}
-              className="py-3 px-3 rounded-2xl bg-[#AA8B63] text-[#161811] hover:bg-[#C4A67E] text-xs font-mono font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg disabled:opacity-50 text-center"
-            >
-              {isSubmitting ? (
-                <span>Confirming in System...</span>
-              ) : (
-                <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                  <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  <span>
-                    ✓ Confirm Booking ({totalDogsInSession} dog{totalDogsInSession > 1 ? "s" : ""}) · ${grandTotal}
-                  </span>
-                </div>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- SIGNATURE PAD CANVAS COMPONENT -------------------- */
-function SignaturePad({
-  value,
-  onChange,
-  onClear,
-}: {
-  value: string | null;
-  onChange: (dataUrl: string) => void;
-  onClear: () => void;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [hasStroke, setHasStroke] = useState(Boolean(value));
-
-  const initCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.strokeStyle = "#FAF0E2";
-    ctx.lineWidth = 2.5;
-
-    if (value) {
-      const img = new Image();
-      img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height);
-      img.src = value;
-    }
-  }, [value]);
-
-  useEffect(() => {
-    initCanvas();
-  }, [initCanvas]);
-
-  const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
-    const rect = canvas.getBoundingClientRect();
-    if ("touches" in e) {
-      const touch = e.touches[0];
-      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
-    }
-    return {
-      x: (e as React.MouseEvent).clientX - rect.left,
-      y: (e as React.MouseEvent).clientY - rect.top,
-    };
-  };
-
-  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const { x, y } = getCoordinates(e);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    setIsDrawing(true);
-    setHasStroke(true);
-  };
-
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const { x, y } = getCoordinates(e);
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  };
-
-  const endDrawing = () => {
-    if (!isDrawing) return;
-    setIsDrawing(false);
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    onChange(canvas.toDataURL("image/png"));
-  };
-
-  const handleClear = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    setHasStroke(false);
-    onClear();
-  };
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <label className="text-xs font-bold text-[#FAF0E2] uppercase tracking-wider font-mono">
-          Handwritten Signature:
-        </label>
-        <button
-          type="button"
-          onClick={handleClear}
-          className="text-xs font-semibold text-[#AA8B63] hover:text-[#FAF0E2] transition-colors cursor-pointer"
-        >
-          Clear
-        </button>
-      </div>
-
-      <div className="relative w-full h-24 rounded-xl bg-[#14160F] border border-[#FAF0E2]/20 overflow-hidden flex items-center justify-center shadow-inner">
-        {!hasStroke && !value && (
-          <div className="absolute pointer-events-none select-none text-[#A4AA93]/40 font-sans text-xs font-medium">
-            Sign here with finger or mouse
-          </div>
-        )}
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full touch-none cursor-crosshair relative z-10"
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={endDrawing}
-          onMouseLeave={endDrawing}
-          onTouchStart={startDrawing}
-          onTouchMove={draw}
-          onTouchEnd={endDrawing}
-        />
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- FINAL COMPLETED VIEW: BOOKING SUMMARY -------------------- */
-function BookingSummaryView({
-  data,
-  savedPets,
-  invoicePdf,
-  emailNotice,
-  onReset,
-}: {
-  data: GroomingFlowState;
-  savedPets: CompletedPet[];
-  invoicePdf: { base64: string; fileName: string } | null;
-  emailNotice: { type: "success" | "warning"; message: string } | null;
-  onReset: () => void;
-}) {
-  const selectedPkg = SOUVA_PACKAGES.find((p) => p.id === data.packageId);
-  const isOver50Lbs = data.size === "xlarge";
-  const currentBasePrice =
-    data.packageId === "essential-full-groom"
-      ? (isOver50Lbs ? 99 + 30 : 99)
-      : (selectedPkg?.prices[data.size as PetSize] || 0);
-  const currentAddonsCost = data.addons.reduce((sum, addId) => {
-    const item = SPA_UPGRADES.find((u) => u.id === addId);
-    if (!item) return sum;
-    return sum + (parseInt(item.price.replace(/[^0-9]/g, ""), 10) || 0);
-  }, 0);
-
-  const isSecondDog = savedPets.length === 1;
-  const currentDogDiscount = isSecondDog ? Math.round(currentBasePrice * 0.2) : 0;
-  const currentDogTotal = currentBasePrice - currentDogDiscount + currentAddonsCost;
-
-  const allPetsList: CompletedPet[] = [...savedPets];
-  if (data.petName.trim() && data.packageId) {
-    allPetsList.push({
-      id: "active-pet",
-      petName: data.petName,
-      size: data.size,
-      breed: data.breed || "Mix",
-      petAge: data.petAge,
-      gender: data.gender,
-      packageId: data.packageId,
-      packageName: selectedPkg?.name || "Signature Grooming",
-      addons: data.addons,
-      petCondition: data.petCondition,
-      temperament: data.temperament,
-      vaccinated: data.vaccinated,
-      medicalConditions: data.medicalConditions,
-      groomerNotes: data.groomerNotes,
-      petPhoto: data.petPhoto,
-      basePrice: currentBasePrice,
-      addonsCost: currentAddonsCost,
-      discount: currentDogDiscount,
-      totalPrice: currentDogTotal,
-    });
-  }
-
-  const grandTotal = allPetsList.reduce((sum, p) => sum + p.totalPrice, 0);
-  const totalSavings = allPetsList.reduce((sum, p) => sum + p.discount, 0);
-  const resolvedOwner = data.ownerName || `${data.firstName} ${data.lastName}`.trim();
-
-  const handleDownloadInvoice = () => {
-    if (!invoicePdf?.base64) return;
-    const link = document.createElement("a");
-    link.href = `data:application/pdf;base64,${invoicePdf.base64}`;
-    link.download = invoicePdf.fileName || `SOUVA-Invoice.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const mapsLink =
-    data.latitude && data.longitude
-      ? `https://www.google.com/maps?q=${data.latitude},${data.longitude}`
-      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.address)}`;
-
-  const waNumber = "14153755823";
-  const petsSummaryText = allPetsList
-    .map(
-      (p, i) =>
-        `• Dog #${i + 1}: ${p.petName} (${p.breed}, ${p.size.toUpperCase()}) - ${p.packageName} ($${p.totalPrice})`
-    )
-    .join("\n");
-
-  const message = `✨ VIP BOOKING CONFIRMED - SOUVA MOBILE PET GROOMING ✨
-
-📅 SCHEDULED APPOINTMENT:
-• Date: ${data.scheduledDate}
-• Time Window: ${data.scheduledTime}
-• Dogs Booked: ${allPetsList.length}
-
-🐾 PET COMPANIONS:
-${petsSummaryText}
-${totalSavings > 0 ? `\n🎉 Multi-Dog Discount Applied: -$${totalSavings}.00\n` : ""}
-💰 ESTIMATED TOTAL DUE: $${grandTotal}
-
-📍 DOORSTEP DESTINATION:
-• Parent: ${resolvedOwner}
-• Phone: ${data.phone}
-• Email: ${data.email}
-• Address: ${data.address} (ZIP ${data.zipCode})
-• Parking: ${data.parkingNotes || "Driveway"}
-
-📝 SOUVA SERVICE AGREEMENT ACCEPTED`;
-
-  const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
-
-  return (
-    <div className="py-2 text-left space-y-4">
-      {/* Header Banner */}
-      <div className="text-center pb-3 border-b border-[#FAF0E2]/10">
-        <div className="relative mx-auto h-16 w-16 flex items-center justify-center mb-2">
-          <div className="absolute inset-0 rounded-full bg-[#AA8B63]/25 blur-xl" />
-          <img
-            src="/assets/souva-badge-circle-transparent.png"
-            alt="SOUVA Badge"
-            className="h-12 w-12 object-contain rounded-full shadow-[0_0_20px_rgba(170,139,99,0.5)] relative z-10"
-          />
-        </div>
-
-        <div className="text-[10.5px] sm:text-[11px] font-bold uppercase tracking-normal sm:tracking-widest text-emerald-400 flex flex-wrap items-center justify-center gap-1.5 font-mono text-center px-2">
-          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-          <span>Doorstep Appointment Confirmed & Saved!</span>
-        </div>
-
-        <h3 className="font-display text-2xl sm:text-3xl font-bold mt-1 tracking-tight text-[#FAF0E2]">
-          {data.scheduledDate}
-          <span className="text-gradient-gold block font-mono text-xl sm:text-2xl mt-0.5">
-            {data.scheduledTime}
-          </span>
-        </h3>
-        <p className="text-xs text-[#A4AA93] mt-1 font-mono">
-          30-Minute Arrival Window · Luxury Solar Van Dispatched Directly to Doorstep
-        </p>
-      </div>
-
-      {/* Email Delivery Notification Banner */}
-      {emailNotice && (
-        <div className="p-3 rounded-2xl border text-xs flex items-start gap-2.5 bg-[#1B2317] border-[#AA8B63]/60 text-[#FAF0E2]">
-          <Mail className="h-4 w-4 shrink-0 mt-0.5 text-[#AA8B63]" />
-          <div className="space-y-0.5 min-w-0 flex-1">
-            <span className="font-bold block text-[11px] font-mono uppercase tracking-wider">
-              Confirmation Notice
+          <div className="text-right">
+            <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-mono text-[9px] font-bold uppercase tracking-wide">
+              Tarifa Calculada
             </span>
-            <p className="text-[11px] text-[#A4AA93] leading-relaxed">
-              {emailNotice.message}
-            </p>
+            <div className="text-[10px] font-mono text-[#FAF0E2]/60 mt-1">
+              ⏱ {selectedPackage.duration}
+            </div>
           </div>
         </div>
-      )}
 
-      {/* Booked Pets Summary */}
-      <div className="space-y-2">
-        <span className="text-[10px] font-mono text-[#AA8B63] uppercase tracking-wider font-bold block">
-          Booked Dogs in This Session ({allPetsList.length}):
-        </span>
-
-        <div className="grid sm:grid-cols-2 gap-2.5">
-          {allPetsList.map((pet, idx) => (
-            <div key={pet.id} className="p-3 rounded-2xl bg-[#1B1E15] border border-[#FAF0E2]/10 space-y-1.5">
-              <div className="flex items-center justify-between pb-1 border-b border-[#FAF0E2]/10">
-                <span className="font-bold text-xs text-[#FAF0E2] flex items-center gap-1.5">
-                  <Heart className="h-3.5 w-3.5 text-[#AA8B63]" />
-                  <span>#{idx + 1} {pet.petName}</span>
-                </span>
-                <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#25281D] text-[#AA8B63] font-bold">
-                  {pet.size}
-                </span>
-              </div>
-              <div className="text-[11px] text-[#A4AA93]">
-                <div>{pet.breed} · {pet.petAge}</div>
-                <div className="text-[#FAF0E2] font-semibold mt-0.5">{pet.packageName}</div>
-                {pet.discount > 0 && (
-                  <div className="text-emerald-400 font-mono text-[10px]">
-                    20% Multi-Dog Discount: -${pet.discount}
-                  </div>
-                )}
-              </div>
-              <div className="text-right font-mono font-bold text-xs text-[#AA8B63]">
-                ${pet.totalPrice}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Client & Destination Card */}
-      <div className="p-3.5 rounded-2xl bg-[#1B1E15] border border-[#FAF0E2]/10 space-y-1 text-xs">
-        <div className="text-[10px] font-mono uppercase text-[#AA8B63] font-bold flex items-center gap-1">
-          <MapPin className="h-3.5 w-3.5" />
-          <span>Doorstep Destination:</span>
-        </div>
-        <div className="font-bold text-[#FAF0E2]">{resolvedOwner} · {data.phone}</div>
-        <div className="text-[#A4AA93]">{data.address} (ZIP {data.zipCode})</div>
-        {data.parkingNotes && (
-          <div className="text-[10.5px] text-[#FAF0E2]/80 pt-1">Parking: {data.parkingNotes}</div>
-        )}
-      </div>
-
-      {/* Total Due */}
-      <div className="p-4 rounded-2xl bg-[#14160F] border border-[#AA8B63]/40 flex items-center justify-between">
-        <div>
-          <span className="text-[10px] font-mono uppercase text-[#A4AA93] block">Total Due at Service</span>
-          <span className="text-[10.5px] text-[#AA8B63]">Cash, Check, Card or Zelle</span>
-        </div>
-        <span className="font-display font-extrabold text-2xl text-[#AA8B63]">${grandTotal}</span>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="pt-2 space-y-2.5">
-        <a
-          href={waUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="w-full py-3.5 rounded-full bg-[#182319] border-2 border-[#25D366] text-[#FAF0E2] hover:bg-[#25D366] hover:text-black font-bold text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-lg transition-all group"
-        >
-          <WhatsAppIcon variant="badge" className="h-5 w-5" />
-          <span className="group-hover:text-black transition-colors">Send Booking Confirmation via WhatsApp</span>
-          <ArrowRight className="h-4 w-4" />
-        </a>
-
-        {/* VIP CLIENT ACCOUNT & PORTAL CARD */}
-        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-[#22271B] via-[#2A3121] to-[#1D2116] border-2 border-[#AA8B63] shadow-[0_0_25px_rgba(170,139,99,0.35)] space-y-3 text-left">
+        {/* Quote Breakdown */}
+        <div className="py-3.5 space-y-2 text-xs relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#AA8B63]">
-                Your SOUVA Client Account
-              </span>
+              <span className="text-[#AA8B63]">🐶</span>
+              <span className="text-[#FAF0E2] font-semibold">Tamaño seleccionado:</span>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#AA8B63]/25 border border-[#AA8B63]/60 text-amber-200 text-[9px] font-mono font-bold uppercase">
-              Live Dashboard
-            </span>
+            <button
+              type="button"
+              onClick={onBackToSize}
+              className="font-mono text-[#AA8B63] hover:underline font-bold text-[11px] cursor-pointer"
+              title="Cambiar tamaño"
+            >
+              {sizeObj?.label} ({sizeObj?.weight}) ✏️
+            </button>
           </div>
 
-          <div>
-            <h4 className="font-display font-extrabold text-base sm:text-lg text-[#FAF0E2]">
-              Need to modify your booking or view your profile?
-            </h4>
-            <p className="text-xs text-[#E2D7C5]/90 mt-1 leading-relaxed">
-              Log in to your account anytime to reschedule the arrival window, update your dog's name or breed, add luxury spa upgrades, or edit your doorstep address.
-            </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-[#AA8B63]">✂️</span>
+              <span className="text-[#FAF0E2] font-semibold">Servicio base:</span>
+            </div>
+            <button
+              type="button"
+              onClick={onBackToServices}
+              className="font-mono text-[#FAF0E2] hover:text-[#AA8B63] font-bold text-[11px] cursor-pointer"
+              title="Cambiar paquete"
+            >
+              {selectedPackage.name} (${basePrice}) ✏️
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              try {
-                saveClientSession({
-                  id: `CLI-${Date.now().toString().slice(-5)}`,
-                  name: resolvedOwner,
-                  email: data.email,
-                  phone: data.phone,
-                  address: data.address,
-                  zipCode: data.zipCode,
-                  createdAt: new Date().toISOString(),
-                  lastLoginAt: new Date().toISOString(),
-                });
-                window.location.href = "/portal";
-              } catch {
-                window.location.href = "/portal";
-              }
-            }}
-            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#AA8B63] via-[#C4A67E] to-[#AA8B63] text-[#161811] hover:brightness-110 active:scale-[0.99] font-black text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xl"
-          >
-            <User className="h-4 w-4 text-[#161811]" />
-            <span>Go to My Account & Manage Bookings →</span>
-          </button>
+          {selectedAddons.length > 0 && (
+            <div className="flex items-start justify-between pt-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[#AA8B63]">✨</span>
+                <span className="text-[#FAF0E2] font-semibold">Upgrades incluidos:</span>
+              </div>
+              <div className="text-right">
+                {selectedAddons.map((ad) => (
+                  <div key={ad?.id} className="text-[10.5px] font-mono text-[#AA8B63]">
+                    {ad?.name} ({ad?.price})
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {invoicePdf ? (
+        {/* Service Highlights */}
+        <div className="pt-3 border-t border-[#FAF0E2]/10 grid grid-cols-2 gap-2 text-[10.5px] text-[#E2D7C5]/85 relative z-10">
+          <div className="flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            <span>Van solar 100% autónoma</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            <span>Atención 1-a-1 sin jaulas</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            <span>Cosméticos botánicos Hydra®</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            <span>San Francisco & Península</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── BIG PRIMARY BUTTON: MANDAR AL LINK DE RESERVA SQUARE ──────── */}
+      <div className="space-y-2 pt-1">
+        <a
+          href={SQUARE_BOOKING_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={handleSquareClick}
+          className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[#AA8B63] via-[#C4A67E] to-[#AA8B63] text-[#161811] font-display font-black text-sm sm:text-base uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_28px_rgba(170,139,99,0.5)] hover:shadow-[0_0_40px_rgba(170,139,99,0.7)] hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer text-center group"
+        >
+          <span>RESERVAR EN SQUARE AHORA</span>
+          <ExternalLink className="h-4.5 w-4.5 stroke-[2.5] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+        </a>
+
+        {/* Direct Link Info & Copy Button */}
+        <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-[#151810] border border-[#FAF0E2]/10 text-[10px] font-mono text-[#A4AA93]">
+          <span className="truncate">
+            Enlace oficial: <strong className="text-[#FAF0E2]">souva-mobile-pet-grooming.square.site</strong>
+          </span>
           <button
             type="button"
-            onClick={handleDownloadInvoice}
-            className="w-full py-3.5 rounded-full bg-[#1B1E15] border border-[#AA8B63] text-[#FAF0E2] font-bold text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#AA8B63] hover:text-[#161811] transition-all cursor-pointer shadow-md group"
+            onClick={onCopy}
+            className="px-2 py-0.5 rounded bg-[#202517] hover:bg-[#AA8B63] hover:text-[#161811] text-[#FAF0E2] transition-colors cursor-pointer shrink-0 flex items-center gap-1 font-bold"
           >
-            <FileDown className="h-4 w-4 text-[#AA8B63] group-hover:text-[#161811]" />
-            <span>Download Official PDF Invoice & Receipt</span>
+            {copied ? (
+              <>
+                <Check className="h-3 w-3 text-emerald-400" />
+                <span>Copiado</span>
+              </>
+            ) : (
+              <>
+                <Copy className="h-3 w-3" />
+                <span>Copiar</span>
+              </>
+            )}
           </button>
-        ) : (
-          <div className="py-2.5 px-3 rounded-xl bg-[#14160F] border border-[#FAF0E2]/10 text-center text-[10.5px] font-mono text-[#A4AA93]">
-            <span>📄 Official PDF Invoice emailed to {data.email || "your email address"}</span>
-          </div>
-        )}
+        </div>
+      </div>
 
-        <button
-          type="button"
-          onClick={onReset}
-          className="w-full text-center py-2 text-xs text-[#A4AA93] hover:text-[#AA8B63] transition-colors font-semibold cursor-pointer underline underline-offset-4"
+      {/* Alternate Options (Phone / WhatsApp Concierge) */}
+      <div className="pt-2 grid grid-cols-2 gap-2 text-xs">
+        <a
+          href="tel:+14153755823"
+          className="p-2.5 rounded-xl bg-[#1C2016] border border-[#FAF0E2]/15 text-[#FAF0E2] hover:border-[#AA8B63] transition-colors flex items-center justify-center gap-1.5 font-mono text-[11px] font-bold"
+          title="Llamar para reservar"
         >
-          Book Another Appointment or Start Over
-        </button>
+          <Phone className="h-3.5 w-3.5 text-[#AA8B63]" />
+          <span>Llamar: (415) 375-5823</span>
+        </a>
+
+        <a
+          href={`https://wa.me/14153755823?text=${whatsappMessage}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-2.5 rounded-xl bg-[#152317] border border-[#25D366]/40 text-emerald-300 hover:border-[#25D366] transition-colors flex items-center justify-center gap-1.5 font-mono text-[11px] font-bold"
+          title="Consultar por WhatsApp"
+        >
+          <WhatsAppIcon className="h-3.5 w-3.5 text-[#25D366]" />
+          <span>WhatsApp Concierge</span>
+        </a>
       </div>
     </div>
   );

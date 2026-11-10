@@ -195,7 +195,7 @@ function QuickLinksContent({
     if (onBookClick) {
       onBookClick();
     } else {
-      handleNavigate("book");
+      window.open("https://souva-mobile-pet-grooming.square.site", "_blank", "noopener,noreferrer");
     }
   };
 

@@ -998,17 +998,15 @@ export function ClientPortal({
                     <p className="text-xs text-[#A4AA93] max-w-sm mx-auto leading-relaxed">
                       Our solar van travels directly to your doorstep. Schedule a luxury 1-on-1 session for your pup in under 60 seconds.
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (onBookNewClick) onBookNewClick();
-                        else setShowBookingModal(true);
-                      }}
+                    <a
+                      href="https://souva-mobile-pet-grooming.square.site"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="mt-2 px-6 py-2.5 rounded-full bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md inline-flex items-center gap-2"
                     >
                       <Plus className="h-4 w-4" />
-                      <span>Book Doorstep Appointment Now</span>
-                    </button>
+                      <span>Book on Square</span>
+                    </a>
                   </div>
                 ) : (
                   upcomingAppointments.map((app) => {

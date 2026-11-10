@@ -497,13 +497,15 @@ export function FaqSection({ onBookClick }: { onBookClick?: () => void }) {
                     </button>
 
                     {onBookClick && (
-                      <button
-                        type="button"
+                      <a
+                        href="https://souva-mobile-pet-grooming.square.site"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         onClick={onBookClick}
-                        className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-xs font-mono font-bold uppercase transition-all cursor-pointer shadow-md"
+                        className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#AA8B63] hover:bg-[#C4A67E] text-[#161811] text-xs font-mono font-bold uppercase transition-all cursor-pointer shadow-md text-center"
                       >
-                        Book Appointment Now →
-                      </button>
+                        Book on Square →
+                      </a>
                     )}
                   </div>
                 </div>
